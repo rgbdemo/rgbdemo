@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 2.6)
+
+PROJECT(RGBDemo)
+SET(RGBDEMO_VERSION 0.3.0)
+
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Kinect Demo")
+SET(CPACK_PACKAGE_VENDOR "Nicolas Burrus")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README")
+SET(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/Copyright.txt")
+SET(CPACK_PACKAGE_VERSION_MAJOR "0")
+SET(CPACK_PACKAGE_VERSION_MINOR "3")
+SET(CPACK_PACKAGE_VERSION_PATCH "0")
+SET(CPACK_PACKAGE_INSTALL_DIRECTORY "CMake ${CMake_VERSION_MAJOR}.${CMake_VERSION_MINOR}")
+
+SET(CPACK_STRIP_FILES "bin/MyExecutable")
+SET(CPACK_SOURCE_STRIP_FILES "")
+SET(CPACK_SOURCE_IGNORE_FILES "/CMakeLists.txt.user$;/bin/;/build/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;.*~$" CACHE STRING "CPACK will ignore this files" )
+INCLUDE(CPack)
+
+SET(EXECUTABLE_OUTPUT_PATH ${rgbdemo_BINARY_DIR}/bin)
+IF (WIN32)
+  SET(LIBRARY_OUTPUT_PATH ${rgbdemo_BINARY_DIR}/lib)
+ENDIF()
+
+ADD_SUBDIRECTORY(nestk)
+## nestk/UseNestk.cmake.in defines variable to use nestk.
+## It itself includes nestk/deps/cmake/UseEmbeddedNestkDeps.cmake that
+## contains most of the cmake find packages commands.
+INCLUDE("${nestk_BINARY_DIR}/UseNestk.cmake")
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NESTK_EXTRA_CMAKE_CXX_FLAGS}" )
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+
+ADD_SUBDIRECTORY(calibration)
+ADD_SUBDIRECTORY(viewer)
