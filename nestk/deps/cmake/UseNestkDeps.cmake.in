@@ -1,0 +1,100 @@
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${nestk_deps_SOURCE_DIR}/cmake)
+
+INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/include)
+INCLUDE_DIRECTORIES( BEFORE ${nestk_deps_SOURCE_DIR} ${nestk_deps_BINARY_DIR} )
+
+## Eigen stuff.
+INCLUDE_DIRECTORIES( ${nestk_deps_SOURCE_DIR}/eigen)
+
+## OpenCV
+IF (USE_EXTERNAL_OPENCV)
+  FIND_PACKAGE(OpenCV REQUIRED)
+ELSE()
+  SET(OpenCV_DIR ${CMAKE_BINARY_DIR})
+  FIND_PACKAGE(OpenCV REQUIRED)
+  INCLUDE_DIRECTORIES(${OPENCV_INCLUDE_DIRS})
+ENDIF(USE_EXTERNAL_OPENCV)
+
+## Qt stuff.
+SET(QT_USE_QTXML 1)
+SET(QT_USE_QTSVG 1)
+SET(QT_USE_QTOPENGL 1)
+SET(QT_USE_QTNETWORK 1)
+FIND_PACKAGE(Qt4)
+ADD_DEFINITIONS(-DUSE_QT)
+INCLUDE(${QT_USE_FILE})
+IF (NOT QT4_FOUND)
+  MESSAGE(FATAL_ERROR "Qt4 was not found. Check the QTDIR environment variable.")
+ENDIF(NOT QT4_FOUND)
+
+# For libfreenect
+IF (USE_FREENECT)
+    if (WIN32)
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows")
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows/libusb10emu")
+    endif()
+    include_directories(${nestk_deps_SOURCE_DIR}/libfreenect/include)
+    ADD_DEFINITIONS(-DUSE_FREENECT)
+    ## LIBUSB
+    if(WIN32)
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows")
+      include_directories("${nestk_deps_SOURCE_DIR}/libfreenect/platform/windows/libusb10emu")
+    endif()
+    INCLUDE_DIRECTORIES(${LIBUSB_1_INCLUDE_DIR})
+    SET(FREENECT_LIBRARY freenect)
+ENDIF(USE_FREENECT)
+
+# opengl
+FIND_PACKAGE(OpenGL REQUIRED)
+
+# X11
+FIND_LIBRARY(X11_LIBRARY X11)
+IF (NOT X11_LIBRARY)
+  SET(X11_LIBRARY "")
+ENDIF()
+
+# GLEW library
+set(GLEW_INCLUDE_DIR "${nestk_deps_SOURCE_DIR}/glew/include" CACHE FILEPATH "" FORCE)
+INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
+set(GLEW_LIBRARIES "glew" CACHE FILEPATH "" FORCE)
+ADD_DEFINITIONS(-DUSE_GLEW)
+
+# GLUT
+FIND_PACKAGE(GLUT REQUIRED)
+
+# GSL stuff
+FIND_PACKAGE(GSL)
+IF (GSL_FOUND)
+  ADD_DEFINITIONS(-DUSE_GSL)
+  SET(GSL_LIBRARIES gsl gslcblas)
+ELSE()
+  SET(GSL_LIBRARIES "")
+ENDIF (GSL_FOUND)
+
+IF (USE_PMDSDK AND HAVE_NESTK_PRIVATE)
+  SET(PMD_LIBRARIES pmdaccess2)
+  ADD_DEFINITIONS(-DUSE_PMDSDK)
+  IF (${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64*
+      OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES amd64*)
+    MESSAGE("Using 64bit camcube libraries.")
+    INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/include)
+    LINK_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/bin)    
+    execute_process(
+      COMMAND mkdir -p "${EXECUTABLE_OUTPUT_PATH}"
+      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/plugins/camcube3.L64.pap
+      ${EXECUTABLE_OUTPUT_PATH}/camcube.L64.pap
+      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/plugins/camcubeproc.L64.ppp
+      ${EXECUTABLE_OUTPUT_PATH}/camcubeproc.L64.ppp)
+  ELSE ()
+    MESSAGE("Using 32bit camcube libraries.")
+    INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/include)
+    LINK_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/bin)
+    execute_process(
+      COMMAND mkdir -p "${EXECUTABLE_OUTPUT_PATH}"
+      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/plugins/camcube3.L32.pap
+      ${EXECUTABLE_OUTPUT_PATH}/camcube.L32.pap
+      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/plugins/camcubeproc.L32.ppp
+      ${EXECUTABLE_OUTPUT_PATH}/camcubeproc.L32.ppp)
+  ENDIF()
+ENDIF()
+
