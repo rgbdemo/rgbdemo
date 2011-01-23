@@ -43,6 +43,7 @@ public:
   void generatePointCloudMesh(const RGBDImage& image, const Pose3D& depth_pose, const Pose3D& rgb_pose);
   void generateSurfelsMesh(const RGBDImage& image, const Pose3D& depth_pose, const Pose3D& rgb_pose);
   void setUseColor(bool use_it) { m_use_color = use_it; }
+  bool useColor() const { return m_use_color; }
   void setMeshType(MeshType type) { m_mesh_type = type; }
   void setResolutionFactor(double f);
   void setMaxNormalAngle(double angle_in_degrees) { m_max_normal_angle = angle_in_degrees; }
