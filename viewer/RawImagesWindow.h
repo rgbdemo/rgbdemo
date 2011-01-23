@@ -49,12 +49,8 @@ private:
     void closeEvent(QCloseEvent *event);
 
 private slots:
-    void on_actionPedestrians_triggered(bool checked);
-    void on_integrationTimeText_returnPressed();
     void on_actionNext_frame_triggered();
     void on_actionPause_toggled(bool );
-    void on_action_Show_Modeler_toggled(bool );
-    void on_actionPa10_Controller_toggled(bool );
     void on_syncMode_toggled(bool checked);
     void on_action_GrabFrames_toggled(bool );
     void on_action_Screen_capture_mode_toggled(bool );

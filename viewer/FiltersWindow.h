@@ -51,7 +51,6 @@ private slots:
     void on_unstableCheckBox_toggled(bool checked);
     void on_normalsCheckBox_toggled(bool checked);
     void on_medianCheckBox_toggled(bool checked);
-    void on_amplitudeCheckBox_toggled(bool checked);
     void on_edgesCheckBox_toggled(bool checked);
     void on_depthThresholdCheckBox_toggled(bool checked);
     void on_kinectTiltSlider_valueChanged(int value);

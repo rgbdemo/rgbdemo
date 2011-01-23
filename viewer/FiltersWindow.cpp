@@ -36,9 +36,6 @@ FiltersWindow::FiltersWindow(GuiController& controller, QWidget *parent) :
   if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterEdges))
     ui->edgesCheckBox->setCheckState(Qt::Checked);
 
-  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterAmplitude))
-    ui->amplitudeCheckBox->setCheckState(Qt::Checked);
-
   if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterThresholdDepth))
     ui->depthThresholdCheckBox->setCheckState(Qt::Checked);
 
@@ -69,11 +66,6 @@ void FiltersWindow::on_depthThresholdCheckBox_toggled(bool checked)
 void FiltersWindow::on_edgesCheckBox_toggled(bool checked)
 {
   m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FilterEdges, checked);
-}
-
-void FiltersWindow::on_amplitudeCheckBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FilterAmplitude, checked);
 }
 
 void FiltersWindow::on_medianCheckBox_toggled(bool checked)

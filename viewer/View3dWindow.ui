@@ -35,6 +35,9 @@
          <property name="text">
           <string>Color</string>
          </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -66,20 +69,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="showPlaneCheckBox">
-         <property name="text">
-          <string>Show plane</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="removePlaneCheckBox">
-         <property name="text">
-          <string>Remove plane pixels</string>
-         </property>
-        </widget>
-       </item>
-       <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
@@ -91,29 +80,6 @@
           </size>
          </property>
         </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Resolution factor</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QDoubleSpinBox" name="resolutionFactorSpinBox">
-         <property name="minimum">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="maximum">
-          <double>4.000000000000000</double>
-         </property>
-         <property name="singleStep">
-          <double>0.100000000000000</double>
-         </property>
-         <property name="value">
-          <double>1.000000000000000</double>
-         </property>
-        </widget>
        </item>
        <item>
         <widget class="QPushButton" name="resetCamera">

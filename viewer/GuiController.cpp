@@ -25,13 +25,7 @@
 #include "View3dWindow.h"
 #include "FiltersWindow.h"
 #include "DetectorWindow.h"
-#ifdef NESTK_PRIVATE
-# include "PedestriansDetectorWindow.h"
-#endif
 #include "RawImagesWindow.h"
-#include "Pa10ControllerWindow.h"
-#include "ModelAcquisitionWindow.h"
-#include "ModelAcquisitionController.h"
 
 #include <ntk/ntk.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
@@ -40,10 +34,6 @@
 #include <QMainWindow>
 #include <QImage>
 #include <QApplication>
-
-#ifdef NESTK_PRIVATE
-#include <ntk/private/detection/plane_estimator.h>
-#endif
 
 using namespace cv;
 using namespace ntk;
@@ -55,33 +45,21 @@ GuiController :: GuiController(ntk::RGBDGrabber& producer,
     m_frame_recorder(0),
     m_object_detector(0),
     m_mesh_generator(0),
-    m_plane_estimator(0),
-    m_pa10_client(0),
-    m_model_acquisition_controller(0),
     m_last_tick(cv::getTickCount()),
     m_frame_counter(0),
     m_frame_rate(0),
-    m_modeling_window_grabber("/tmp/demo3d/modeling"),
     m_view3d_window_grabber("/tmp/demo3d/view3d"),
     m_detector_window_grabber("/tmp/demo3d/detector"),
-    m_pedestrians_detector_window_grabber("/tmp/demo3d/pedestrians"),
     m_raw_window_grabber("/tmp/demo3d/raw"),
     m_screen_capture_mode(false),
     m_grab_frames(false),
     m_paused(false),
-    m_process_one_frame(false),
-    m_show_plane(false),
-    m_remove_plane_pixels(false)
+    m_process_one_frame(false)
 {
   m_raw_images_window = new RawImagesWindow(*this);
   m_view3d_window = new View3DWindow(*this);
   m_filters_window = new FiltersWindow(*this);
   m_detector_window = new DetectorWindow(*this);
-#ifdef NESTK_PRIVATE
-  m_pedestrians_detector_window = new PedestriansDetectorWindow(*this);
-#endif
-  m_pa10_window = new Pa10ControllerWindow(*this);
-  m_model_window = new ModelAcquisitionWindow(*this);
 
   m_raw_images_window->show();
 }
@@ -90,12 +68,8 @@ GuiController :: ~GuiController()
 {
   delete m_raw_images_window;
   delete m_detector_window;
-#ifdef NESTK_PRIVATE
-  delete m_pedestrians_detector_window;
-#endif
   delete m_view3d_window;
   delete m_filters_window;
-  delete m_model_window;
 }
 
 void GuiController :: quit()
@@ -103,30 +77,7 @@ void GuiController :: quit()
   m_grabber.setShouldExit();
   m_grabber.newEvent();
   m_grabber.wait();
-  if (m_pa10_client)
-    m_pa10_client->shutDown();
   QApplication::quit();
-}
-
-void GuiController :: setModelAcquisitionController(ModelAcquisitionController& controller)
-{
-  m_model_acquisition_controller = &controller;
-  m_raw_images_window->ui->action_Show_Modeler->setEnabled(true);
-}
-
-void GuiController :: setPa10Angles(const ntk::Pa10client::s1s2s3e1e2w1w2_t& angles)
-{
-  ntk_ensure(m_pa10_client, "No pa10 client!");
-  m_pa10_angles = angles;
-  bool ok = m_pa10_client->absoluteJointAngles(angles);
-}
-
-void GuiController :: setPa10Client(ntk::Pa10client& client,
-                                    const ntk::Pa10client::s1s2s3e1e2w1w2_t& initial_angles)
-{
-  m_pa10_client = &client;
-  m_pa10_angles = initial_angles;
-  m_raw_images_window->ui->actionPa10_Controller->setEnabled(true);
 }
 
 void GuiController :: setFrameRecorder(ntk::RGBDFrameRecorder& frame_recorder)
@@ -147,6 +98,7 @@ void GuiController :: setMeshGenerator(MeshGenerator& generator)
 {
   m_mesh_generator = &generator;
   m_raw_images_window->ui->action_3D_View->setEnabled(true);
+  m_raw_images_window->ui->action_3D_View->setEnabled(m_mesh_generator->useColor());
 }
 
 static QImage toNormalizedQImage(const cv::Mat1f& m)
@@ -219,24 +171,6 @@ void GuiController :: onRGBDDataUpdated()
   if (m_screen_capture_mode)
     m_raw_window_grabber.saveFrame(QPixmap::grabWindow(m_raw_images_window->winId()));
 
-#ifdef NESTK_PRIVATE
-  if (m_pedestrians_detector_window->isVisible())
-  {
-    m_pedestrians_detector_window->update(m_last_image);
-    m_pedestrians_detector_window->repaint();
-    if (m_screen_capture_mode)
-      m_pedestrians_detector_window_grabber.saveFrame(QPixmap::grabWindow(m_pedestrians_detector_window->winId()));
-  }
-
-  if (m_plane_estimator && m_show_plane)
-  {
-    m_plane_estimator->estimate(m_last_image, m_remove_plane_pixels);
-    ntk::Mesh plane_mesh;
-    generate_mesh_from_plane(plane_mesh, m_plane_estimator->currentPlane(), Point3f(0,0,-1), 1);
-    m_view3d_window->ui->mesh_view->addMesh(plane_mesh, Pose3D(), MeshViewer::FLAT);
-  }
-#endif
-
   if (m_object_detector && m_detector_window->isVisible())
   {
     m_detector_window->update(m_last_image);
@@ -257,14 +191,6 @@ void GuiController :: onRGBDDataUpdated()
     if (m_screen_capture_mode)
       m_view3d_window_grabber.saveFrame(QPixmap::grabWindow(m_view3d_window->winId()));
     m_view3d_window->ui->mesh_view->swapScene();
-  }
-
-  if (m_model_acquisition_controller
-      && m_model_window->isVisible())
-  {
-    m_model_acquisition_controller->newFrame(m_last_image);
-    if (m_screen_capture_mode)
-      m_modeling_window_grabber.saveFrame(QPixmap::grabWindow(m_model_window->winId()));
   }
 
   QString status = QString("Final fps = %1 Fps GRABBER = %2")
@@ -299,20 +225,6 @@ void GuiController::toggleObjectDetector(bool active)
   }
 }
 
-void GuiController::togglePedestriansDetector(bool active)
-{
-#ifdef NESTK_PRIVATE
-  if (active)
-  {
-    m_pedestrians_detector_window->show();
-  }
-  else
-  {
-    m_pedestrians_detector_window->hide();
-  }
-#endif
-}
-
 void GuiController::toggleView3d(bool active)
 {
   if (active)
@@ -336,28 +248,3 @@ void GuiController::toggleFilters(bool active)
     m_filters_window->hide();
   }
 }
-
-void GuiController::togglePa10Controller(bool active)
-{
-  if (active)
-  {
-    m_pa10_window->show();
-  }
-  else
-  {
-    m_pa10_window->hide();
-  }
-}
-
-void GuiController::toggleModeler(bool active)
-{
-  if (active)
-  {
-    m_model_window->show();
-  }
-  else
-  {
-    m_model_window->hide();
-  }
-}
-

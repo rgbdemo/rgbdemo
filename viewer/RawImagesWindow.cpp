@@ -44,9 +44,6 @@ RawImagesWindow::RawImagesWindow(GuiController& controller, QWidget *parent) :
           &m_controller, SLOT(on_depth_mouse_moved(int,int)));
   ui->depthView->setMouseTracking(true);
 
-  ui->integrationTimeText->setText(QString("%1").arg(
-      m_controller.grabber().integrationTime()));
-
   ui->action_Show_Object_Detector->setDisabled(true);
   ui->action_3D_View->setDisabled(true);
 
@@ -133,16 +130,6 @@ void RawImagesWindow::on_syncMode_toggled(bool checked)
     m_controller.grabber().newEvent();
 }
 
-void RawImagesWindow::on_actionPa10_Controller_toggled(bool active)
-{
-  m_controller.togglePa10Controller(active);
-}
-
-void RawImagesWindow::on_action_Show_Modeler_toggled(bool active)
-{
-  m_controller.toggleModeler(active);
-}
-
 void RawImagesWindow::closeEvent(QCloseEvent *event)
 {
   ui->action_Quit->trigger();
@@ -151,7 +138,6 @@ void RawImagesWindow::closeEvent(QCloseEvent *event)
 
 void RawImagesWindow::on_actionPause_toggled(bool active)
 {
-  // m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::Pause, active);
   m_controller.setPaused(active);
 }
 
@@ -160,32 +146,16 @@ void RawImagesWindow::on_actionNext_frame_triggered()
   m_controller.processOneFrame();
 }
 
-void RawImagesWindow::on_integrationTimeText_returnPressed()
-{
-  int value = ui->integrationTimeText->text().toInt();
-  m_controller.grabber().setIntegrationTime(value);
-}
-
-void RawImagesWindow::on_actionPedestrians_triggered(bool checked)
-{
-  m_controller.togglePedestriansDetector(checked);
-}
-
-
 void RawImagesWindow::on_actionShow_IR_toggled(bool v)
 {
-#ifdef USE_FREENECT
   KinectGrabber* kinect_grabber = dynamic_cast<KinectGrabber*>(&m_controller.grabber());
   if (kinect_grabber)
     kinect_grabber->setIRMode(v);
-#endif
 }
 
 void RawImagesWindow::on_actionDual_RGB_IR_mode_toggled(bool v)
 {
-#ifdef USE_FREENECT
   KinectGrabber* kinect_grabber = dynamic_cast<KinectGrabber*>(&m_controller.grabber());
   if (kinect_grabber)
     kinect_grabber->setDualRgbIR(v);
-#endif
 }

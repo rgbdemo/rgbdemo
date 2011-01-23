@@ -29,7 +29,7 @@ View3DWindow::View3DWindow(GuiController& controller, QWidget *parent) :
     ui(new Ui::View3DWindow),
     m_controller(controller)
 {  
-    ui->setupUi(this);
+  ui->setupUi(this);
 }
 
 View3DWindow::~View3DWindow()
@@ -46,21 +46,6 @@ void View3DWindow::on_resetCamera_clicked()
 void View3DWindow::on_colorMappingCheckBox_toggled(bool checked)
 {
   m_controller.meshGenerator()->setUseColor(checked);
-}
-
-void View3DWindow::on_resolutionFactorSpinBox_valueChanged(double value)
-{
-  m_controller.meshGenerator()->setResolutionFactor(value);
-}
-
-void View3DWindow::on_showPlaneCheckBox_toggled(bool checked)
-{
-  m_controller.toggleShowPlane(checked);
-}
-
-void View3DWindow::on_removePlaneCheckBox_toggled(bool checked)
-{
-  m_controller.toggleRemovePlanePixels(checked);
 }
 
 void View3DWindow::on_pointCloudPushButton_clicked()

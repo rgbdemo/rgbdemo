@@ -45,9 +45,6 @@ private slots:
     void on_trianglePushButton_clicked();
     void on_surfelsPushButton_clicked();
     void on_pointCloudPushButton_clicked();
-    void on_removePlaneCheckBox_toggled(bool checked);
-    void on_showPlaneCheckBox_toggled(bool checked);
-    void on_resolutionFactorSpinBox_valueChanged(double );
     void on_colorMappingCheckBox_toggled(bool checked);
     void on_resetCamera_clicked();
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>361</width>
-    <height>276</height>
+    <height>282</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -84,13 +84,6 @@
          <widget class="QCheckBox" name="edgesCheckBox">
           <property name="text">
            <string>Edges</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QCheckBox" name="amplitudeCheckBox">
-          <property name="text">
-           <string>Low Amplitude</string>
           </property>
          </widget>
         </item>
