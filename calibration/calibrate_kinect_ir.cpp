@@ -37,29 +37,29 @@ using namespace cv;
 
 namespace global
 {
-  ntk::arg<const char*> opt_image_directory(0, "RGBD images directory", 0);
-  ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "kinect_calibration.yml");
-  ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
-  ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
-  ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
-  ntk::arg<bool> opt_ignore_distortions("--no-depth-undistort", "Ignore distortions for depth images(faster processing)", false);
+ntk::arg<const char*> opt_image_directory(0, "RGBD images directory", 0);
+ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "kinect_calibration.yml");
+ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
+ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
+ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
+ntk::arg<bool> opt_ignore_distortions("--no-depth-undistort", "Ignore distortions for depth images(faster processing)", false);
 
-  const cv::Size image_size(640,480);
+const cv::Size image_size(640,480);
 
-  QDir images_dir;
-  QStringList images_list;
+QDir images_dir;
+QStringList images_list;
 
-  cv::Mat1d depth_intrinsics;
-  cv::Mat1d depth_distortion;
+cv::Mat1d depth_intrinsics;
+cv::Mat1d depth_distortion;
 
-  cv::Mat1d rgb_intrinsics;
-  cv::Mat1d rgb_distortion;
+cv::Mat1d rgb_intrinsics;
+cv::Mat1d rgb_distortion;
 
-  // stereo transform.
-  cv::Mat1d R, T;
+// stereo transform.
+cv::Mat1d R, T;
 
-  double depth_offset = 1090;
-  double depth_baseline = 7.5e-02;
+double depth_offset = 1090;
+double depth_baseline = 7.5e-02;
 }
 
 struct DepthCalibrationPoint
@@ -163,7 +163,7 @@ void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
       else
       {
         stereo_corners[stereo_i].resize(0);
-	continue;
+        continue;
       }
 
       // Generate calibration points
