@@ -129,8 +129,6 @@ namespace ntk
 
     void unprojectFromImage(const cv::Mat1f& pixels, const cv::Mat1b& mask, cv::Mat3f& voxels) const;
 
-    //
-
   private:
     double m_focal_x;
     double m_focal_y;

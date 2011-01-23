@@ -58,7 +58,7 @@ namespace ntk
     void stop()
     {
       uint64 tstop = ntk::Time::getMillisecondCounter();
-      ntk_dbg(m_debug_level) << "[TIME] elapsed in " << m_name << ": " << (float(tstop)-m_start) << " msecs\n";
+      ntk_dbg(m_debug_level) << "[TIME] elapsed in " << m_name << ": " << (float(tstop)-m_start) << " msecs";
     }
 
   private:

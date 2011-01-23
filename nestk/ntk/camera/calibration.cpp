@@ -69,7 +69,6 @@ void RGBDCalibration :: loadFromFile(const char* filename)
   depth_size = cv::Size(size_mat(0,0), size_mat(0,1));
   readMatrix(calibration_file, "raw_depth_size", size_mat);
   raw_depth_size = cv::Size(size_mat(0,0), size_mat(0,1));
-  calibration_file.release();
 
   cv::Mat1f depth_calib (1,2);
   try {
@@ -78,7 +77,11 @@ void RGBDCalibration :: loadFromFile(const char* filename)
     depth_offset = depth_calib(0,1);
   }
   catch(...)
-  {}
+  {
+    ntk_dbg(0) << "Warning: could not load depth offset";
+  }
+
+  calibration_file.release();
 
   depth_pose = new Pose3D();
   depth_pose->setCameraParametersFromOpencv(depth_intrinsics);

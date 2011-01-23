@@ -171,6 +171,9 @@ void apply_mask(cv::Mat1f& im, const cv::Mat1b& mask);
 void read_from_yaml(cv::FileNode node, cv::Vec3f& v);
 void write_to_yaml(cv::FileStorage& output_file, const std::string& name, const cv::Vec3f& v);
 
+void read_from_yaml(cv::FileNode node, cv::Rect& v);
+void write_to_yaml(cv::FileStorage& output_file, const std::string& name, const cv::Rect& v);
+
 void read_from_yaml(cv::FileNode node, bool& b);
 void write_to_yaml(cv::FileStorage& output_file, const std::string& name, bool b);
 
@@ -180,8 +183,8 @@ void write_to_yaml(cv::FileStorage& output_file, const std::string& name, int b)
 void read_from_yaml(cv::FileNode node, double& b);
 void write_to_yaml(cv::FileStorage& output_file, const std::string& name, double b);
 
-void write_to_yaml(cv::FileStorage& output_file, const std::string& name, const cv::Mat& matrix);
 void read_from_yaml(cv::FileNode node, cv::Mat& matrix);
+void write_to_yaml(cv::FileStorage& output_file, const std::string& name, const cv::Mat& matrix);
 
 /*!
  * Obsolete. Use write_to_yaml. This is provided for API compatility.

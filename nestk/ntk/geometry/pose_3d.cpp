@@ -91,7 +91,7 @@ public:
       r(1) /= r(2);
     }
     if (iface->isOrthographic())
-      r(2) = -p(2);
+      r(2) = -(camera_transform * Eigen::Vector3d(p(0), p(1), p(2)))(2);
     r(2) *= -1;
     return r;
   }
@@ -106,7 +106,7 @@ public:
       r(1) /= r(2);
     }
     if (iface->isOrthographic())
-      r(2) = -p(2);
+      r(2) = -(camera_transform * Eigen::Vector3d(p(0), p(1), p(2)))(2);
     return r;
   }
 

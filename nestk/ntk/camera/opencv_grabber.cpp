@@ -50,7 +50,7 @@ void OpencvGrabber :: run()
     waitForNewEvent();
     m_logitech_capture >> logitech_image;    
 
-    ntk_assert(logitech_image.cols == m_image_size.width, "Wrong image size");
+    //ntk_assert(logitech_image.cols == m_image_size.width, "Wrong image size");
     if (logitech_image.data == 0)
       ntk_throw_exception("Error adquiring frame from Logitech. Connected?");
 

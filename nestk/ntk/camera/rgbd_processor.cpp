@@ -131,7 +131,7 @@ namespace ntk
     m_image->depthMaskRef() = cv::Mat1b(m_image->rawDepth().size());
     for_all_rc(m_image->depthMaskRef())
     {
-      if (m_image->rawDepth()(r,c) < 1e-5)
+      if (m_image->depth()(r,c) < 1e-5)
         m_image->depthMaskRef()(r,c) = 0;
       else
         m_image->depthMaskRef()(r,c) = 1;

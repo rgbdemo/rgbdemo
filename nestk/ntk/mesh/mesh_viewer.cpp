@@ -308,7 +308,7 @@ void MeshViewer :: resizeGL(int w, int h)
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(50.0, double(w)/h, 0.01, 10);
+  gluPerspective(50.0, double(w)/h, 0.01, 20);
 }
 
 void MeshViewer :: resetCamera()

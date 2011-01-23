@@ -191,6 +191,24 @@ namespace ntk
     cvWriteReal(*output_file, name.c_str(), b);
   }
 
+  void write_to_yaml(FileStorage& output_file, const std::string& name, const cv::Rect& r)
+  {
+    cv::Mat1f m(1,4);
+    m << r.x, r.y, r.width, r.height;
+    CvMat c_m = m;
+    output_file.writeObj(name, &c_m);
+  }
+
+  void read_from_yaml(FileNode node, cv::Rect& r)
+  {
+    CvMat* c_m;
+    c_m = (CvMat*)node.readObj();
+    ntk_throw_exception_if(!c_m, std::string("Could not read field ") + node.name() + " from yml file.");
+    cv::Mat1f m (c_m);
+    ntk_assert(m.cols == 4, "Bad Rect.");
+    r = cv::Rect(m(0,0), m(0,1), m(0,2), m(0,3));
+  }
+
   void write_to_yaml(FileStorage& output_file, const std::string& name, const cv::Vec3f& v)
   {
     cv::Mat1f m(1,3);
