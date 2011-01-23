@@ -27,6 +27,8 @@
 #include <ntk/geometry/pose_3d.h>
 #include <ntk/mesh/mesh_viewer.h>
 
+#include <QtConcurrentRun>
+
 using namespace ntk;
 using namespace cv;
 
@@ -90,38 +92,3 @@ void ModelAcquisitionController :: newFrame(const ntk::RGBDImage& image)
   }
 }
 
-void Pa10ModelAcquisitionController :: move()
-{
-  ntk::Pa10client::s1s2s3e1e2w1w2_t angles = m_controller.pa10Angles();
-  angles.w2 += m_delta_angle;
-  m_controller.setPa10Angles(angles);
-  ntk::sleep(100);
-}
-
-void Pa10ModelAcquisitionController :: reset()
-{
-  ModelAcquisitionController::reset();
-  ntk::Pa10client::s1s2s3e1e2w1w2_t angles = m_controller.pa10Angles();
-  angles.w2 = 0;
-  m_controller.setPa10Angles(angles);
-}
-
-void Pa10PoseAcquisitionController :: move()
-{
-  ntk::Pa10client::s1s2s3e1e2w1w2_t angles = m_controller.pa10Angles();
-  angles.w2 += 0;
-  angles.e1 += 3;
-  angles.s1 += 3;
-  m_controller.setPa10Angles(angles);
-  ntk::sleep(100);
-}
-
-void Pa10PoseAcquisitionController :: reset()
-{
-  ModelAcquisitionController::reset();
-  ntk::Pa10client::s1s2s3e1e2w1w2_t angles = m_controller.pa10Angles();
-  angles.w2 = -10;
-  angles.e1 = 90;
-  angles.s1 = 100;
-  m_controller.setPa10Angles(angles);
-}

@@ -63,45 +63,4 @@ protected:
   bool m_paused;
 };
 
-class Pa10ModelAcquisitionController : public ModelAcquisitionController
-{
-public:
-  Pa10ModelAcquisitionController(GuiController& controller, ntk::RGBDModeler& modeler)
-    : ModelAcquisitionController(controller, modeler),
-      m_delta_angle(10)
-  {}
-
-  void setDeltaPose(const ntk::Pose3D& delta_pose)
-  { m_delta_pose = delta_pose; }
-
-  virtual void newFrame(const ntk::RGBDImage& image) {}
-  virtual void move();
-  virtual void reset();
-  virtual int getNumberOfSteps() { return 360/m_delta_angle; }
-
-private:
-  ntk::Pose3D m_delta_pose;
-  int m_delta_angle;
-};
-
-class Pa10PoseAcquisitionController : public ModelAcquisitionController
-{
-public:
-  Pa10PoseAcquisitionController(GuiController& controller, ntk::RGBDModeler& modeler)
-    : ModelAcquisitionController(controller, modeler)
-  {}
-
-  virtual void newFrame(const ntk::RGBDImage& image) {}
-
-  void setDeltaPose(const ntk::Pose3D& delta_pose)
-  { m_delta_pose = delta_pose; }
-
-  virtual void move();
-  virtual void reset();
-  virtual int getNumberOfSteps() { return 10; }
-
-private:
-  ntk::Pose3D m_delta_pose;
-};
-
 #endif // MODELACQUISITIONCONTROLLER_H

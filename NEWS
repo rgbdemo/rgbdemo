@@ -1,0 +1,7 @@
+0.4.0rc1 (Jan 2011)
+===================
+
+* Calibration without distortions for depth image (--no-depth-undistort)
+* Windows support greatly improved (thanks to Armin Zürcher)
+* New demo: experimental people counter
+* Various bug fixes
