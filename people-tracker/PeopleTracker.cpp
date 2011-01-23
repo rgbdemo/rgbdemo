@@ -451,6 +451,7 @@ void PeopleTracker::detectPeople()
       }
       detection.highest_point_in_image = min_point;
       detection.highest_point = to_virtual_top_view.unprojectFromImage(min_point);
+      detection.person_height = 3.0 - detection.highest_point_in_image.z;
       ntk_dbg_print(detection.highest_point, 2);
       ntk_dbg_print(min_depth, 2);
 

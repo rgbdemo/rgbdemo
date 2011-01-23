@@ -23,11 +23,47 @@
 #include "GuiController.h"
 
 #include <ntk/geometry/pose_3d.h>
+#include <ntk/camera/rgbd_processor.h>
 
 #include <QFileDialog>
+#include <QRect>
 
 using namespace cv;
 using namespace ntk;
+
+void PeopleTrackerImageWidget :: paintEvent(QPaintEvent * event)
+{
+  ImageWidget::paintEvent(event);
+  QPainter painter(this);
+  painter.setPen(Qt::white);
+  foreach_idx(i, m_current_texts)
+  {
+    const LocatedText& text = m_current_texts[i];
+    painter.drawText(QPoint(text.pos.x*scaleX(), text.pos.y*scaleY()), QString(text.text.c_str()));
+  }
+}
+
+void PeopleTrackerImageWidget :: updateTextFromDetections(
+  const std::vector<PeopleTracker::PersonDetection>& detections,
+  const Pose3D& depth_pose)
+{
+  m_current_texts.clear();
+  LocatedText summary;
+  summary.pos = Point(10,15);
+  summary.text = cv::format("Number of detected persons: %i", detections.size());
+  m_current_texts.push_back(summary);
+
+  foreach_idx(i, detections)
+  {
+    Point3f p = depth_pose.projectToImage(detections[i].highest_point);
+    float person_height = detections[i].person_height;
+    LocatedText text;
+    text.pos = Point(p.x-10, p.y-10);
+    text.text = cv::format("%.2f m", person_height);
+    m_current_texts.push_back(text);
+  }
+  update();
+}
 
 PeopleTrackerWindow::PeopleTrackerWindow(GuiController& controller,
                                          PeopleTracker& tracker,
@@ -52,17 +88,24 @@ void PeopleTrackerWindow::update(const ntk::RGBDImage& image)
 {
   m_tracker.processNewImage(image);
 
-  Pose3D depth_pose = *image.calibration()->depth_pose;
-  Pose3D rgb_pose = *image.calibration()->rgb_pose;
+  const Pose3D& depth_pose = *image.calibration()->depth_pose;
+  const Pose3D& rgb_pose = *image.calibration()->rgb_pose;
 
   // m_mesh_generator.generate(m_tracker.foregroundImage(), depth_pose, rgb_pose);
   m_mesh_generator.generate(image, depth_pose, rgb_pose);
-  ui->mesh_view->addMesh(m_mesh_generator.mesh(), Pose3D(), MeshViewer::FLAT);
+  ui->mesh_view->addMesh(m_mesh_generator.mesh(), Pose3D(), MeshViewer::FLAT); 
+  double min_dist = m_controller.rgbdProcessor().minDepth();
+  double max_dist = m_controller.rgbdProcessor().maxDepth();
+  cv::Mat3b depth_as_color;
+  compute_color_encoded_depth(image.depth(), depth_as_color, &min_dist, &max_dist);
+  ui->image_view->setImage(depth_as_color);
+
+  ui->image_view->updateTextFromDetections(m_tracker.detections(), depth_pose);
 
   foreach_idx(i, m_tracker.detections())
   {
     Point3f p = m_tracker.detections()[i].highest_point;
-    float person_height = 3.0 - m_tracker.detections()[i].highest_point_in_image.z;
+    float person_height = m_tracker.detections()[i].person_height;
     ntk_dbg_print(person_height, 1);
     Mesh mesh;
     mesh.addCube(p + (Point3f)(m_tracker.groundPlane().normal()*0.1f), Point3f(0.1, 0.1, 0.1));

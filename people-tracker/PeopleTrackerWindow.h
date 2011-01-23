@@ -21,6 +21,7 @@
 #define PEOPLETRACKERWINDOW_H
 
 #include <ntk/mesh/mesh_generator.h>
+#include <ntk/gui/image_widget.h>
 
 #include "PeopleTracker.h"
 
@@ -31,6 +32,28 @@ namespace Ui {
 }
 
 class GuiController;
+
+class PeopleTrackerImageWidget : public ntk::ImageWidget
+{
+  Q_OBJECT
+
+public:
+  struct LocatedText
+  {
+    cv::Point pos;
+    std::string text;
+  };
+
+  PeopleTrackerImageWidget(QWidget* parent) : ntk::ImageWidget(parent)
+  {}
+
+  void updateTextFromDetections(const std::vector<PeopleTracker::PersonDetection>& detections,
+                                const ntk::Pose3D& depth_pose);
+  virtual void paintEvent(QPaintEvent * event);
+
+private:
+  std::vector<LocatedText> m_current_texts;
+};
 
 class PeopleTrackerWindow : public QMainWindow
 {

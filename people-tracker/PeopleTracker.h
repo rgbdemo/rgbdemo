@@ -69,6 +69,7 @@ public:
     float score;
     cv::Point3f highest_point;
     cv::Point3f highest_point_in_image;
+    float person_height;
     bool enabled;
 
     bool operator<(const PersonDetection& rhs) const

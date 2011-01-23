@@ -155,7 +155,12 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
        <item>
-        <widget class="ntk::MeshViewer" name="mesh_view" native="true"/>
+        <widget class="ntk::MeshViewer" name="mesh_view" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+        </widget>
+       </item>
+       <item>
+        <widget class="PeopleTrackerImageWidget" name="image_view" native="true"/>
        </item>
       </layout>
      </widget>
@@ -185,6 +190,12 @@
    <class>ntk::MeshViewer</class>
    <extends>QWidget</extends>
    <header location="global">ntk/mesh/mesh_viewer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>PeopleTrackerImageWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">PeopleTrackerWindow.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

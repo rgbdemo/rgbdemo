@@ -124,10 +124,20 @@ void ImageWidget :: setImage(const cv::Mat3b& im)
   update();
 }
 
+double ImageWidget :: scaleX() const
+{
+  return double(rect().width())/m_image.rect().width();
+}
+
+double ImageWidget :: scaleY() const
+{
+  return double(rect().height())/m_image.rect().height();
+}
+
 void ImageWidget :: paintEvent(QPaintEvent * event)
 {
-  double sx = double(rect().width())/m_image.rect().width();
-  double sy = double(rect().height())/m_image.rect().height();
+  double sx = scaleX();
+  double sy = scaleY();
 
   QPen pen(Qt::yellow);
   pen.setWidth(2);

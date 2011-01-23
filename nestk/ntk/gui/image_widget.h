@@ -41,6 +41,9 @@ public:
   {}
 
 public:
+  double scaleX() const;
+  double scaleY() const;
+
   void getLastMousePos(int& x, int& y)
   { x = m_last_mouse_pos.x(); y = m_last_mouse_pos.y(); }
 
