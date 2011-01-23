@@ -42,7 +42,7 @@ namespace global
   ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
   ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
   ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
-  ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", false);
+  ntk::arg<bool> opt_ignore_distortions("--no-depth-undistort", "Ignore distortions for depth images(faster processing)", false);
 
   const cv::Size image_size(640,480);
 
