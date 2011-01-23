@@ -1,5 +1,5 @@
 /**
- * This file is part of the nestk library.
+ * This file is part of the rgbdemo project.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Author: Nicolas Burrus <nicolas.burrus@uc3m.es>, (C) 2010
+ * Author: Nicolas Burrus <nicolas@burrus.name>, (C) 2010, 2011
  */
 
 #include <ntk/utils/opencv_utils.h>
