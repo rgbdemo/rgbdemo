@@ -71,30 +71,10 @@ ELSE()
   SET(GSL_LIBRARIES "")
 ENDIF (GSL_FOUND)
 
-IF (USE_PMDSDK AND HAVE_NESTK_PRIVATE)
-  SET(PMD_LIBRARIES pmdaccess2)
-  ADD_DEFINITIONS(-DUSE_PMDSDK)
-  IF (${CMAKE_SYSTEM_PROCESSOR} MATCHES x86_64*
-      OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES amd64*)
-    MESSAGE("Using 64bit camcube libraries.")
-    INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/include)
-    LINK_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/bin)    
-    execute_process(
-      COMMAND mkdir -p "${EXECUTABLE_OUTPUT_PATH}"
-      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/plugins/camcube3.L64.pap
-      ${EXECUTABLE_OUTPUT_PATH}/camcube.L64.pap
-      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86-64/plugins/camcubeproc.L64.ppp
-      ${EXECUTABLE_OUTPUT_PATH}/camcubeproc.L64.ppp)
-  ELSE ()
-    MESSAGE("Using 32bit camcube libraries.")
-    INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/include)
-    LINK_DIRECTORIES(${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/bin)
-    execute_process(
-      COMMAND mkdir -p "${EXECUTABLE_OUTPUT_PATH}"
-      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/plugins/camcube3.L32.pap
-      ${EXECUTABLE_OUTPUT_PATH}/camcube.L32.pap
-      COMMAND ln -sf ${nestk_deps_SOURCE_DIR}/pmdsdk/pmdsdk-2.2.1-x86/plugins/camcubeproc.L32.ppp
-      ${EXECUTABLE_OUTPUT_PATH}/camcubeproc.L32.ppp)
-  ENDIF()
+# OPENCL
+FIND_PACKAGE(OPENCL)
+INCLUDE_DIRECTORIES(${nestk_deps_SOURCE_DIR}/opencl11)
+IF (OPENCL_FOUND)
+  ADD_DEFINITIONS(-DUSE_OPENCL)
+  SET(OPENCL_LIBRARIES opencl)
 ENDIF()
-
