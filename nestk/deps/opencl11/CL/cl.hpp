@@ -238,7 +238,7 @@ public:
      *
      *  \return The error code.
      */
-    const cl_int err(void) const { return err_; }
+    cl_int err(void) const { return err_; }
 };
 
 #define __ERR_STR(x) #x

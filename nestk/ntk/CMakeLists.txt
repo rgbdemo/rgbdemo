@@ -51,6 +51,13 @@ SET (ntk_sources ${ntk_sources}
      geometry/similarity_transform.cpp
 )
 
+IF (HAVE_OPENCL)
+  SET (ntk_sources ${ntk_sources}
+       gpu/opencl.cpp
+       gpu/opencl.h
+   )
+ENDIF()
+
 SET (ntk_sources ${ntk_sources}
 
      image/color_model.h
@@ -191,6 +198,7 @@ ENDIF()
 TARGET_LINK_LIBRARIES(nestk
   ${QT_LIBRARIES}
   ${GSL_LIBRARIES}
+  ${OPENCL_LIBRARIES}
   ${GLEW_LIBRARIES}
   ${GLUT_LIBRARY}
   ${OPENGL_LIBRARIES}
