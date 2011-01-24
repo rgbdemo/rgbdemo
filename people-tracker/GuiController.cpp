@@ -45,6 +45,7 @@ GuiController :: GuiController(ntk::RGBDGrabber& producer,
     m_frame_counter(0),
     m_frame_rate(0),
     m_raw_window_grabber("/tmp/demo3d/raw"),
+    m_tracker_window_grabber("/tmp/demo3d/people"),
     m_screen_capture_mode(false),
     m_grab_frames(false),
     m_paused(false),
@@ -117,7 +118,10 @@ void GuiController :: onRGBDDataUpdated()
     m_frame_recorder->saveCurrentFrame(m_last_image);
 
   if (m_screen_capture_mode)
+  {
     m_raw_window_grabber.saveFrame(QPixmap::grabWindow(m_raw_images_window->winId()));
+    m_tracker_window_grabber.saveFrame(QPixmap::grabWindow(m_tracker_window->winId()));
+  }
 
   QString status = QString("Final fps = %1 Fps GRABBER = %2")
                    .arg(m_frame_rate, 0, 'f', 1)

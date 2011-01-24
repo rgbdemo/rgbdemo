@@ -191,3 +191,8 @@ void PeopleTrackerWindow::on_loadParametersButton_clicked()
   m_tracker.loadBackgroundInfoFromFile(filename.toStdString());
   ntk_dbg_print(m_tracker.virtualTopView(), 1);
 }
+
+void PeopleTrackerWindow::on_actionNext_frame_triggered()
+{
+  m_controller.processOneFrame();
+}

@@ -181,9 +181,24 @@
      <string>&amp;File</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuCapture">
+    <property name="title">
+     <string>Capture</string>
+    </property>
+    <addaction name="actionNext_frame"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menuCapture"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionNext_frame">
+   <property name="text">
+    <string>Next frame</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Right</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

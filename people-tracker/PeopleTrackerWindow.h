@@ -79,6 +79,8 @@ private slots:
 
   void on_loadParametersButton_clicked();
 
+  void on_actionNext_frame_triggered();
+
 private:
     Ui::PeopleTrackerWindow *ui;
     GuiController& m_controller;

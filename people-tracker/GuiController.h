@@ -90,6 +90,7 @@ protected:
   int m_frame_counter;
   float m_frame_rate;
   ntk::ScreenGrabber m_raw_window_grabber;
+  ntk::ScreenGrabber m_tracker_window_grabber;
   bool m_screen_capture_mode;
   bool m_grab_frames;
   bool m_paused;
