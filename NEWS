@@ -1,7 +1,51 @@
-0.4.0rc1 (Jan 2011)
-===================
+RGBDemo 0.4.0rc1 (25 Jan 2011)
+==============================
 
 * Calibration without distortions for depth image (--no-depth-undistort)
 * Windows support greatly improved (thanks to Armin Zürcher)
 * New demo: experimental people counter
 * Various bug fixes
+
+RGBDemo 0.3.1 (11 Jan 2011)
+===========================
+
+* Fix compilation issues on MacOSX (many thanks to Raphaël Dumontier)
+* Remove glew external dependency
+* Generalize glut dependency
+
+RGBDemo 0.3.0 (7 Jan 2011)
+==========================
+
+* Automatic intrinsics/extrinsics calibration using IR images
+* Automatic depth calibration
+* Preliminary support for interactive scene reconstruction by 
+  merging successive views
+* LGPL License
+* Preliminar Windows support (compilation is ok, but the program 
+  is very buggy due to threading issues)
+
+
+RGBDemo v0.2.1 (2 Dec 2010)
+===========================
+
+* Fix compilation issues
+* Include a safe version of OpenCV
+* annotate_image is easier to use
+* Fix broken calibration
+* Fix compilation of MacOSX
+
+RGBDemo v0.2.0 (1 Dec 2010)
+===========================
+
+* Faster image acquisition, faster 3D rendering
+* Images can be saved on the hard disk and replayed offline
+* Support for raw infrared output
+* Support for simultaneous RGB/IR/Depth output (very slow, ~3 FPS, 
+  but useful to grab synchronized images)
+* Support for tilt motors (Filter Window / Tilt)
+* Mesh export include the color texture file to simplify Blender import
+
+RGBDemo v0.1.0 (23 Nov 2010)
+============================
+
+* First public release
