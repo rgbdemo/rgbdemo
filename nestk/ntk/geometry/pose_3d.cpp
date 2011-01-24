@@ -580,7 +580,7 @@ cv::Point3f Pose3D :: cameraTransform(const cv::Point3f& p) const
 cv::Mat1f Pose3D :: cvInvCameraTransform() const
 {
   cv::Mat1f m(4,4);
-  Eigen::Matrix4f eigen_m = impl->inv_camera_transform.matrix();
+  Eigen::Matrix4d eigen_m = impl->inv_camera_transform.matrix();
   ntk::toOpencv(eigen_m, m);
   return m;
 }

@@ -93,7 +93,7 @@ inline void toEigen(const cv::Point3_<CvScalarType>& p, Eigen::Matrix<EScalarTyp
 }
 
 #ifdef _MSC_VER
-inline void toOpencv(const Eigen::Matrix4f& ep,
+inline void toOpencv(const Eigen::Matrix4d& ep,
                      cv::Mat1f& mat)
 {
   for (int r = 0; r < 4; ++r)
