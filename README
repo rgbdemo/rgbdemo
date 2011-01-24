@@ -1,0 +1,13 @@
+Demo software to visualize, calibrate and process Kinect output
+
+This software was partly developed in the [[http://roboticslab.uc3m.es | RoboticsLab]] and aims at providing a simple toolkit to start playing with Kinect data. Features include:
+* Grab kinect images and visualize / replay them
+* Calibrate the camera to get point clouds in metric space
+* Export to meshlab/blender using .ply files
+* Demo of 3D scene reconstruction using a freehand Kinect
+* Demo of people detection and localization
+* Linux, MacOSX and (partial) Windows support
+
+The code is based on the freenect library and OpenCV.
+
+The project is divided into a library called @@nestk@@ and some demo programs using it. The library itself is easy to integrate to an existing project using @@cmake@@: just copy the nestk folder as a subfolder of your project and you should be able to start working with Kinect data.
