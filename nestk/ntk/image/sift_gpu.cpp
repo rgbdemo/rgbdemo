@@ -130,7 +130,8 @@ void GPUSiftServer::run()
   }
 
   bool listen_ok = false;
-  while (!listen_ok)
+  int trials = 0;
+  while (!listen_ok && trials < 5)
   {
     listen_ok = m_server.listen("nestk_sift_gpu");
     if (!listen_ok)
@@ -138,6 +139,12 @@ void GPUSiftServer::run()
       ntk_dbg(0) << "Could not start server, trying to clean it";
       m_server.removeServer("nestk_sift_gpu");
     }
+    ++trials;
+  }
+  if (!listen_ok)
+  {
+    ntk_dbg(0) << "[ERROR] Could not start GPU Sift server.";
+    exit(1);
   }
 
   while (true)
