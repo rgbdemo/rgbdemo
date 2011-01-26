@@ -33,7 +33,7 @@ using namespace cv;
 namespace opt
 {
 // Command line argument.
-ntk::arg<const char*> calibration_file("--calibration", "Calibration file", "kinect_calibration.yml");
+ntk::arg<const char*> calibration_file("--calibration", "Calibration file", 0);
 ntk::arg<const char*> detector("--detector", "Detector type: SURF, FAST, SIFT, GPUSIFT, SIFTPP", "SURF");
 ntk::arg<const char*> extractor("--extractor", "Extrator type: SURF64, SURF128, SIFT, BRIEF32, BRIEF64", "SURF128");
 ntk::arg<float> match_threshold("--match-threshold", "Threshold on dist ratio for matching", 0.8*0.8);
@@ -48,21 +48,31 @@ int main(int argc, char** argv)
   arg_parse(argc, argv);
   ntk::ntk_debug_level = 1;
 
+  RGBDCalibration* calib = 0;
+  if (opt::calibration_file())
+  {
+    calib = new RGBDCalibration();
+    calib->loadFromFile(opt::calibration_file());
+  }
+
   RGBDImage image1;
-  image1.loadFromDir(opt::image1());
+  image1.loadFromDir(opt::image1(), calib);
 
   RGBDImage image2;
-  image2.loadFromDir(opt::image2());
+  image2.loadFromDir(opt::image2(), calib);
 
   RGBDProcessor rgbd_processor;
+  rgbd_processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthBaseline, true);
+
   rgbd_processor.processImage(image1);
   rgbd_processor.processImage(image2);
 
+  FeatureSetParams feature_params(opt::detector(), opt::extractor(), true);
 
   FeatureSet features1;
   {
     TimeCount tc_extract("Extract keypoints");
-    features1.extractFromImage(image1, opt::detector(), opt::extractor());
+    features1.extractFromImage(image1, feature_params);
     tc_extract.stop();
     ntk_dbg_print(features1.locations().size(), 1);
 
@@ -75,7 +85,7 @@ int main(int argc, char** argv)
   FeatureSet features2;
   {
     TimeCount tc_extract("Extract keypoints");
-    features2.extractFromImage(image2, opt::detector(), opt::extractor());
+    features2.extractFromImage(image2, feature_params);
     tc_extract.stop();
     ntk_dbg_print(features2.locations().size(), 1);
 

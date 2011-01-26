@@ -213,127 +213,41 @@ bool RelativePoseEstimatorFromDelta::estimateNewPose(const RGBDImage& image)
 /*!
  * Compute the number of closest feature matches for each previous view.
  */
-void RelativePoseEstimatorFromImage::
+int RelativePoseEstimatorFromImage::
 computeNumMatchesWithPrevious(const RGBDImage& image,
-                              std::vector < FeaturePoint<FeatureData> >& image_features,
-                              std::vector<int>& view_matches)
+                              const FeatureSet& features,
+                              std::vector<DMatch> best_matches)
 {
-  // Compute the number of best matches for each past image
-  view_matches.resize(m_image_data.size(), 0);
-  for (int i = 0; i < image_features.size(); ++i)
+  int best_prev_image = -1;
+  for (int i = 0; i < m_features.size(); ++i)
   {
-    std::vector<int> indices(2, -1);
-    std::vector<float> dists(2, 0);
-    m_feature_index->knnSearch(image_features[i].descriptor, indices, dists, 2,
-                               cv::flann::SearchParams(64));
-    if (indices[0] < 0 || indices[1] < 0)
-      continue;
-    const double dist_ratio = dists[0]/dists[1];
-    if (dist_ratio > 0.9*0.9) // probably wrong match
-      continue;
-
-    int view_index = m_features[indices[0]].associated_data.image_index;
-    ntk_assert(view_index >= 0  && view_index < m_image_data.size(), "Invalid index.");
-    ++view_matches[view_index];
-  }
-}
-
-void RelativePoseEstimatorFromImage::
-computeFeaturePoints(const RGBDImage& image,
-                     std::vector < FeaturePoint<FeatureData> >& points)
-{
-  TimeCount tc ("sift detection");
-  std::vector<cv::KeyPoint> keypoints;
-  std::vector<float> descriptors;
-  m_detector(image.rgbAsGray(), cv::Mat(), keypoints, descriptors);
-  tc.stop();
-  ntk_dbg_print(keypoints.size(), 2);
-
-  points.resize(keypoints.size());
-
-  foreach_idx(i, keypoints)
-  {
-    FeaturePoint<FeatureData>& p = points[i];
-    p.associated_data.image_index = newImageIndex();
-    p.descriptor.resize(m_detector.descriptorSize());
-    p.location = keypoints[i];
-    p.depth = image.depth()(p.location.pt.y, p.location.pt.x);
-    std::copy(&descriptors[m_detector.descriptorSize()*i],
-              &descriptors[m_detector.descriptorSize()*(i+1)],
-              p.descriptor.begin());
-  }
-}
-
-struct FeatureMatch
-{
-  int ref_index;
-  int img_index;
-  double ratio;
-};
-
-template <class FeatureData>
-void findBestMatches(std::vector<FeatureMatch>& matches,
-                     const std::vector < FeaturePoint<FeatureData> >& image_features,
-                     const std::vector < FeaturePoint<FeatureData> >& ref_features,
-                     int ref_start_index,
-                     int ref_end_index,
-                     double max_ratio)
-{
-  const int nb_ref_features = ref_end_index - ref_start_index;
-
-  // Brute force finding of best matches.
-  for (int img_i = 0; img_i < image_features.size(); ++img_i)
-  {
-    FeatureMatch match;
-    match.img_index = img_i;
-    match.ref_index = -1;
-    match.ratio = 1;
-
-    float min_dist = FLT_MAX;
-    float min_dist2 = FLT_MAX;
-
-    for (int ref_i = ref_start_index; ref_i < ref_end_index; ++ref_i)
+    std::vector<DMatch> current_matches;
+    m_features[i].matchWith(features, current_matches, 0.6*0.6);
+    if (current_matches.size() > best_matches.size())
     {
-      double dist = euclidian_distance(ref_features[ref_i].descriptor,
-                                       image_features[img_i].descriptor,
-                                       min_dist2);
-      if (dist < min_dist)
-      {
-        min_dist2 = min_dist;
-        min_dist = dist;
-        match.ref_index = ref_i;
-      }
-      else if (dist < min_dist2)
-      {
-        min_dist2 = dist;
-      }
+      best_prev_image = i;
+      best_matches = current_matches;
     }
-
-    match.ratio = min_dist / min_dist2;
-    if (match.ratio < max_ratio)
-      matches.push_back(match);
   }
+  return best_prev_image;
 }
 
 bool RelativePoseEstimatorFromImage::
 estimateDeltaPose(Pose3D& new_pose,
                   const RGBDImage& image,
-                  std::vector < FeaturePoint<FeatureData> >& image_features,
+                  const FeatureSet& image_features,
+                  const std::vector<cv::DMatch>& best_matches,
                   int closest_view_index)
 {
+  const float err_threshold = 5;
+
   ntk_dbg_print(new_pose, 2);
   const ImageData& ref_image_data = m_image_data[closest_view_index];
 
-  std::vector<FeatureMatch> matches;
-  findBestMatches(matches, image_features, m_features,
-                  ref_image_data.first_descriptor_index,
-                  ref_image_data.last_descriptor_index,
-                  0.7*0.7 /* max NN dist ratio */);
-
-  ntk_dbg_print(matches.size(), 2);
-  if (matches.size() < 8)
+  ntk_dbg_print(best_matches.size(), 2);
+  if (best_matches.size() < 10)
   {
-    ntk_dbg(2) << "Not enough matches";
+    ntk_dbg(1) << "Not enough point matches (< 10)";
     return false;
   }
 
@@ -341,39 +255,23 @@ estimateDeltaPose(Pose3D& new_pose,
   std::vector<Point3f> img_points;
   std::vector<KeyPoint> ref_keypoints;
   std::vector<KeyPoint> img_keypoints;
-  std::vector<DMatch> cv_matches;
-  foreach_idx(i, matches)
+
+  foreach_idx(i, best_matches)
   {
-    // No depth, cannot unproject.
-    if (m_features[matches[i].ref_index].depth < 1e-5)
-      continue;
-    Point3f ref_point (m_features[matches[i].ref_index].location.pt.x,
-                       m_features[matches[i].ref_index].location.pt.y,
-                       m_features[matches[i].ref_index].depth);
-    ref_point = ref_image_data.pose.unprojectFromImage(ref_point);
+    const DMatch& m = best_matches[i];
+    const FeatureSet& ref_set = m_features[closest_view_index];
+    const FeatureLocation& ref_loc = ref_set.locations()[m.trainIdx];
+    const FeatureLocation& img_loc = image_features.locations()[m.queryIdx];
 
-    Point3f img_point (image_features[matches[i].img_index].location.pt.x,
-                       image_features[matches[i].img_index].location.pt.y,
-                       image_features[matches[i].img_index].depth);
+    ntk_assert(ref_loc.depth > 0, "Match without depth, should not appear");
 
-    ref_points.push_back(ref_point);
-    img_points.push_back(img_point);
+    Point3f img3d (img_loc.pt.x,
+                   img_loc.pt.y,
+                   img_loc.depth);
 
-    ref_keypoints.push_back(m_features[matches[i].ref_index].location);
-    img_keypoints.push_back(image_features[matches[i].img_index].location);
-
-    DMatch match(i,i,0.1);
-    cv_matches.push_back(match);
+    ref_points.push_back(ref_loc.p3d);
+    img_points.push_back(img3d);
   }
-
-  cv::Mat3b debug_img;
-  drawMatches(image.rgb(),
-              img_keypoints,
-              m_image_data[closest_view_index].color,
-              ref_keypoints,
-              cv_matches,
-              debug_img);
-  // imshow("matches", debug_img);
 
   ntk_dbg_print(ref_points.size(), 2);
   if (ref_points.size() < 10)
@@ -389,23 +287,7 @@ estimateDeltaPose(Pose3D& new_pose,
   ntk_dbg_print(error, 1);
   ntk_dbg_print(new_pose, 2);
 
-  cv_matches.clear();
-  foreach_idx(i, valid_points)
-  {
-    if (valid_points[i])
-      cv_matches.push_back(DMatch(i,i,0.1));
-  }
-
-  drawMatches(image.rgb(),
-              img_keypoints,
-              m_image_data[closest_view_index].color,
-              ref_keypoints,
-              cv_matches,
-              debug_img);
-  // imshow("matches_ransac", debug_img);
-  // FIXME: does not work when threaded cv::waitKey(10);
-
-  if (error < 5)
+  if (error < err_threshold)
     return true;
   else
     return false;
@@ -419,28 +301,24 @@ bool RelativePoseEstimatorFromImage::estimateNewPose(const RGBDImage& image)
     m_current_pose = *image.calibration()->depth_pose;
   }
 
-  std::vector < FeaturePoint<FeatureData> > image_features;
-  computeFeaturePoints(image, image_features);
+  FeatureSet image_features;
+  image_features.extractFromImage(image, m_feature_parameters);
 
   Pose3D new_pose = *image.calibration()->depth_pose;
   bool pose_ok = true;
 
   if (m_image_data.size() > 0)
   {
-    std::vector<int> view_matches;
-    computeNumMatchesWithPrevious(image, image_features, view_matches);
-
-    // Find the view with the highest number of best matches
-    int best_matches_num = -1;
-    int closest_view_index = find_max(stl_bounds(view_matches), best_matches_num);
-    ntk_assert(closest_view_index >= 0, "No previous views!");
+    std::vector<DMatch> best_matches;
+    int closest_view_index = -1;
+    closest_view_index = computeNumMatchesWithPrevious(image, image_features, best_matches);
 
     new_pose = m_image_data[closest_view_index].pose;
 
-    if (best_matches_num > 0)
+    if (best_matches.size() > 0)
     {
       // Estimate the relative pose w.r.t the closest view.
-      if (!estimateDeltaPose(new_pose, image, image_features, closest_view_index))
+      if (!estimateDeltaPose(new_pose, image, image_features, best_matches, closest_view_index))
         pose_ok = false;
     }
     else
@@ -455,44 +333,19 @@ bool RelativePoseEstimatorFromImage::estimateNewPose(const RGBDImage& image)
     image.rgb().copyTo(image_data.color);
     image_data.pose = new_pose;
     m_current_pose = new_pose;
-    image_data.first_descriptor_index = m_features.size();
-    image_data.last_descriptor_index = m_features.size() + image_features.size();
-    m_features.insert(m_features.end(), stl_bounds(image_features));
+    image_features.compute3dLocation(new_pose);
+    m_features.push_back(image_features);
     m_image_data.push_back(image_data);
-    rebuildFeatureIndex();
     return true;
   }
   else
     return false;
 }
 
-void RelativePoseEstimatorFromImage::rebuildFeatureIndex()
-{
-  if (m_features.size() < 1)
-    return;
-  m_cv_features.create(m_features.size(), m_features[0].descriptor.size());
-  for (int r = 0; r < m_features.size(); ++r)
-  {
-    for (int c = 0; c < m_cv_features.cols; ++c)
-      m_cv_features(r,c) = m_features[r].descriptor[c];
-  }
-  if (m_feature_index)
-  {
-    delete m_feature_index;
-    m_feature_index = 0;
-  }
-  m_feature_index = new cv::flann::Index(m_cv_features, cv::flann::KDTreeIndexParams(4));
-}
-
 void RelativePoseEstimatorFromImage::reset()
 {
   m_features.clear();
   m_image_data.clear();
-  if (m_feature_index)
-  {
-    delete m_feature_index;
-    m_feature_index = 0;
-  }
 }
 
 } // ntk

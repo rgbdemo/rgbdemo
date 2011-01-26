@@ -24,6 +24,7 @@
 #include <ntk/camera/rgbd_image.h>
 #include <ntk/geometry/pose_3d.h>
 #include <ntk/image/sift_gpu.h>
+#include <ntk/image/feature.h>
 
 namespace ntk
 {
@@ -88,19 +89,6 @@ private:
 };
 
 /*!
- * Represent a feature point, with location and descriptor.
- */
-template <class DataType>
-class FeaturePoint
-{
-public:
-  cv::KeyPoint location;
-  float depth;
-  std::vector<float> descriptor;
-  DataType associated_data;
-};
-
-/*!
  * Estimate relative 3D pose using feature point detection.
  * Feature matches are computed between the new image and past images,
  * allowing direct estimation of the relative pose.
@@ -108,9 +96,11 @@ public:
 class RelativePoseEstimatorFromImage : public RelativePoseEstimator
 {
 public:
-  RelativePoseEstimatorFromImage()
-   : m_feature_index(0)
+  RelativePoseEstimatorFromImage(const FeatureSetParams& params)
+   : m_feature_parameters(params)
   {
+    // Force feature extraction to return only features with depth.
+    m_feature_parameters.only_features_with_depth = true;
     reset();
   }
 
@@ -118,43 +108,27 @@ public:
   virtual void reset();
 
 private:
-  struct FeatureData
-  {
-    int image_index;
-  };
-
   struct ImageData
   {
     Pose3D pose;
-    int first_descriptor_index;
-    int last_descriptor_index;
     cv::Mat3b color;
   };
 
 private:
-  void rebuildFeatureIndex();
   int newImageIndex() const { return m_image_data.size(); }
-  void computeFeaturePoints(const RGBDImage& image,
-                            std::vector < FeaturePoint<FeatureData> >& points);
-  void computeNumMatchesWithPrevious(const RGBDImage& image,
-                                     std::vector < FeaturePoint<FeatureData> >& image_features,
-                                     std::vector<int>& view_matches);
+  int computeNumMatchesWithPrevious(const RGBDImage& image,
+                                     const FeatureSet& features,
+                                     std::vector<cv::DMatch> best_matches);
   bool estimateDeltaPose(Pose3D& new_pose,
                          const RGBDImage& image,
-                         std::vector < FeaturePoint<FeatureData> >& image_features,
+                         const FeatureSet& features,
+                         const std::vector<cv::DMatch>& best_matches,
                          int closest_view_index);
 
 private:
-  cv::flann::Index* m_feature_index;
-  std::vector < FeaturePoint<FeatureData> > m_features;
-  std::vector<ImageData> m_image_data;
-  // cv::SURF m_detector;
-#if !defined(_WIN32) && !defined(__APPLE__)
-  GPUSiftClient m_detector;
-#else
-  cv::SURF m_detector;
-#endif
-  cv::Mat1f m_cv_features;
+  std::vector < FeatureSet > m_features;
+  std::vector< ImageData > m_image_data;
+  FeatureSetParams m_feature_parameters;
 };
 
 } // ntk

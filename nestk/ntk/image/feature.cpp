@@ -29,76 +29,75 @@ namespace ntk
 {
 
 void FeatureSet :: extractFromImage(const RGBDImage& image,
-                                    const std::string& detector_type,
-                                    const std::string& descriptor_type,
-                                    float threshold)
+                                    const FeatureSetParams& params)
 {
   m_descriptor_index.release();
 
-  if (detector_type == "GPUSIFT")
+  if (params.detector_type == "GPUSIFT")
   {
-    ntk_ensure(descriptor_type == "SIFT",
+    ntk_ensure(params.descriptor_type == "SIFT",
                "Only SIFT descriptor are supported with GPUSIFT detector");
     if (getSiftGPUInstance())
-      return extractFromImageUsingSiftGPU(image);
+      return extractFromImageUsingSiftGPU(image, params);
     ntk_dbg(0) << "[WARNING] SIFT Gpu cannot be used";
   }
-  else if (detector_type == "SIFTPP")
+  else if (params.detector_type == "SIFTPP")
   {
-    ntk_ensure(descriptor_type == "SIFT",
+    ntk_ensure(params.descriptor_type == "SIFT",
                "Only SIFT descriptor are supported with SIFTPP detector");
-    return extractFromImageUsingSiftPP(image);
+    return extractFromImageUsingSiftPP(image, params);
   }
 
   cv::FeatureDetector* detector = 0;
-  if (detector_type == "FAST")
+  if (params.detector_type == "FAST")
   {
-    cv::FeatureDetector* fast_detector = new FastFeatureDetector(threshold > 0 ? threshold : 10,
-                                                                 true/*nonmax_suppression*/);
+    cv::FeatureDetector* fast_detector
+        = new FastFeatureDetector(params.threshold > 0 ? params.threshold : 10,
+                                  true/*nonmax_suppression*/);
     detector = new PyramidAdaptedFeatureDetector(fast_detector, 2);
   }
-  else if (detector_type == "SIFT" || detector_type == "GPUSIFT")
+  else if (params.detector_type == "SIFT" || params.detector_type == "GPUSIFT")
   {
     detector = new SiftFeatureDetector(SIFT::DetectorParams::GET_DEFAULT_THRESHOLD(),
                                        SIFT::DetectorParams::GET_DEFAULT_EDGE_THRESHOLD());
   }
-  else if (detector_type == "SURF")
+  else if (params.detector_type == "SURF")
   {
-    detector = new SurfFeatureDetector(threshold > 0 ? threshold : 400 /*hessian_threshold*/,
+    detector = new SurfFeatureDetector(params.threshold > 0 ? params.threshold : 400 /*hessian_threshold*/,
                                        5/*octaves*/, 4/*octave_layers*/);
   } 
   else
   {
-    fatal_error(("Point detector not supported: " + detector_type).c_str());
+    fatal_error(("Point detector not supported: " + params.detector_type).c_str());
   }
 
   std::vector<cv::KeyPoint> keypoints;
   detector->detect(image.rgbAsGray(), keypoints);
 
   cv::DescriptorExtractor* extractor = 0;
-  if (descriptor_type == "BRIEF32")
+  if (params.descriptor_type == "BRIEF32")
   {
     m_feature_type = Feature_BRIEF32;
     extractor = new cv::BriefDescriptorExtractor(32);
   }
-  else if (descriptor_type == "BRIEF64")
+  else if (params.descriptor_type == "BRIEF64")
   {
     m_feature_type = Feature_BRIEF64;
     extractor = new cv::BriefDescriptorExtractor(64);
   }
-  else if (descriptor_type == "SIFT")
+  else if (params.descriptor_type == "SIFT")
   {
     m_feature_type = Feature_SIFT;
     extractor = new cv::SiftDescriptorExtractor();
   }
-  else if (descriptor_type == "SURF64")
+  else if (params.descriptor_type == "SURF64")
   {
     m_feature_type = Feature_SURF64;
     extractor = new cv::SurfDescriptorExtractor(4 /* octaves */,
                                                 2 /* octave layers */,
                                                 false /* extended */);
   }
-  else if (descriptor_type == "SURF128")
+  else if (params.descriptor_type == "SURF128")
   {
     m_feature_type = Feature_SURF128;
     extractor = new cv::SurfDescriptorExtractor(4 /* octaves */,
@@ -107,11 +106,30 @@ void FeatureSet :: extractFromImage(const RGBDImage& image,
   }
   else
   {
-    fatal_error(("Point extractor not supported: " + descriptor_type).c_str());
+    fatal_error(("Point extractor not supported: " + params.descriptor_type).c_str());
   }
 
+  std::vector<cv::KeyPoint> filtered_keypoints;
+  filtered_keypoints.reserve(keypoints.size());
+
+  // Remove keypoints without depth if the option is set.
+  if (params.only_features_with_depth)
+  {
+    foreach_idx(i, keypoints)
+    {
+      if (image.pixelHasDepth(keypoints[i].pt.y, keypoints[i].pt.x))
+        filtered_keypoints.push_back(keypoints[i]);
+    }
+  }
+  else
+  {
+    filtered_keypoints = keypoints;
+  }
+  ntk_dbg_print(filtered_keypoints.size(), 1);
+  ntk_dbg_print(keypoints.size(), 1);
+
   cv::Mat descriptors;
-  extractor->compute(image.rgbAsGray(), keypoints, descriptors);
+  extractor->compute(image.rgbAsGray(), filtered_keypoints, descriptors);
   m_descriptor_size = extractor->descriptorSize();
   switch (extractor->descriptorType())
   {
@@ -127,13 +145,14 @@ void FeatureSet :: extractFromImage(const RGBDImage& image,
     ntk_assert(0, "Descriptor type not supported!");
   }
 
-  m_locations.resize(keypoints.size());
-  foreach_idx(i, keypoints)
-    ((KeyPoint&)m_locations[i]) = keypoints[i];
+  m_locations.resize(filtered_keypoints.size());
+  foreach_idx(i, filtered_keypoints)
+    ((KeyPoint&)m_locations[i]) = filtered_keypoints[i];
   fillDepthData(image);
 }
 
-void FeatureSet :: extractFromImageUsingSiftGPU(const RGBDImage& image)
+void FeatureSet :: extractFromImageUsingSiftGPU(const RGBDImage& image,
+                                                const FeatureSetParams& params)
 {
   GPUSiftDetector detector;
   m_descriptor_size = 128;
@@ -143,18 +162,45 @@ void FeatureSet :: extractFromImageUsingSiftGPU(const RGBDImage& image)
 
   detector(image.rgbAsGray(), Mat(), keypoints, descriptors);
 
-  m_locations.resize(keypoints.size());
-  foreach_idx(i, keypoints)
-    ((KeyPoint&)m_locations[i]) = keypoints[i];
+  m_locations.clear();
+
+  std::vector<bool> enabled_keypoints(keypoints.size(), true);
+  if (params.only_features_with_depth)
+  {
+    m_locations.reserve(keypoints.size());
+    foreach_idx(i, keypoints)
+    {
+      if (image.pixelHasDepth(keypoints[i].pt.y, keypoints[i].pt.x))
+      {
+        FeatureLocation loc;
+        (KeyPoint&)loc = keypoints[i];
+        m_locations.push_back(loc);
+      }
+      else
+      {
+        enabled_keypoints[i] = false;
+      }
+    }
+  }
   fillDepthData(image);
 
-  m_descriptors = cv::Mat1f(keypoints.size(), 128);
-  ntk_ensure(descriptors.size() == m_descriptors.size().area(), "INvalid number of keypoints");
-  std::copy(descriptors.begin(), descriptors.end(), m_descriptors.ptr<float>());
+  m_descriptors = cv::Mat1f(m_locations.size(), 128);
+  int enabled_index = 0;
+  for (int r = 0; r < descriptors.size()/128; ++r)
+  {
+    if (!enabled_keypoints[r])
+      continue;
+    std::copy(&descriptors[r*128],
+              &descriptors[r*128+128],
+              m_descriptors.ptr<float>(enabled_index));
+    ++enabled_index;
+  }
+
   m_feature_type = Feature_SIFT;
 }
 
-void FeatureSet :: extractFromImageUsingSiftPP(const RGBDImage& image)
+void FeatureSet :: extractFromImageUsingSiftPP(const RGBDImage& image,
+                                               const FeatureSetParams& params)
 {
   const int levels = 3;
   int O = -1;
@@ -196,6 +242,9 @@ void FeatureSet :: extractFromImageUsingSiftPP(const RGBDImage& image)
        iter != sift.keypointsEnd(); ++iter)
   {
     FeatureLocation new_location;
+
+    if (params.only_features_with_depth && !image.pixelHasDepth(iter->y,iter->x))
+      continue;
 
     // detect orientations
     VL::float_t angles [4] ;
@@ -244,6 +293,17 @@ void FeatureSet :: fillDepthData(const RGBDImage& image)
       loc.has_depth = true;
       loc.depth = image.depth()(loc.pt.y, loc.pt.x);
     }
+  }
+}
+
+void FeatureSet :: compute3dLocation(const Pose3D& pose)
+{
+  foreach_idx(i, m_locations)
+  {
+    FeatureLocation& loc = m_locations[i];
+    if (!loc.has_depth)
+      continue;
+    loc.p3d = pose.unprojectFromImage(loc.pt, loc.depth);
   }
 }
 

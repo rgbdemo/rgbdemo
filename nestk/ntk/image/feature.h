@@ -23,6 +23,7 @@
 #include <ntk/core.h>
 #include <ntk/camera/rgbd_image.h>
 #include <ntk/utils/xml_serializable.h>
+#include <ntk/geometry/pose_3d.h>
 
 namespace ntk
 {
@@ -30,11 +31,56 @@ namespace ntk
 class FeatureLocation : public cv::KeyPoint
 {
 public:
+  /*! Whether depth data was available at this position */
   bool has_depth;
+
+  /*! Point depth in image */
   float depth;
-  cv::Point3f world;
+
+  /*! Point in 3D space */
+  cv::Point3f p3d;
 };
 
+struct FeatureSetParams
+{
+  /*!
+   * Set feature extraction parameters.
+   * \param detector_type can be SURF, FAST, SIFT, GPUSIFT, SIFTPP (Andrea Vedaldi)
+   * \param descriptor_type can be SURF64, SURF128, SIFT or BRIEF
+   * \param only_features_with_depth Whether feature without associated
+   *                                 depth value get detected.
+   * \param threshold Threshold for the feature detector. -1 means default value.
+   */
+  FeatureSetParams(const std::string& detector_type,
+                   const std::string& extractor_type,
+                   bool only_features_with_depth = false,
+                   float threshold = -1)
+   : detector_type(detector_type),
+     descriptor_type(extractor_type),
+     only_features_with_depth(only_features_with_depth),
+     threshold(threshold)
+  {
+  }
+
+  /*!
+   * Constructor with default parameters (FAST, BRIEF64).
+   */
+  FeatureSetParams()
+   : detector_type("FAST"),
+     descriptor_type("BRIEF64"),
+     only_features_with_depth(false),
+     threshold(-1)
+  {}
+
+  std::string detector_type;
+  std::string descriptor_type;
+  bool only_features_with_depth;
+  float threshold;
+};
+
+/*!
+ * Represent a set of feature points with associated descriptors.
+ */
 class FeatureSet : public XmlSerializable
 {
 public:
@@ -66,16 +112,15 @@ public:
   const cv::Mat1f& descriptors() const { return m_descriptors; }
 
 public:
+  /*! Compute each feature p3d location using the given pose. */
+  void compute3dLocation(const Pose3D& pose);
+
+public:
   /*!
    * Extract descriptors from an image.
-   * \param detector_type can be SURF, FAST, SIFT, GPUSIFT, SIFTPP (Andrea Vedaldi)
-   * \param descriptor_type can be SURF64, SURF128, SIFT or BRIEF
-   * \param threshold Threshold for the feature detector. -1 means default value.
    */
   void extractFromImage(const RGBDImage& image,
-                        const std::string& detector_type,
-                        const std::string& descriptor_type,
-                        float threshold = -1);
+                        const FeatureSetParams& params);
 
 public:
   /*!
@@ -97,8 +142,8 @@ public:
                    cv::Mat3b& display_image) const;
 
 private:
-  void extractFromImageUsingSiftGPU(const RGBDImage& image);
-  void extractFromImageUsingSiftPP(const RGBDImage& image);
+  void extractFromImageUsingSiftGPU(const RGBDImage& image, const FeatureSetParams& params);
+  void extractFromImageUsingSiftPP(const RGBDImage& image, const FeatureSetParams& params);
   void fillDepthData(const RGBDImage& image);
   void buildDescriptorIndex();
 
