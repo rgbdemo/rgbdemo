@@ -33,6 +33,8 @@ void FeatureSet :: extractFromImage(const RGBDImage& image,
                                     const std::string& descriptor_type,
                                     float threshold)
 {
+  m_descriptor_index.release();
+
   if (detector_type == "GPUSIFT")
   {
     ntk_ensure(descriptor_type == "SIFT",
@@ -114,10 +116,12 @@ void FeatureSet :: extractFromImage(const RGBDImage& image,
   switch (extractor->descriptorType())
   {
   case CV_32FC1:
-    m_descriptor_data_type = FloatDescriptor;
+    descriptors.copyTo(m_descriptors);
     break;
   case CV_8UC1:
-    m_descriptor_data_type = ByteDescriptor;
+    m_descriptors.create(descriptors.size());
+    for_all_rc(descriptors)
+      m_descriptors(r,c) = descriptors.at<uchar>(r,c) / 255.0;
     break;
   default:
     ntk_assert(0, "Descriptor type not supported!");
@@ -127,15 +131,12 @@ void FeatureSet :: extractFromImage(const RGBDImage& image,
   foreach_idx(i, keypoints)
     ((KeyPoint&)m_locations[i]) = keypoints[i];
   fillDepthData(image);
-
-  descriptors.copyTo(m_descriptors);
 }
 
 void FeatureSet :: extractFromImageUsingSiftGPU(const RGBDImage& image)
 {
   GPUSiftDetector detector;
   m_descriptor_size = 128;
-  m_descriptor_data_type = FloatDescriptor;
 
   std::vector<float> descriptors;
   std::vector<KeyPoint> keypoints;
@@ -150,6 +151,7 @@ void FeatureSet :: extractFromImageUsingSiftGPU(const RGBDImage& image)
   m_descriptors = cv::Mat1f(keypoints.size(), 128);
   ntk_ensure(descriptors.size() == m_descriptors.size().area(), "INvalid number of keypoints");
   std::copy(descriptors.begin(), descriptors.end(), m_descriptors.ptr<float>());
+  m_feature_type = Feature_SIFT;
 }
 
 void FeatureSet :: extractFromImageUsingSiftPP(const RGBDImage& image)
@@ -187,7 +189,7 @@ void FeatureSet :: extractFromImageUsingSiftPP(const RGBDImage& image)
   sift.setNormalizeDescriptor(!unnormalized);
   sift.setMagnification(magnif);
 
-  std::vector< std::vector<unsigned char> > descriptors;
+  std::vector< std::vector<float> > descriptors;
   m_locations.clear();
 
   for (VL::Sift::KeypointsConstIter iter = sift.keypointsBegin();
@@ -212,16 +214,23 @@ void FeatureSet :: extractFromImageUsingSiftPP(const RGBDImage& image)
       VL::float_t descr_pt [128] ;
       sift.computeKeypointDescriptor(descr_pt, *iter, angles[a]) ;
 
-      std::vector<unsigned char> desc_vec(128);
-      foreach_idx(i, desc_vec)
-        desc_vec[i] = (unsigned char) (512*descr_pt[i]);
+      std::vector<float> desc_vec(128);
+      std::copy(descr_pt, descr_pt+128, desc_vec.begin());
 
       m_locations.push_back(new_location);
       descriptors.push_back(desc_vec);
     } // next angle
   } // next keypoint
 
+  m_descriptors.create(descriptors.size(), 128);
+  for_all_rc(m_descriptors)
+  {
+    m_descriptors(r,c) = descriptors[r][c];
+  }
+
   fillDepthData(image);
+  m_feature_type = Feature_SIFT;
+  m_descriptor_size = 128;
 }
 
 void FeatureSet :: fillDepthData(const RGBDImage& image)
@@ -250,6 +259,66 @@ void FeatureSet :: draw(const cv::Mat3b& image, cv::Mat3b& display_image) const
                 display_image,
                 Scalar(255,0,0,255),
                 DrawMatchesFlags::DRAW_OVER_OUTIMG|DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
+}
+
+void FeatureSet :: drawMatches(const cv::Mat3b& image,
+                               const cv::Mat3b& rhs_image,
+                               const FeatureSet& rhs_features,
+                               const std::vector<cv::DMatch>& matches,
+                               cv::Mat3b& display_image) const
+{
+  std::vector<KeyPoint> keypoints1(m_locations.size());
+  foreach_idx(i, keypoints1)
+    keypoints1[i] = (const KeyPoint&)m_locations[i];
+  std::vector<KeyPoint> keypoints2(rhs_features.m_locations.size());
+  foreach_idx(i, keypoints2)
+    keypoints2[i] = (const KeyPoint&)rhs_features.m_locations[i];
+
+  cv::drawMatches(rhs_image, keypoints2,
+                  image, keypoints1,
+                  matches, display_image,
+                  Scalar(255,0,0,255), Scalar(255,255,0,255),
+                  vector<char>());
+}
+
+void FeatureSet :: buildDescriptorIndex()
+{
+  if (m_locations.size() < 1)
+    return;
+  m_descriptor_index = new cv::flann::Index_<float>(m_descriptors,
+                                                    cv::flann::KDTreeIndexParams(4));
+}
+
+void FeatureSet :: matchWith(const FeatureSet& rhs,
+                             std::vector<cv::DMatch>& matches,
+                             float ratio_threshold)
+{
+  ntk_ensure(featureType() == rhs.featureType(), "Cannot match with different feature type.");
+
+  if (!m_descriptor_index)
+    buildDescriptorIndex();
+
+  const cv::Mat1f& rhs_descriptors = rhs.descriptors();
+  for (int i = 0; i < rhs_descriptors.rows; ++i)
+  {
+    std::vector<int> indices(2, -1);
+    std::vector<float> dists(2, 0);
+
+    std::vector<float> query(descriptorSize());
+    std::copy(rhs_descriptors.ptr<float>(i),
+              rhs_descriptors.ptr<float>(i+1),
+              query.begin());
+    m_descriptor_index->knnSearch(query, indices, dists, 2,
+                                  cv::flann::SearchParams(64));
+    if (indices[0] < 0 || indices[1] < 0)
+      continue;
+    const double dist_ratio = dists[0]/dists[1];
+    if (dist_ratio > ratio_threshold) // probably wrong match
+      continue;
+
+    DMatch m(i, indices[0], -1, dist_ratio);
+    matches.push_back(m);
+  }
 }
 
 } // ntk

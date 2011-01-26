@@ -44,7 +44,6 @@ public:
                      Feature_SURF128,
                      Feature_BRIEF32,
                      Feature_BRIEF64 };
-  enum DescriptorDataType { ByteDescriptor, FloatDescriptor };
 
 public:
   FeatureSet() {}
@@ -61,16 +60,10 @@ public:
   std::string featureTypeName() const;
   FeatureType featureType() const { return (FeatureType) m_feature_type; }
 
-  DescriptorDataType descriptorDataType() const { return (DescriptorDataType)m_descriptor_data_type; }
   int descriptorSize() const { return m_descriptor_size; }
 
-  bool useFloatDescriptors() const { return descriptorDataType() == FloatDescriptor; }
-  bool useByteDescriptors() const { return descriptorDataType() == ByteDescriptor; }
-
   const std::vector<FeatureLocation>& locations() const { return m_locations; }
-  const cv::Mat& descriptors() const { return m_descriptors; }
-
-  void draw(const cv::Mat3b& image, cv::Mat3b& display_image) const;
+  const cv::Mat1f& descriptors() const { return m_descriptors; }
 
 public:
   /*!
@@ -84,17 +77,37 @@ public:
                         const std::string& descriptor_type,
                         float threshold = -1);
 
+public:
+  /*!
+   * Find matches of rhs features with this feature set.
+   * \param matches The output vector of matches.
+   * \param ratio_threshold The maximal ration between distance
+   * to the closest and distance to the second closest.
+   */
+  void matchWith(const FeatureSet& rhs,
+                 std::vector<cv::DMatch>& matches,
+                 float ratio_threshold = 0.8*0.8);
+
+public:
+  void draw(const cv::Mat3b& image, cv::Mat3b& display_image) const;
+  void drawMatches(const cv::Mat3b& image,
+                   const cv::Mat3b& rhs_image,
+                   const FeatureSet& rhs_features,
+                   const std::vector<cv::DMatch>& matches,
+                   cv::Mat3b& display_image) const;
+
 private:
   void extractFromImageUsingSiftGPU(const RGBDImage& image);
   void extractFromImageUsingSiftPP(const RGBDImage& image);
   void fillDepthData(const RGBDImage& image);
+  void buildDescriptorIndex();
 
 private:
+  ntk::Ptr< cv::flann::Index> m_descriptor_index;
   char m_feature_type;
-  char m_descriptor_data_type;
   unsigned m_descriptor_size;
   std::vector<FeatureLocation> m_locations;
-  cv::Mat m_descriptors;
+  cv::Mat1f m_descriptors;
 };
 
 /*!
