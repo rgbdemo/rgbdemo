@@ -55,10 +55,12 @@ namespace ntk
     {
     }
 
-    void stop()
+    uint64 elapsedMsecs() const { return ntk::Time::getMillisecondCounter()-m_start; }
+
+    void stop(const std::string& marker = "")
     {
       uint64 tstop = ntk::Time::getMillisecondCounter();
-      ntk_dbg(m_debug_level) << "[TIME] elapsed in " << m_name << ": " << (float(tstop)-m_start) << " msecs";
+      ntk_dbg(m_debug_level) << "[TIME] elapsed in " << m_name << marker << ": " << (float(tstop)-m_start) << " msecs";
     }
 
   private:

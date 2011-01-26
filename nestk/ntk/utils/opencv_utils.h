@@ -342,6 +342,12 @@ inline const NtkDebug& operator<<(const NtkDebug& os, const cv::Vec3f& p)
   return os;
 }
 
+inline const NtkDebug& operator<<(const NtkDebug& os, const cv::Vec4f& p)
+{
+  os << "[" << p[0] << " " << p[1] << " " << p[2] << " " << p[3] << "]";
+  return os;
+}
+
 inline const NtkDebug& operator<<(const NtkDebug& os, const cv::Point2f& p)
 {
   os << "[" << p.x << " " << p.y << "]";
