@@ -73,7 +73,8 @@ void GPUSiftDetector::operator ()(const Mat1b &img,
     cv::KeyPoint& location = keypoints[i];
     location.pt = Point2f(gpu_keypoints[i].x, gpu_keypoints[i].y);
     location.angle = gpu_keypoints[i].o;
-    location.size = gpu_keypoints[i].s;
+    location.octave = gpu_keypoints[i].s;
+    location.size = gpu_keypoints[i].s * 16;
   }
 }
 

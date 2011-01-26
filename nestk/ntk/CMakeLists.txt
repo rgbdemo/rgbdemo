@@ -62,6 +62,8 @@ SET (ntk_sources ${ntk_sources}
 
      image/color_model.h
      image/color_model.cpp
+     image/feature.h
+     image/feature.cpp
      image/sift.h
      image/sift.cpp
 )

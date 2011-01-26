@@ -27,6 +27,8 @@
 typedef ntk::Ptr<Class> Class##Ptr; \
 typedef ntk::Ptr<const Class> Class##ConstPtr;
 
+#define ntk_stringify(Code) #Code
+
 namespace cv {
   CV_EXPORTS void* fastMalloc(size_t);
   CV_EXPORTS void fastFree(void* ptr);
