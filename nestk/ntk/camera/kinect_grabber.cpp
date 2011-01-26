@@ -167,6 +167,11 @@ namespace ntk
       if (m_dual_ir_rgb)
         setIRMode(!m_ir_mode);
       advertiseNewFrame();
+#ifdef _WIN32
+      // FIXME: this is to avoid GUI freezes with libfreenect on Windows.
+      // See http://groups.google.com/group/openkinect/t/b1d828d108e9e69
+      Sleep(1);
+#endif
     }
   }
 
