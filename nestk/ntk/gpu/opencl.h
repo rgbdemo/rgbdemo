@@ -6,6 +6,8 @@
 #define __CL_ENABLE_EXCEPTIONS
 
 #include <ntk/core.h>
+#include <ntk/utils/debug.h>
+
 #include <CL/cl.hpp>
 
 #define opencl_stringify(Code) #Code
@@ -53,19 +55,32 @@ public:
   //move from util.h/cpp
 };
 
-struct BufferUseHostMemType{};
-struct BufferUsePinnedMemory{};
-
-template <class T>
-class Buffer
+class BufferBase
 {
 public:
-  Buffer(){ cli=NULL; vbo_id=0; m_last_map_ptr = 0; };
-  //create an OpenCL buffer from existing data
-  Buffer(CL *cli, const std::vector<T> &data);
-  Buffer(CL *cli, const std::vector<T> &data, unsigned int memtype);
-  Buffer(CL *cli, std::vector<T> &data, unsigned int memtype, BufferUseHostMemType);
-  Buffer(CL *cli, T**data, unsigned int num_elements, unsigned int memtype, BufferUsePinnedMemory);
+  enum MemorySharing { NoMemSharing = 0, UseHostMemType = 1, UsePinnedMemory = 2 };
+  enum MemAccessType { ReadWrite = CL_MEM_READ_WRITE,
+                       ReadOnly = CL_MEM_READ_ONLY,
+                       WriteOnly = CL_MEM_WRITE_ONLY };
+};
+
+template <class T>
+class Buffer : public BufferBase
+{
+public:
+  Buffer(){ cli=NULL; vbo_id=0; };
+
+  /*!
+   * Create an OpenCL buffer from existing data.
+   * Data must be provided if UseHostMemType or UsePinnedMemory is set.
+   * Takes a T** since UsePinnedMemory will return a new pointer.
+   */
+  Buffer(CL *cli,
+         unsigned int num_elements,
+         MemAccessType = ReadWrite,
+         T** data = 0,
+         MemorySharing flags = NoMemSharing);
+
   //create a OpenCL BufferGL from a vbo_id
   //if managed is true then the destructor will delete the VBO
   Buffer(CL *cli, GLuint vbo_id);
@@ -74,21 +89,20 @@ public:
   cl_mem getDevicePtr() { return cl_buffer[0](); }
 
   //need to acquire and release arrays from OpenGL context if we have a VBO
-  void acquire();
-  void release();
+  void acquireGL();
+  void releaseGL();
 
-  void copyToDevice(const std::vector<T> &data);
-  void copyRawToDevice(const T* data, int num); //copy
-  //pastes the data over the current array starting at [start]
-  void copyToDevice(const std::vector<T> &data, int start);
-  std::vector<T> copyToHost(int num);
-  void copyToHost(std::vector<T>& output);
-  void copyRawToHost(T* data, int num_elements);
-  void mapToHost(int num_vector_elements);
-  void unmapToHost();
+  /*! Copy data from CPU to GPU. */
+  void copyToDevice(const T* data, unsigned num_elements);
 
-  void set(T val);
-  void set(const std::vector<T> &data);
+  /*! Copy data from GPU to CPU. */
+  void copyToHost(T* data, unsigned num_elements);
+
+  /*! Get a mapped pointer for pinned memory. */
+  void mapToHost(T** mapped_ptr, unsigned num_elements);
+
+  /*! Release a mapped pointer. */
+  void unmapToHost(T* mapped_ptr);
 
 private:
   //we will want to access buffers by name when going across systems
@@ -101,8 +115,6 @@ private:
 
   //if this is a VBO we store its id
   GLuint vbo_id;
-
-  void* m_last_map_ptr;
 };
 
 class Kernel
@@ -146,54 +158,49 @@ template <class T> void Kernel::setArg(int arg, T val)
 }
 
 template <class T>
-Buffer<T>::Buffer(CL *cli, const std::vector<T> &data)
-{
-  this->cli = cli;
-  m_last_map_ptr = 0;
-  //this->data = data;
-
-  cl_buffer.push_back(cl::Buffer(cli->context, CL_MEM_READ_WRITE, data.size()*sizeof(T), NULL, &cli->err));
-  copyToDevice(data);
-}
-
-template <class T>
-Buffer<T>::Buffer(CL *cli, const std::vector<T> &data, unsigned int memtype)
-{
-  this->cli = cli;
-  m_last_map_ptr = 0;
-  cl_buffer.push_back(cl::Buffer(cli->context, memtype, data.size()*sizeof(T), NULL, &cli->err));
-  copyToDevice(data);
-}
-
-template <class T>
-Buffer<T>::Buffer(CL *cli, std::vector<T> &data, unsigned int memtype, BufferUseHostMemType)
-{
-  this->cli = cli;
-  m_last_map_ptr = 0;
-  cl_buffer.push_back(cl::Buffer(cli->context, memtype, data.size()*sizeof(T), &data[0], &cli->err));
-}
-
-template <class T>
 Buffer<T>::Buffer(CL *cli,
-                  T**data,
                   unsigned int num_elements,
-                  unsigned int memtype,
-                  BufferUsePinnedMemory)
+                  MemAccessType access,
+                  T** data,
+                  MemorySharing sharing)
 {
   this->cli = cli;
-  m_last_map_ptr = 0;
-  cl_buffer.push_back(cl::Buffer(cli->context, memtype, num_elements*sizeof(T), 0, &cli->err));
-  *data = (T*) cli->queue.enqueueMapBuffer(*((cl::Buffer*)&cl_buffer[0]),
-                                           CL_TRUE, CL_MAP_READ,
-                                           0, num_elements*sizeof(T),
-                                           NULL, &cli->event, &cli->err);
+
+  switch (sharing)
+  {
+  case NoMemSharing:
+    cl_buffer.push_back(cl::Buffer(cli->context,
+                                   (int) access,
+                                   num_elements*sizeof(T),
+                                   0, &cli->err));
+    break;
+  case UseHostMemType:
+    ntk_assert(data && *data, "You must provide data when using HostMemType");
+    cl_buffer.push_back(cl::Buffer(cli->context,
+                                   (int) access | CL_MEM_USE_HOST_PTR,
+                                   num_elements*sizeof(T),
+                                   *data,
+                                   &cli->err));
+    break;
+  case UsePinnedMemory:
+    ntk_assert(data, "You must provide data when using PinnedMemory");
+    cl_buffer.push_back(cl::Buffer(cli->context,
+                                   (int) access | CL_MEM_ALLOC_HOST_PTR,
+                                   num_elements*sizeof(T),
+                                   0,
+                                   &cli->err));
+    *data = (T*) cli->queue.enqueueMapBuffer(*((cl::Buffer*)&cl_buffer[0]),
+                                             CL_TRUE, CL_MAP_READ,
+                                             0, num_elements*sizeof(T),
+                                             0, &cli->event, &cli->err);
+    break;
+  };
 }
 
 template <class T>
 Buffer<T>::Buffer(CL *cli, GLuint vbo_id)
 {
   this->cli = cli;
-  m_last_map_ptr = 0;
   cl_buffer.push_back(cl::BufferGL(cli->context, CL_MEM_READ_WRITE, vbo_id, &cli->err));
 }
 
@@ -203,7 +210,7 @@ Buffer<T>::~Buffer()
 }
 
 template <class T>
-void Buffer<T>::acquire()
+void Buffer<T>::acquireGL()
 {
   cli->err = cli->queue.enqueueAcquireGLObjects(&cl_buffer, NULL, &cli->event);
   cli->queue.finish();
@@ -211,75 +218,47 @@ void Buffer<T>::acquire()
 
 
 template <class T>
-void Buffer<T>::release()
+void Buffer<T>::releaseGL()
 {
   cli->err = cli->queue.enqueueReleaseGLObjects(&cl_buffer, NULL, &cli->event);
 }
 
-
 template <class T>
-void Buffer<T>::copyToDevice(const std::vector<T> &data)
+void Buffer<T>::copyToDevice(const T* data, unsigned num_elements)
 {
-  //TODO clean up this memory/buffer issue (nasty pointer casting)
-  cli->err = cli->queue.enqueueWriteBuffer(*((cl::Buffer*)&cl_buffer[0]), CL_TRUE, 0, data.size()*sizeof(T), &data[0], NULL, &cli->event);
+  cli->err = cli->queue.enqueueWriteBuffer(*((cl::Buffer*)&cl_buffer[0]),
+                                           CL_TRUE, 0,
+                                           num_elements*sizeof(T),
+                                           data, NULL, &cli->event);
 }
 
 template <class T>
-void Buffer<T>::copyToDevice(const std::vector<T> &data, int start)
+void Buffer<T>::copyToHost(T* data, unsigned num_elements)
 {
-  //TODO clean up this memory/buffer issue (nasty pointer casting)
-  cli->err = cli->queue.enqueueWriteBuffer(*((cl::Buffer*)&cl_buffer[0]), CL_TRUE, start*sizeof(T), data.size()*sizeof(T), &data[0], NULL, &cli->event);
+  cli->err = cli->queue.enqueueReadBuffer(*((cl::Buffer*)&cl_buffer[0]),
+                                          CL_TRUE, /* blocking */
+                                          0,
+                                          num_elements*sizeof(T),
+                                          data,
+                                          NULL, &cli->event);
 }
 
 template <class T>
-void Buffer<T>::copyRawToDevice(const T* data, int num)
-{
-  //TODO clean up this memory/buffer issue (nasty pointer casting)
-  cli->err = cli->queue.enqueueWriteBuffer(*((cl::Buffer*)&cl_buffer[0]), CL_TRUE, 0, num*sizeof(T), data, NULL, &cli->event);
-}
-
-template <class T>
-std::vector<T> Buffer<T>::copyToHost(int num)
-{
-  //TODO clean up this memory/buffer issue
-  std::vector<T> data(num);
-  //TODO pass back a pointer instead of a copy
-  //std::vector<T> data = new std::vector<T>(num);
-  cli->err = cli->queue.enqueueReadBuffer(*((cl::Buffer*)&cl_buffer[0]), CL_TRUE, 0, data.size()*sizeof(T), &data[0], NULL, &cli->event);
-  return data;
-}
-
-template <class T>
-void Buffer<T>::copyRawToHost(T* data, int num_elements)
-{
-  cli->err = cli->queue.enqueueReadBuffer(*((cl::Buffer*)&cl_buffer[0]), CL_TRUE, 0, num_elements*sizeof(T), data, NULL, &cli->event);
-}
-
-template <class T>
-void Buffer<T>::copyToHost(std::vector<T>& output)
-{
-  cli->err = cli->queue.enqueueReadBuffer(*((cl::Buffer*)&cl_buffer[0]), CL_TRUE, 0, output.size()*sizeof(T), &output[0], NULL, &cli->event);
-}
-
-template <class T>
-void Buffer<T>::mapToHost(int num_vector_elements)
+void Buffer<T>::mapToHost(T** mapped_ptr, unsigned num_vector_elements)
 {
   //TODO pass back a pointer instead of a copy
   //std::vector<T> data = new std::vector<T>(num);
-  m_last_map_ptr = cli->queue.enqueueMapBuffer(*((cl::Buffer*)&cl_buffer[0]),
-                                               CL_TRUE, CL_MAP_READ,
-                                               0, num_vector_elements*sizeof(T),
-                                               NULL, &cli->event, &cli->err);
+  *mapped_ptr = cli->queue.enqueueMapBuffer(*((cl::Buffer*)&cl_buffer[0]),
+                                            CL_TRUE, CL_MAP_READ,
+                                            0, num_vector_elements*sizeof(T),
+                                            NULL, &cli->event, &cli->err);
 }
 
 template <class T>
-void Buffer<T>::unmapToHost()
+void Buffer<T>::unmapToHost(T* mapped_ptr)
 {
-  if (!m_last_map_ptr) return;
-  //TODO pass back a pointer instead of a copy
-  //std::vector<T> data = new std::vector<T>(num);
   cli->err = cli->queue.enqueueUnmapMemObject(*((cl::Buffer*)&cl_buffer[0]),
-                                              m_last_map_ptr,
+                                              mapped_ptr,
                                               NULL, &cli->event);
 }
 

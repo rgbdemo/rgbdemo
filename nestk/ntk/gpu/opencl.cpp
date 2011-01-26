@@ -3,6 +3,8 @@
 #include <iostream>
 #include <cstdio>
 
+#include "opencl.h"
+
 //#include <GL/glew.h>
 #if defined __APPLE__ || defined(MACOSX)
     //OpenGL stuff
@@ -10,8 +12,6 @@
     //OpenGL stuff
     #include <GL/glx.h>
 #endif
-
-#include "opencl.h"
 
 // CL class
 

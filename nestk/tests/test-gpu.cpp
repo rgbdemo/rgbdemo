@@ -52,66 +52,39 @@ std::string project_cl_code = opencl_stringify(
   return rvec;
 }
 
-__kernel void project( __global float4* kin,
-                      __global float4* color,
+__kernel void project( __global float* kinect_3d, // array of float3
+                      __global uchar* kinect_rgb_map,
                       __global float* depth,
-                      __global uchar* rgb,    //packed as 3 floats from OpenCV
-                      __constant float* pt,
-                      __constant float* ipt,
+                      __global uchar* rgb,    //packed as 3 uchar from OpenCV
+                      __constant float* rgb_project,
+                      __constant float* depth_unproject,
                       int w,
                       int h)
 {
   unsigned int i = get_global_id(0);
-
-  int c = i % w;
-  int r = (int)(i / w);
-  //int r = i % h;
-  //int c = (int)(i / w);
-
-
-
   float d = depth[i];
-  int irgb = i*3;
-  //irgb = r*(w*3) + c*3;
-  float4 col = (float4)(rgb[irgb+2]/255.f, rgb[irgb+1]/255.f, rgb[irgb]/255.f, 1.0f);
-  //col.y = 1;
-  color[i] = col;
-  //color[i] = (float4)(d/3., d/3., d/3., 1);
-  //kin[i] = (float4)(d*c/w, d*r/h, d, 1);
-  kin[i] = (float4)(1.5*c/w, 1.5*r/h, 0, 1);
-  //color[i] = (float4)(1,0,0,0);
-  //kin[i] = (float4)(0,0,0,0);
-#if 1
+
   //unproject from depth, in place
+  const int c = i % w;
+  const int r = (int)(i / w);
   float4 epix = (float4)(d*c, d*r, d, 1);
-  kin[i] = matmult4(ipt, epix);
-  kin[i].w = 1;
+  float4 p3d = matmult4(depth_unproject, epix);
+  kinect_3d[i*3] = p3d.x;
+  kinect_3d[i*3+1] = p3d.y;
+  kinect_3d[i*3+2] = p3d.z;
 
-
-  epix = matmult4(pt, kin[i]);
+  // project it back on the rgb image.
+  epix = matmult4(rgb_project, p3d);
   int x = (int)(epix.x/epix.z);
   int y = (int)(epix.y/epix.z);
 
-  /*
-   inline bool is_yx_in_range(const cv::Mat& image, int y, int x)
-{ return (x >= 0) && (y >= 0) && (x < image.cols) && (y < image.rows); }
-*/
-  //if y,x in range
-
   if(x>=0 && y>=0 && x < w && y < h)
   {
-    irgb = y*w*3 + x*3;
-    color[i].x = rgb[irgb+2]/255.;
-    color[i].y = rgb[irgb+1]/255.;
-    color[i].z = rgb[irgb]/255.;
-    //color[i] = (float4)(0,1,0,1);
+    int irgb = y*w*3 + x*3;
+    kinect_rgb_map[i*3] = rgb[irgb];
+    kinect_rgb_map[i*3+1] = rgb[irgb+1];
+    kinect_rgb_map[i*3+2] = rgb[irgb+2];
   }
-  else
-  {
-    color[i] = (float4)(0,0,1,1);
-  }
-
-#endif
 }
 );
 
@@ -127,39 +100,35 @@ int main(int argc, char ** argv)
 
   std::vector<float> kinect_depth(640*480);
   std::vector<uchar> kinect_rgb(640*480*3);
-  std::vector<Vec4f> kinect_data(640*480);
-  std::vector<Vec4f> kinect_col(640*480);
+  cv::Mat3f kinect_3d(Size(640,480));
+  cv::Mat3b kinect_rgb_map(Size(640,480));
   std::vector<float> kinect_trans(16);
   Vec4f* kinect_raw_data = 0;
 
-  // Buffer<Vec4f> cl_kinect(&cli, kinect_data, CL_MEM_WRITE_ONLY|CL_MEM_USE_HOST_PTR, BufferUseHostMemType());
-  Buffer<Vec4f> cl_kinect(&cli, kinect_data, CL_MEM_WRITE_ONLY);
-#if 0
-  Buffer<Vec4f> cl_kinect (&cli,
-                           &kinect_raw_data,
-                           640*480,
-                           CL_MEM_WRITE_ONLY|CL_MEM_ALLOC_HOST_PTR,
-                           BufferUsePinnedMemory());
-#endif
-  Buffer<Vec4f> cl_kinect_col(&cli, kinect_col, CL_MEM_WRITE_ONLY);
-  Buffer<float> cl_kinect_depth(&cli, kinect_depth, CL_MEM_READ_ONLY);
-  Buffer<uchar> cl_kinect_rgb(&cli, kinect_rgb, CL_MEM_READ_ONLY);
-  Buffer<float> cl_pt(&cli, kinect_trans, CL_MEM_READ_ONLY); //projection transforms
-  Buffer<float> cl_ipt(&cli, kinect_trans, CL_MEM_READ_ONLY);
+  // Output buffers.
+  Buffer<Vec3f> cl_kinect_3d(&cli, 640*480, BufferBase::WriteOnly);
+  Buffer<Vec3b> cl_kinect_rgb_mapped(&cli, 640*480, BufferBase::ReadWrite);
+
+  // Input buffers.
+  Buffer<float> cl_kinect_depth(&cli, 640*480, BufferBase::ReadOnly);
+  Buffer<Vec3b> cl_kinect_rgb(&cli, 640*480, BufferBase::ReadOnly);
+
+  // projection transforms, 4x4 matrices
+  Buffer<float> cl_rgb_project(&cli, 16, BufferBase::ReadOnly);
+  Buffer<float> cl_depth_unproject(&cli, 16, BufferBase::ReadOnly);
 
   Kernel kernel (&cli, "project", project_cl_code);
   {
     int args = 0;
-    kernel.setArg(args++, cl_kinect.getDevicePtr());
-    kernel.setArg(args++, cl_kinect_col.getDevicePtr());
+    kernel.setArg(args++, cl_kinect_3d.getDevicePtr());
+    kernel.setArg(args++, cl_kinect_rgb_mapped.getDevicePtr());
     kernel.setArg(args++, cl_kinect_depth.getDevicePtr());
     kernel.setArg(args++, cl_kinect_rgb.getDevicePtr());
-    kernel.setArg(args++, cl_pt.getDevicePtr());
-    kernel.setArg(args++, cl_ipt.getDevicePtr());
+    kernel.setArg(args++, cl_rgb_project.getDevicePtr());
+    kernel.setArg(args++, cl_depth_unproject.getDevicePtr());
     kernel.setArg(args++, 640);
     kernel.setArg(args++, 480);
   }
-
 
   RGBDCalibration calibration;
   calibration.loadFromFile(opt::calibration_file());
@@ -176,22 +145,24 @@ int main(int argc, char ** argv)
   grabber.setCalibrationData(calibration);
   grabber.start();
 
-  Mat1f pt = rgb_pose.cvProjectionMatrix();
-  pt.resize(4);
-  transpose(pt, pt);
-  ntk_dbg_print(pt, 1);
+  Mat1f rgb_project = rgb_pose.cvProjectionMatrix();
+  rgb_project.resize(4);
+  // column major in opencl
+  transpose(rgb_project, rgb_project);
 
-  //depth_pose->invert();
-  Mat1f ipt = depth_pose.cvProjectionMatrix();
-  ipt.resize(4);
-  ipt = ipt.inv();
-  transpose(ipt, ipt); //i thought this matrix was column major
+  Mat1f depth_unproject = depth_pose.cvProjectionMatrix();
+  depth_unproject.resize(4);
+  depth_unproject = depth_unproject.inv();
+  // column major in opencl
+  transpose(depth_unproject, depth_unproject);
 
-  cl_ipt.copyRawToDevice(ipt.ptr<float>(), 16);
-  cl_pt.copyRawToDevice(pt.ptr<float>(), 16);
+  cl_depth_unproject.copyToDevice(depth_unproject.ptr<float>(), 16);
+  cl_rgb_project.copyToDevice(rgb_project.ptr<float>(), 16);
 
   RGBDImage current_frame;
-  cv::Mat3b mapped_color;
+  int n_frames = 0;
+  int accumulated_time = 0;
+  int fps = 0;
   while (true)
   {
     ntk::TimeCount tc_loop("loop", 2);
@@ -209,32 +180,27 @@ int main(int argc, char ** argv)
     tc_process.stop();
 
     ntk_assert(current_frame.calibration(), "Ensure there is calibration data in the image");
-    mapped_color.create(current_frame.depth().size());
-    mapped_color = Vec3b(0,0,0);
+    kinect_rgb_map = Vec3b(0,0,0);
 
+#ifdef USE_OPENCL
     ntk::TimeCount tc_gpu("GPU unproject", 1);
-    cl_kinect_depth.copyRawToDevice(current_frame.depth().ptr<float>(),
-                                    640*480);
-    cl_kinect_rgb.copyRawToDevice(current_frame.rgb().ptr<uchar>(), 640*480*3);
-    cli.queue.finish();
-    tc_gpu.stop("(copy to gpu)");
-    int ctaSize = 16; // work group size
+    cl_kinect_depth.copyToDevice(current_frame.depth().ptr<float>(), 640*480);
+    cl_kinect_rgb.copyToDevice(current_frame.rgb().ptr<Vec3b>(), 640*480);
+    cl_kinect_rgb_mapped.copyToDevice(kinect_rgb_map.ptr<Vec3b>(), kinect_rgb_map.size().area());
+
+    // tc_gpu.stop("(copy to gpu)");
+    int ctaSize = 128; // work group size
     kernel.execute(640*480, ctaSize);
-    cli.queue.finish();
-    tc_gpu.stop("(execute)");
+    // tc_gpu.stop("(execute)");
 
-    // cl_kinect.mapToHost(kinect_data.size());
-    cl_kinect.copyToHost(kinect_data);
-    // cl_kinect.copyRawToHost(kinect_raw_data, 640*480);
-    cl_kinect_col.copyToHost(kinect_col);
+    cl_kinect_3d.copyToHost(kinect_3d.ptr<Vec3f>(), kinect_3d.size().area());
+    cl_kinect_rgb_mapped.copyToHost(kinect_rgb_map.ptr<Vec3b>(), kinect_rgb_map.size().area());
     cli.queue.finish();
-    tc_gpu.stop("(copy to host)");
+    // tc_gpu.stop("(copy to host)");
     tc_gpu.stop();
-    ntk_dbg_print(kinect_data[0], 1);
-    // ntk_dbg_print(kinect_raw_data[0], 1);
-    // cl_kinect.unmapToHost();
-
+#else
     ntk::TimeCount tc_mapping("depth-rgb mapping", 1);
+
     // equivalent to for(int r = 0; r < im.rows; ++r) for (int c = 0; c < im.cols; ++c)
     for_all_rc(current_frame.depth())
     {
@@ -250,11 +216,6 @@ int main(int argc, char ** argv)
       // Point in 3D metric space
       Point3f p3d;
       p3d = current_frame.calibration()->depth_pose->unprojectFromImage(p_depth);
-      // Debug output: show p3d if the global debug level is >= 1
-      // ntk_dbg_print(p3d, 1);
-
-      if (c == 0 && r == 0)
-        ntk_dbg_print(p3d, 1);
 
       // Point in color image
       Point3f p_rgb;
@@ -263,12 +224,22 @@ int main(int argc, char ** argv)
       int c_rgb = p_rgb.x;      
       // Check if the pixel coordinates are valid and set the value.
       if (is_yx_in_range(current_frame.rgb(), r_rgb, c_rgb))
-        mapped_color(r, c) = current_frame.rgb()(r_rgb, c_rgb);
+        kinect_rgb_map(r, c) = current_frame.rgb()(r_rgb, c_rgb);
     }
     tc_mapping.stop();
+#endif
 
     //int fps = grabber.frameRate();
-    int fps = 1000/tc_loop.elapsedMsecs();
+    ++n_frames;
+    accumulated_time += tc_loop.elapsedMsecs();
+    if (accumulated_time > 1000)
+    {
+      ntk_dbg_print(accumulated_time, 1);
+      ntk_dbg_print(n_frames, 1);
+      fps = 1000.0 * n_frames / accumulated_time;
+      n_frames = 0;
+      accumulated_time = 0;
+    }
     tc_loop.stop();
     cv::putText(current_frame.rgbRef(),
                 cv::format("%d fps", fps),
@@ -281,7 +252,7 @@ int main(int argc, char ** argv)
     imshow_normalized("depth", current_frame.depth());
 
     // Show color values mapped to depth frame
-    imshow("mapped_color", mapped_color);
+    imshow("kinect_rgb_map", kinect_rgb_map);
 
     cv::waitKey(10);
   }

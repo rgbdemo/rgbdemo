@@ -23,8 +23,8 @@
 # include <ntk/core.h>
 
 # include <QString>
-# include <QDebug>
 # include <QTextStream>
+# include <QDebug>
 
 namespace ntk
 {
