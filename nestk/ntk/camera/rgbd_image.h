@@ -109,6 +109,13 @@ public:
   cv::Mat3b& rawRgbRef() { return m_raw_rgb; }
   const cv::Mat3b& rawRgb() const { return m_raw_rgb; }
 
+  /*! Whether this particular pixel has valid depth information */
+  bool pixelHasDepth(int r, int c) const
+  { return m_depth_mask.data
+        && r < m_depth_mask.rows && c < m_depth_mask.cols && r >= 0 && c >= 0
+        && m_depth_mask(r,c);
+  }
+
   // Raw calibration data. Migth no be set.
   const RGBDCalibration* calibration() const { return m_calibration; }
   void setCalibration(const RGBDCalibration* calibration) { m_calibration = calibration; }
