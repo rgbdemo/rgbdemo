@@ -24,3 +24,5 @@ ADD_EXECUTABLE(rgbd-people-tracker ${moc_sources} ${uic_sources}
 
 TARGET_LINK_LIBRARIES(rgbd-people-tracker
                       nestk)
+
+INSTALL(TARGETS rgbd-people-tracker DESTINATION bin)

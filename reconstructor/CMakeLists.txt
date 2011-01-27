@@ -25,3 +25,4 @@ ADD_EXECUTABLE(rgbd-reconstructor ${moc_sources} ${uic_sources}
 
 TARGET_LINK_LIBRARIES(rgbd-reconstructor
                       nestk)
+INSTALL(TARGETS rgbd-reconstructor DESTINATION bin)

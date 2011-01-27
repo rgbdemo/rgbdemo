@@ -27,3 +27,4 @@ ADD_EXECUTABLE(rgbd-viewer ${moc_sources} ${uic_sources}
 
 TARGET_LINK_LIBRARIES(rgbd-viewer
                       nestk)
+INSTALL(TARGETS rgbd-viewer DESTINATION bin)

@@ -12,7 +12,6 @@ TARGET_LINK_LIBRARIES(${name} nestk)
 ADD_DEPENDENCIES(check ${name})
 ADD_TEST(${name} ${name})
 
-INSTALL(TARGETS ${name} DESTINATION bin)
 ENDMACRO(NEW_TEST)
 
 IF (USE_FREENECT)

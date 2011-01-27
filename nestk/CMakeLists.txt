@@ -20,7 +20,7 @@ INCLUDE("${NESTK_DEPS_USE_FILE}")
 ### extra flags
 ################################################################################
 IF(CMAKE_COMPILER_IS_GNUCXX)
-  SET(DEFAULT_NESTK_EXTRA_CMAKE_CXX_FLAGS "-Wall -W -Wno-unused -Wno-sign-compare -Werror")
+  SET(DEFAULT_NESTK_EXTRA_CMAKE_CXX_FLAGS "-Wall -W -Wno-unused -Wno-sign-compare")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 SET(NESTK_EXTRA_CMAKE_CXX_FLAGS  ${DEFAULT_NESTK_EXTRA_CMAKE_CXX_FLAGS}

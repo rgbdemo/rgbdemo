@@ -17,6 +17,8 @@ SET(CPACK_SOURCE_STRIP_FILES "")
 SET(CPACK_SOURCE_IGNORE_FILES "/CMakeLists.txt.user$;/bin/;/build/;/CVS/;/\\\\.svn/;/\\\\.bzr/;/\\\\.hg/;/\\\\.git/;\\\\.swp$;\\\\.#;/#;.*~$" CACHE STRING "CPACK will ignore this files" )
 INCLUDE(CPack)
 
+SET(CMAKE_INSTALL_RPATH "../lib")
+
 SET(EXECUTABLE_OUTPUT_PATH ${RGBDemo_BINARY_DIR}/bin)
 IF (WIN32)
   SET(LIBRARY_OUTPUT_PATH ${RGBDemo_BINARY_DIR}/lib)
