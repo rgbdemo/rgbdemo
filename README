@@ -10,4 +10,12 @@ This software was partly developed in the RoboticsLab http://roboticslab.uc3m.es
 
 The code is based on the freenect library http://openkinect.org and OpenCV http://opencv.willowgarage.com .
 
-The project is divided into a library called @@nestk@@ and some demo programs using it. The library itself is easy to integrate to an existing project using @@cmake@@: just copy the nestk folder as a subfolder of your project and you should be able to start working with Kinect data.
+The demos are based on a library called nestk. The library itself is easy to integrate to an existing project using cmake: just copy the nestk folder as a subfolder of your project and you should be able to start working with Kinect data. You can get a tutorial to get started there: http://nicolas.burrus.name/index.php/Research/KinectUseNestk .
+
+ROADMAP
+=======
+
+* OpenNI integration for skeleton tracking
+* Multiple Kinect support
+* GPU acceleration using OpenCL (partially done)
+* New demos!
