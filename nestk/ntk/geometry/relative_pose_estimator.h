@@ -118,7 +118,7 @@ private:
   int newImageIndex() const { return m_image_data.size(); }
   int computeNumMatchesWithPrevious(const RGBDImage& image,
                                      const FeatureSet& features,
-                                     std::vector<cv::DMatch> best_matches);
+                                     std::vector<cv::DMatch>& best_matches);
   bool estimateDeltaPose(Pose3D& new_pose,
                          const RGBDImage& image,
                          const FeatureSet& features,

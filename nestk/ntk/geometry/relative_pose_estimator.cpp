@@ -216,13 +216,14 @@ bool RelativePoseEstimatorFromDelta::estimateNewPose(const RGBDImage& image)
 int RelativePoseEstimatorFromImage::
 computeNumMatchesWithPrevious(const RGBDImage& image,
                               const FeatureSet& features,
-                              std::vector<DMatch> best_matches)
+                              std::vector<DMatch>& best_matches)
 {
-  int best_prev_image = -1;
+  int best_prev_image = 0;
   for (int i = 0; i < m_features.size(); ++i)
   {
     std::vector<DMatch> current_matches;
     m_features[i].matchWith(features, current_matches, 0.6*0.6);
+    ntk_dbg_print(current_matches.size(), 1);
     if (current_matches.size() > best_matches.size())
     {
       best_prev_image = i;
@@ -312,6 +313,8 @@ bool RelativePoseEstimatorFromImage::estimateNewPose(const RGBDImage& image)
     std::vector<DMatch> best_matches;
     int closest_view_index = -1;
     closest_view_index = computeNumMatchesWithPrevious(image, image_features, best_matches);
+    ntk_dbg_print(closest_view_index, 1);
+    ntk_dbg_print(best_matches.size(), 1);
 
     new_pose = m_image_data[closest_view_index].pose;
 
@@ -335,6 +338,7 @@ bool RelativePoseEstimatorFromImage::estimateNewPose(const RGBDImage& image)
     m_current_pose = new_pose;
     image_features.compute3dLocation(new_pose);
     m_features.push_back(image_features);
+    ntk_dbg_print(image_features.locations().size(), 1);
     m_image_data.push_back(image_data);
     return true;
   }
