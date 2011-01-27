@@ -219,7 +219,9 @@ computeNumMatchesWithPrevious(const RGBDImage& image,
                               std::vector<DMatch>& best_matches)
 {
   int best_prev_image = 0;
-  for (int i = 0; i < m_features.size(); ++i)
+  // If at least 30 matches have been found with one image, stop searching.
+  // Start with the last one, more likely to have a similar point of view.
+  for (int i = m_features.size()-1; i >= 0 && best_matches.size() < 30; --i)
   {
     std::vector<DMatch> current_matches;
     m_features[i].matchWith(features, current_matches, 0.6*0.6);
