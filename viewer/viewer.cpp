@@ -68,11 +68,6 @@ int main (int argc, char** argv)
   QApplication::setGraphicsSystem("raster");
   QApplication app (argc, argv);
 
-  // Opening cameras. Its important to remember that CvCapture has to be done
-  // before PMD otherwise will crash
-  // 1.- Logitech (openCV)
-  // 2.- PMD (pmdlibrary)
-
   const char* fake_dir = opt::image();
   bool is_directory = opt::directory() != 0;
   if (opt::directory())

@@ -68,10 +68,6 @@ int main (int argc, char** argv)
   QApplication::setGraphicsSystem("raster");
   QApplication app (argc, argv);
 
-  GPUSiftServer server;
-  if (server.isSupported())
-    server.run();
-
   const char* fake_dir = opt::image();
   bool is_directory = opt::directory() != 0;
   if (opt::directory())
@@ -126,7 +122,8 @@ int main (int argc, char** argv)
   acq_controller = new ModelAcquisitionController (gui_controller, modeler);
 
   RelativePoseEstimator* pose_estimator = 0;
-  pose_estimator = new RelativePoseEstimatorFromImage();
+  FeatureSetParams params ("FAST", "BRIEF64", true);
+  pose_estimator = new RelativePoseEstimatorFromImage(params);
 
   acq_controller->setPoseEstimator(pose_estimator);
   gui_controller.setModelAcquisitionController(*acq_controller);
@@ -135,7 +132,4 @@ int main (int argc, char** argv)
 
   app.exec();
   delete acq_controller;
-
-  if (server.isSupported())
-    server.stop();
 }
