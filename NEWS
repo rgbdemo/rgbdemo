@@ -1,9 +1,10 @@
-RGBDemo 0.4.0rc1 (25 Jan 2011)
+RGBDemo 0.4.0rc1 (28 Jan 2011)
 ==============================
 
-* Calibration without distortions for depth image (--no-depth-undistort)
-* Windows support greatly improved (thanks to Armin Zürcher)
 * New demo: experimental people counter
+* Windows support greatly improved (thanks to Armin Zürcher)
+* Calibration without distortions for depth image (--no-depth-undistort)
+* Faster scene reconstructor, with user-selected feature detector
 * Various bug fixes
 
 RGBDemo 0.3.1 (11 Jan 2011)
