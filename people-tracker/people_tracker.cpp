@@ -64,13 +64,8 @@ int main (int argc, char** argv)
   if (opt::directory())
     fake_dir = opt::directory();
 
-  ntk::RGBDProcessor rgbd_processor;
-  rgbd_processor.setMaxNormalAngle(180);
-  rgbd_processor.setFilterFlag(RGBDProcessor::ComputeMapping, false);
-  rgbd_processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthBaseline, true);
-  // rgbd_processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthLinear, true);
-  rgbd_processor.setFilterFlag(RGBDProcessor::NoAmplitudeIntensityUndistort, true);
-  rgbd_processor.setFilterFlag(RGBDProcessor::FilterEdges, true);
+  ntk::KinectProcessor kinect_processor;
+  kinect_processor.setFilterFlag(RGBDProcessor::FilterEdges, true);
 
   RGBDGrabber* grabber = 0;
 
@@ -103,7 +98,7 @@ int main (int argc, char** argv)
   tracker_parameters.loadFromYamlFile(opt::tracker_config());
   PeopleTracker tracker (tracker_parameters);
 
-  GuiController gui_controller (*grabber, rgbd_processor, tracker);
+  GuiController gui_controller (*grabber, kinect_processor, tracker);
   grabber->addEventListener(&gui_controller);
   gui_controller.setFrameRecorder(frame_recorder);
 

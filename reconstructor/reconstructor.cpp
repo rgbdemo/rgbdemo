@@ -73,13 +73,8 @@ int main (int argc, char** argv)
   if (opt::directory())
     fake_dir = opt::directory();
 
-  ntk::RGBDProcessor rgbd_processor;
-  rgbd_processor.setMaxNormalAngle(40);
-  rgbd_processor.setFilterFlag(RGBDProcessor::ComputeMapping, false);
-
+  ntk::KinectProcessor kinect_processor;
   RGBDGrabber* grabber = 0;
-  rgbd_processor.setFilterFlag(RGBDProcessor::ComputeKinectDepthBaseline, true);
-  rgbd_processor.setFilterFlag(RGBDProcessor::NoAmplitudeIntensityUndistort, true);
 
   if (opt::image() || opt::directory())
   {
@@ -106,7 +101,7 @@ int main (int argc, char** argv)
   calib_data.loadFromFile(opt::calibration_file());
   grabber->setCalibrationData(calib_data);
 
-  GuiController gui_controller (*grabber, rgbd_processor);
+  GuiController gui_controller (*grabber, kinect_processor);
   grabber->addEventListener(&gui_controller);
   gui_controller.setFrameRecorder(frame_recorder);
 
@@ -115,8 +110,8 @@ int main (int argc, char** argv)
 
   SurfelsRGBDModeler modeler;
   modeler.setMinViewsPerSurfel(1);
-  rgbd_processor.setFilterFlag(RGBDProcessor::ComputeNormals, 1);
-  rgbd_processor.setMaxNormalAngle(90);
+  kinect_processor.setFilterFlag(RGBDProcessor::ComputeNormals, 1);
+  kinect_processor.setMaxNormalAngle(90);
 
   ModelAcquisitionController* acq_controller = 0;
   acq_controller = new ModelAcquisitionController (gui_controller, modeler);

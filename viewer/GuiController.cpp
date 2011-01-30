@@ -180,11 +180,11 @@ void GuiController :: onRGBDDataUpdated()
 
   if (m_mesh_generator && m_view3d_window->isVisible())
   {
-    TimeCount tc_generate ("Mesh generate");
+    TimeCount tc_generate ("Mesh generate", 2);
     m_mesh_generator->generate(m_last_image);
     tc_generate.stop();
 
-    TimeCount tc_add_mesh ("Add mesh");
+    TimeCount tc_add_mesh ("Add mesh", 2);
     m_view3d_window->ui->mesh_view->addMesh(m_mesh_generator->mesh(), Pose3D(), MeshViewer::FLAT);
     tc_add_mesh.stop();
 
