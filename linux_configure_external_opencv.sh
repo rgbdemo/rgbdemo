@@ -5,7 +5,7 @@
 ## Started on  Thu Feb 19 13:04:22 2009 Nicolas Burrus
 ## $Id$
 ## 
-## Copyright (C) 2009, 2010 Nicolas Burrus
+## Copyright (C) 2009, 2010, 2011 Nicolas Burrus
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
 ## the Free Software Foundation; either version 2 of the License, or
@@ -28,6 +28,7 @@ cmake .. \
     -Wno-dev \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_VERBOSE_MAKEFILE=1 \
+    -DUSE_EXTERNAL_OPENCV=1 \
     $*
 
 echo "Program configured in directory build."
