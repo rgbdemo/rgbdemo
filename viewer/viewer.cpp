@@ -101,12 +101,27 @@ int main (int argc, char** argv)
   ObjectDetector detector;
 
   MeshGenerator* mesh_generator = 0;
-  ntk::RGBDCalibration calib_data;
+
+  ntk::RGBDCalibration* calib_data = 0;
   if (opt::calibration_file())
   {
-    calib_data.loadFromFile(opt::calibration_file());
+    calib_data = new RGBDCalibration();
+    calib_data->loadFromFile(opt::calibration_file());
+  }
+  else if (QDir::current().exists("kinect_calibration.yml"))
+  {
+    {
+      ntk_dbg(0) << "[WARNING] Using kinect_calibration.yml in current directory";
+      ntk_dbg(0) << "[WARNING] use --calibration to specify a different file.";
+    }
+    calib_data = new RGBDCalibration();
+    calib_data->loadFromFile("kinect_calibration.yml");
+  }
+
+  if (calib_data)
+  {
     mesh_generator = new MeshGenerator();
-    grabber->setCalibrationData(calib_data);
+    grabber->setCalibrationData(*calib_data);
   }
 
   GuiController gui_controller (*grabber, kinect_processor);

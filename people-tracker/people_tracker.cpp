@@ -89,10 +89,23 @@ int main (int argc, char** argv)
   RGBDFrameRecorder frame_recorder (opt::dir_prefix());
   frame_recorder.setSaveOnlyRaw(false);
 
-  ntk::RGBDCalibration calib_data;
-  ntk_ensure(opt::calibration_file(), "You must specify a calibration file (--calibration)");
-  calib_data.loadFromFile(opt::calibration_file());
-  grabber->setCalibrationData(calib_data);
+  ntk::RGBDCalibration* calib_data = 0;
+  if (opt::calibration_file())
+  {
+    calib_data = new RGBDCalibration();
+    calib_data->loadFromFile(opt::calibration_file());
+  }
+  else if (QDir::current().exists("kinect_calibration.yml"))
+  {
+    {
+      ntk_dbg(0) << "[WARNING] Using kinect_calibration.yml in current directory";
+      ntk_dbg(0) << "[WARNING] use --calibration to specify a different file.";
+    }
+    calib_data = new RGBDCalibration();
+    calib_data->loadFromFile("kinect_calibration.yml");
+  }
+  ntk_ensure(calib_data, "You must specify a calibration file (--calibration)");
+  grabber->setCalibrationData(*calib_data);
 
   PeopleTrackerParameters tracker_parameters;
   tracker_parameters.loadFromYamlFile(opt::tracker_config());
