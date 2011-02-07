@@ -37,7 +37,7 @@ using namespace cv;
 
 namespace global
 {
-ntk::arg<const char*> opt_image_directory(0, "RGBD images directory", 0);
+ntk::arg<const char*> opt_image_directory("--input", "RGBD images directory", "grab1");
 ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "kinect_calibration.yml");
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
