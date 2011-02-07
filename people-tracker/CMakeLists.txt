@@ -13,7 +13,7 @@ QT4_WRAP_UI(uic_sources
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-ADD_EXECUTABLE(rgbd-people-tracker ${moc_sources} ${uic_sources}
+ADD_EXECUTABLE(rgbd-people-tracker MACOSX_BUNDLE ${moc_sources} ${uic_sources}
                people_tracker.cpp
                GuiController.cpp GuiController.h
                FiltersWindow.cpp FiltersWindow.h
@@ -26,3 +26,5 @@ TARGET_LINK_LIBRARIES(rgbd-people-tracker
                       nestk)
 
 INSTALL(TARGETS rgbd-people-tracker DESTINATION bin)
+SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
+INSTALL_STANDALONE_BUNDLE(rgbd-people-tracker ${DIRS})

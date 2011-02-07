@@ -15,7 +15,7 @@ QT4_WRAP_UI(uic_sources
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-ADD_EXECUTABLE(rgbd-viewer ${moc_sources} ${uic_sources}
+ADD_EXECUTABLE(rgbd-viewer MACOSX_BUNDLE ${moc_sources} ${uic_sources}
                viewer.cpp
                GuiController.cpp GuiController.h
                ObjectDetector.cpp ObjectDetector.h
@@ -27,4 +27,6 @@ ADD_EXECUTABLE(rgbd-viewer ${moc_sources} ${uic_sources}
 
 TARGET_LINK_LIBRARIES(rgbd-viewer
                       nestk)
-INSTALL(TARGETS rgbd-viewer DESTINATION bin)
+
+SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
+INSTALL_STANDALONE_BUNDLE(rgbd-viewer ${DIRS})
