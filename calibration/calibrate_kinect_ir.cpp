@@ -72,6 +72,30 @@ struct DepthCalibrationPoint
   double estimated;
 };
 
+static void load_intensity_file(const std::string& dir, std::string& full_filename, cv::Mat3b& image)
+{
+  if (is_file(dir + "/raw/intensity.raw"))
+  {
+    full_filename = dir + "/raw/intensity.raw";
+    cv::Mat1f fim = imread_Mat1f_raw(full_filename);
+    ntk_ensure(fim.data, ("Could not read raw intensity image from " + full_filename).c_str());
+    image = toMat3b(normalize_toMat1b(fim));
+  }
+  else if (is_file(dir + "/raw/intensity.yml"))
+  {
+    full_filename = dir + "/raw/intensity.yml";
+    cv::Mat1f fim = imread_yml(full_filename);
+    ntk_ensure(fim.data, ("Could not read raw intensity image from " + full_filename).c_str());
+    image = toMat3b(normalize_toMat1b(fim));
+  }
+  else if (is_file(dir + "/raw/intensity.png"))
+  {
+    full_filename = dir + "/raw/intensity.png";
+    image = imread(full_filename, 0);
+    ntk_ensure(image.data, ("Could not read raw intensity image from " + full_filename).c_str());
+  }
+}
+
 void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
                             std::vector< DepthCalibrationPoint >& depth_values)
 {
@@ -82,9 +106,9 @@ void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
     QString filename = global::images_list[i_image];
     QDir cur_image_dir (global::images_dir.absoluteFilePath(filename));
 
-    std::string full_filename = cur_image_dir.absoluteFilePath("raw/intensity.png").toStdString();
-    ntk_dbg_print(full_filename, 1);
-    cv::Mat3b image = imread(full_filename);
+    std::string full_filename;
+    cv::Mat3b image;
+    load_intensity_file(cur_image_dir.path().toStdString(), full_filename, image);
     ntk_ensure(image.data, "Could not load color image");
 
     kinect_shift_ir_to_depth(image);
@@ -135,8 +159,9 @@ void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
     {
       QString filename = global::images_list[stereo_i];
       QDir cur_image_dir (global::images_dir.absoluteFilePath(filename));
-      std::string full_filename = cur_image_dir.absoluteFilePath("raw/intensity.png").toStdString();
-      cv::Mat3b image = imread(full_filename);
+      std::string full_filename;
+      cv::Mat3b image;
+      load_intensity_file(cur_image_dir.path().toStdString(), full_filename, image);
       ntk_ensure(image.data, "Could not load intensity image");
       kinect_shift_ir_to_depth(image);
 
