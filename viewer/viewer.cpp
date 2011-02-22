@@ -96,7 +96,8 @@ int main (int argc, char** argv)
 
   RGBDFrameRecorder frame_recorder (opt::dir_prefix());
   frame_recorder.setFrameIndex(opt::first_index());
-  frame_recorder.setSaveOnlyRaw(false);
+  frame_recorder.setSaveOnlyRaw(true);
+  frame_recorder.setUseBinaryRaw(true);
 
   ObjectDetector detector;
 
