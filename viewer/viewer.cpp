@@ -19,11 +19,6 @@
 
 #include <ntk/ntk.h>
 #include <ntk/camera/calibration.h>
-#if defined(USE_PMDSDK) && defined(NESTK_PRIVATE)
-# include "pmdsdk2.h"
-# include <ntk/private/camera/pmd_grabber.h>
-# include <ntk/private/camera/pmd_rgb_grabber.h>
-#endif
 
 #include <iostream>
 #include <stdio.h>
@@ -35,6 +30,9 @@
 #include <ntk/camera/opencv_grabber.h>
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
+#ifdef USE_OPENNI
+# include <ntk/camera/nite_rgbd_grabber.h>
+#endif
 #include <ntk/camera/kinect_grabber.h>
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
@@ -55,6 +53,7 @@ namespace opt
   ntk::arg<const char*> image("--image", "Fake mode, use given still image", 0);
   ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? images in dir.", 0);
   ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
+  ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
   ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 }
 
@@ -77,11 +76,22 @@ int main (int argc, char** argv)
 
   RGBDGrabber* grabber = 0;  
 
+  bool use_openni = !opt::freenect();
+#ifndef USE_OPENNI
+  use_openni = false;
+#endif
+
   if (opt::image() || opt::directory())
   {
     std::string path = opt::image() ? opt::image() : opt::directory();
     FileGrabber* file_grabber = new FileGrabber(path, opt::directory() != 0);
     grabber = file_grabber;
+  }
+  else if (use_openni)
+  {
+    NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+    k_grabber->initialize();
+    grabber = k_grabber;
   }
   else
   {

@@ -25,6 +25,10 @@ IF (WIN32)
   SET(LIBRARY_OUTPUT_PATH ${RGBDemo_BINARY_DIR}/lib)
 ENDIF()
 
+IF (NOT WIN32)
+  SET(USE_OPENNI 1)
+ENDIF()
+
 ADD_SUBDIRECTORY(nestk)
 ## nestk/UseNestk.cmake.in defines variable to use nestk.
 ## It itself includes nestk/deps/cmake/UseEmbeddedNestkDeps.cmake that
