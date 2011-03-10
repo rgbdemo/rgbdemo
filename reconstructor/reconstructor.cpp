@@ -19,10 +19,8 @@
 
 #include <ntk/ntk.h>
 #include <ntk/camera/calibration.h>
-#if defined(USE_PMDSDK) && defined(NESTK_PRIVATE)
-# include "pmdsdk2.h"
-# include <ntk/private/camera/pmd_grabber.h>
-# include <ntk/private/camera/pmd_rgb_grabber.h>
+#ifdef USE_OPENNI
+# include <ntk/camera/nite_rgbd_grabber.h>
 #endif
 
 #include <iostream>
@@ -56,6 +54,7 @@ namespace opt
   ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? images in dir.", 0);
   ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
   ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
+  ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 }
 
 int main (int argc, char** argv)
@@ -73,14 +72,25 @@ int main (int argc, char** argv)
   if (opt::directory())
     fake_dir = opt::directory();
 
-  ntk::KinectProcessor kinect_processor;
+  ntk::RGBDProcessor* processor = 0;
   RGBDGrabber* grabber = 0;
+
+  bool use_openni = !opt::freenect();
+#ifndef USE_OPENNI
+  use_openni = false;
+#endif
 
   if (opt::image() || opt::directory())
   {
     std::string path = opt::image() ? opt::image() : opt::directory();
     FileGrabber* file_grabber = new FileGrabber(path, opt::directory() != 0);
     grabber = file_grabber;
+  }
+  else if (use_openni)
+  {
+    NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+    k_grabber->initialize();
+    grabber = k_grabber;
   }
   else
   {
@@ -90,6 +100,15 @@ int main (int argc, char** argv)
     grabber = k_grabber;
   }
 
+  if (use_openni)
+  {
+    processor = new ntk::NiteProcessor();
+  }
+  else
+  {
+    processor = new ntk::KinectProcessor();
+  }
+
   if (opt::sync())
     grabber->setSynchronous(true);
 
@@ -97,7 +116,11 @@ int main (int argc, char** argv)
   frame_recorder.setSaveOnlyRaw(false);
 
   ntk::RGBDCalibration* calib_data = 0;
-  if (opt::calibration_file())
+  if (use_openni)
+  {
+    calib_data = grabber->calibrationData();
+  }
+  else if (opt::calibration_file())
   {
     calib_data = new RGBDCalibration();
     calib_data->loadFromFile(opt::calibration_file());
@@ -115,7 +138,7 @@ int main (int argc, char** argv)
   ntk_ensure(calib_data, "You must specify a calibration file (--calibration)");
   grabber->setCalibrationData(*calib_data);
 
-  GuiController gui_controller (*grabber, kinect_processor);
+  GuiController gui_controller (*grabber, *processor);
   grabber->addEventListener(&gui_controller);
   gui_controller.setFrameRecorder(frame_recorder);
 
@@ -124,8 +147,8 @@ int main (int argc, char** argv)
 
   SurfelsRGBDModeler modeler;
   modeler.setMinViewsPerSurfel(1);
-  kinect_processor.setFilterFlag(RGBDProcessor::ComputeNormals, 1);
-  kinect_processor.setMaxNormalAngle(90);
+  processor->setFilterFlag(RGBDProcessor::ComputeNormals, 1);
+  processor->setMaxNormalAngle(90);
 
   ModelAcquisitionController* acq_controller = 0;
   acq_controller = new ModelAcquisitionController (gui_controller, modeler);
