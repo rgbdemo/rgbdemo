@@ -72,7 +72,7 @@ int main (int argc, char** argv)
   if (opt::directory())
     fake_dir = opt::directory();
 
-  ntk::KinectProcessor kinect_processor;
+  ntk::RGBDProcessor* processor = 0;
 
   RGBDGrabber* grabber = 0;  
 
@@ -101,6 +101,15 @@ int main (int argc, char** argv)
     grabber = k_grabber;
   }
 
+  if (use_openni)
+  {
+    processor = new ntk::NiteProcessor();
+  }
+  else
+  {
+    processor = new ntk::KinectProcessor();
+  }
+  
   if (opt::sync())
     grabber->setSynchronous(true);
 
@@ -114,7 +123,11 @@ int main (int argc, char** argv)
   MeshGenerator* mesh_generator = 0;
 
   ntk::RGBDCalibration* calib_data = 0;
-  if (opt::calibration_file())
+  if (use_openni)
+  {
+    calib_data = grabber->calibrationData();
+  }
+  else if (opt::calibration_file())
   {
     calib_data = new RGBDCalibration();
     calib_data->loadFromFile(opt::calibration_file());
@@ -135,7 +148,7 @@ int main (int argc, char** argv)
     grabber->setCalibrationData(*calib_data);
   }
 
-  GuiController gui_controller (*grabber, kinect_processor);
+  GuiController gui_controller (*grabber, *processor);
   grabber->addEventListener(&gui_controller);
   gui_controller.setFrameRecorder(frame_recorder);
   gui_controller.setObjectDetector(detector);
