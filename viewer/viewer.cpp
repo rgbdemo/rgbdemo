@@ -55,6 +55,7 @@ namespace opt
   ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
   ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
   ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
+  ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 }
 
 int main (int argc, char** argv)
@@ -90,6 +91,8 @@ int main (int argc, char** argv)
   else if (use_openni)
   {
     NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+    if (opt::high_resolution())
+        k_grabber->setHighRgbResolution(true);
     k_grabber->initialize();
     grabber = k_grabber;
   }
