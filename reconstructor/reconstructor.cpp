@@ -152,6 +152,7 @@ int main (int argc, char** argv)
   modeler.setMinViewsPerSurfel(1);
   processor->setFilterFlag(RGBDProcessor::ComputeNormals, 1);
   processor->setMaxNormalAngle(90);
+  processor->setFilterFlag(RGBDProcessor::ComputeMapping, true);
 
   ModelAcquisitionController* acq_controller = 0;
   acq_controller = new ModelAcquisitionController (gui_controller, modeler);
