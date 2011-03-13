@@ -87,6 +87,7 @@ int main (int argc, char** argv)
     FileGrabber* file_grabber = new FileGrabber(path, opt::directory() != 0);
     grabber = file_grabber;
   }
+#ifdef USE_OPENNI
   else if (use_openni)
   {
     NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
@@ -95,6 +96,7 @@ int main (int argc, char** argv)
     k_grabber->initialize();
     grabber = k_grabber;
   }
+#endif
   else
   {
     KinectGrabber* k_grabber = new KinectGrabber();
