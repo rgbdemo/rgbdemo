@@ -19,7 +19,7 @@
 
 #include <ntk/ntk.h>
 #include <ntk/camera/calibration.h>
-#ifdef USE_OPENNI
+#ifdef NESTK_USE_OPENNI
 # include <ntk/camera/nite_rgbd_grabber.h>
 #endif
 

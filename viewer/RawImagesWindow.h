@@ -49,6 +49,7 @@ private:
     void closeEvent(QCloseEvent *event);
 
 private slots:
+    void on_actionSave_calibration_parameters_triggered();
     void on_actionNext_frame_triggered();
     void on_actionPause_toggled(bool );
     void on_syncMode_toggled(bool checked);

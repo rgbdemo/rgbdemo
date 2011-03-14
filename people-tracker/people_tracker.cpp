@@ -29,7 +29,9 @@
 #include <ntk/camera/calibration.h>
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
-#include <ntk/camera/kinect_grabber.h>
+#ifdef NESTK_USE_FREENECT
+ #include <ntk/camera/kinect_grabber.h>
+#endif
 #include "GuiController.h"
 #include "PeopleTracker.h"
 
@@ -75,13 +77,17 @@ int main (int argc, char** argv)
     FileGrabber* file_grabber = new FileGrabber(path, opt::directory() != 0);
     grabber = file_grabber;
   }
+#ifdef NESTK_USE_FREENECT
   else
-  {
+  {    
     KinectGrabber* k_grabber = new KinectGrabber();
     k_grabber->initialize();
     k_grabber->setIRMode(false);
     grabber = k_grabber;
   }
+#endif
+
+  ntk_ensure(grabber, "Could not create any grabber. Kinect support built?");
 
   if (opt::sync())
     grabber->setSynchronous(true);

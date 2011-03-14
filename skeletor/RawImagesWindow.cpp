@@ -26,7 +26,7 @@
 #include <ntk/camera/rgbd_processor.h>
 #include <ntk/gesture/skeleton.h>
 #include <ntk/utils/opencv_utils.h>
-#ifdef USE_FREENECT
+#ifdef NESTK_USE_FREENECT
 # include <ntk/camera/kinect_grabber.h>
 #endif
 

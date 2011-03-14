@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>735</width>
-     <height>21</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuShow">
@@ -78,6 +78,7 @@
     <addaction name="action_GrabOneFrame"/>
     <addaction name="action_GrabFrames"/>
     <addaction name="action_Screen_capture_mode"/>
+    <addaction name="actionSave_calibration_parameters"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -410,6 +411,11 @@
    </property>
    <property name="text">
     <string>Dual RGB/IR mode</string>
+   </property>
+  </action>
+  <action name="actionSave_calibration_parameters">
+   <property name="text">
+    <string>Save calibration parameters</string>
    </property>
   </action>
  </widget>
