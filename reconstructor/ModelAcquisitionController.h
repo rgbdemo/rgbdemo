@@ -52,7 +52,7 @@ public:
   ntk::RGBDModeler& modeler() { return m_modeler; }
 
 private:
-  bool newFrameThread(const ntk::RGBDImage& image);
+  bool newFrameThread(const ntk::RGBDImage* image);
 
 protected:
   GuiController& m_controller;
