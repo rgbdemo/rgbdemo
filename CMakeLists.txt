@@ -24,8 +24,10 @@ SET(EXECUTABLE_OUTPUT_PATH ${RGBDemo_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${RGBDemo_BINARY_DIR}/lib)
 
 OPTION(NESTK_USE_FREENECT "Build freenect support" 1)
+# Enable these by default when not on Windows.
 IF (NOT WIN32)
   OPTION(NESTK_USE_OPENNI "Build OpenNI support" 1)
+  OPTION(NESTK_USE_PCL "Build PCL support" 1)
 ENDIF()
 
 ADD_SUBDIRECTORY(nestk)
