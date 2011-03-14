@@ -79,27 +79,8 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
   // ui->depthView->setImage(image.depth(), &min_dist, &max_dist);
   if (image.userLabels().data && ui->intensityView->isVisible())
   {
-    const Vec3b colors[] = {
-      Vec3b(255,0,0),
-      Vec3b(255,255,0),
-      Vec3b(255,0,255),
-      Vec3b(255,255,255),
-      Vec3b(0,255,0),
-      Vec3b(0,255,255),
-      Vec3b(0,0,255),
-    };
-    int nb_colors = sizeof(colors) / sizeof(Vec3b);
-
-    cv::Mat3b user_labels(image.userLabels().size());
-    for_all_rc(image.userLabels())
-    {
-      int label = image.userLabels()(r,c);
-      if (label == 0)
-        user_labels(r,c) = Vec3b(0,0,0);
-      else
-        user_labels(r,c) = colors[label%nb_colors];
-    }
-
+    cv::Mat3b user_labels;
+    image.fillRgbFromUserLabels(user_labels);
     ui->intensityView->setImage(user_labels);
   }
 

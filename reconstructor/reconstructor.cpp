@@ -55,7 +55,7 @@ namespace opt
   ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
   ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
   ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
-  ntk::arg<bool> high_resolution("--highres", "Low resolution color image.", 0);
+  ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 }
 
 int main (int argc, char** argv)
