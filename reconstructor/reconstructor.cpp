@@ -60,6 +60,7 @@ namespace opt
   ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
   ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
   ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
+  ntk::arg<bool> use_icp("--icp", "Use ICP to refine pose estimation", 0);
 }
 
 int main (int argc, char** argv)
@@ -169,7 +170,7 @@ int main (int argc, char** argv)
 
   RelativePoseEstimator* pose_estimator = 0;
   FeatureSetParams params ("FAST", "BRIEF64", true);
-  pose_estimator = new RelativePoseEstimatorFromImage(params);
+  pose_estimator = new RelativePoseEstimatorFromImage(params, opt::use_icp());
 
   acq_controller->setPoseEstimator(pose_estimator);
   gui_controller.setModelAcquisitionController(*acq_controller);
