@@ -129,14 +129,14 @@ int main (int argc, char** argv)
   frame_recorder.setSaveOnlyRaw(false);
 
   ntk::RGBDCalibration* calib_data = 0;
-  if (use_openni)
-  {
-    calib_data = grabber->calibrationData();
-  }
-  else if (opt::calibration_file())
+  if (opt::calibration_file())
   {
     calib_data = new RGBDCalibration();
     calib_data->loadFromFile(opt::calibration_file());
+  }
+  else if (use_openni)
+  {
+    calib_data = grabber->calibrationData();
   }
   else if (QDir::current().exists("kinect_calibration.yml"))
   {
