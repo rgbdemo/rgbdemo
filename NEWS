@@ -1,3 +1,17 @@
+RGBDemo 0.5.0 (22 March 2011)
+=============================
+
+* Open NI / Nite backend support.
+* Basic skeleton / gesture support using Nite.
+* Much improved 3D freehand reconstruction with optional ICP refinement.
+* PCL integration.
+
+RGBDemo 0.4.0 (05 Feb 2011)
+===========================
+
+* Improvement of the event loop on Windows
+* Bug fixes
+
 RGBDemo 0.4.0rc1 (28 Jan 2011)
 ==============================
 

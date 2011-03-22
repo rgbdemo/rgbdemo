@@ -1,4 +1,5 @@
 Demo software to visualize, calibrate and process Kinect output
+http://nicolas.burrus.name/index.php/Research/KinectRgbDemoV5
 
 This software was partly developed in the RoboticsLab
 http://roboticslab.uc3m.es and aims at providing a simple toolkit to
@@ -21,7 +22,6 @@ there: http://nicolas.burrus.name/index.php/Research/KinectUseNestk .
 ROADMAP
 =======
 
-* OpenNI integration for skeleton tracking
 * Multiple Kinect support
 * GPU acceleration using OpenCL (partially done)
 * New demos!
