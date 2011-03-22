@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>735</width>
+    <width>853</width>
     <height>557</height>
    </rect>
   </property>
@@ -59,18 +59,10 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>735</width>
+     <width>853</width>
      <height>18</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuShow">
-    <property name="title">
-     <string>&amp;Show</string>
-    </property>
-    <addaction name="action_Show_Object_Detector"/>
-    <addaction name="action_3D_View"/>
-    <addaction name="action_Filters"/>
-   </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>&amp;File</string>
@@ -78,7 +70,6 @@
     <addaction name="action_GrabOneFrame"/>
     <addaction name="action_GrabFrames"/>
     <addaction name="action_Screen_capture_mode"/>
-    <addaction name="actionSave_calibration_parameters"/>
     <addaction name="separator"/>
     <addaction name="action_Quit"/>
    </widget>
@@ -88,15 +79,24 @@
     </property>
     <addaction name="actionPause"/>
     <addaction name="actionNext_frame"/>
-    <addaction name="actionShow_IR"/>
-    <addaction name="actionDual_RGB_IR_mode"/>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuShow"/>
    <addaction name="menuCapture"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>225</height>
+    </size>
+   </property>
    <property name="windowTitle">
     <string>Color Image</string>
    </property>
@@ -125,8 +125,20 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget_2">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+     <horstretch>0</horstretch>
+     <verstretch>0</verstretch>
+    </sizepolicy>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>225</height>
+    </size>
+   </property>
    <property name="windowTitle">
-    <string>Intensity Image (IR)</string>
+    <string>Tracked Users</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -141,27 +153,6 @@
     <layout class="QHBoxLayout" name="horizontalLayout_4">
      <item>
       <widget class="ntk::ImageWidget" name="intensityView" native="true"/>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="dockWidget_3">
-   <property name="windowTitle">
-    <string>Amplitude image</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_3">
-    <property name="minimumSize">
-     <size>
-      <width>160</width>
-      <height>120</height>
-     </size>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_5">
-     <item>
-      <widget class="ntk::ImageWidget" name="amplitudeView" native="true"/>
      </item>
     </layout>
    </widget>
@@ -411,11 +402,6 @@
    </property>
    <property name="text">
     <string>Dual RGB/IR mode</string>
-   </property>
-  </action>
-  <action name="actionSave_calibration_parameters">
-   <property name="text">
-    <string>Save calibration parameters</string>
    </property>
   </action>
  </widget>

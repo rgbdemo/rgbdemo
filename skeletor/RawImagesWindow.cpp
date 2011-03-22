@@ -24,15 +24,16 @@
 
 #include <ntk/camera/rgbd_frame_recorder.h>
 #include <ntk/camera/rgbd_processor.h>
+#include <ntk/gesture/skeleton.h>
 #include <ntk/utils/opencv_utils.h>
 #ifdef NESTK_USE_FREENECT
 # include <ntk/camera/kinect_grabber.h>
 #endif
 
 #include <QCloseEvent>
-#include <QFileDialog>
 
 using namespace ntk;
+using namespace cv;
 
 RawImagesWindow::RawImagesWindow(GuiController& controller, QWidget *parent) :
     QMainWindow(parent),
@@ -61,6 +62,7 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
 {
   if (ui->colorView->isVisible())
     ui->colorView->setImage(image.rgb());
+
   if (ui->depthView->isVisible())
   {
     double min_dist = m_controller.rgbdProcessor().minDepth();
@@ -69,14 +71,18 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
     apply_mask(masked_distance, image.depthMask());
     cv::Mat3b depth_as_color;
     compute_color_encoded_depth(masked_distance, depth_as_color, &min_dist, &max_dist);
+    if (image.skeleton())
+      image.skeleton()->drawOnImage(depth_as_color);
     ui->depthView->setImage(depth_as_color);
   }
   // ui->depthView->setImageAsColor(image.depth(), &min_dist, &max_dist);
   // ui->depthView->setImage(image.depth(), &min_dist, &max_dist);
-  if (image.amplitude().data && ui->amplitudeView->isVisible())
-    ui->amplitudeView->setImage(image.amplitude());
-  if (image.intensity().data && ui->intensityView->isVisible())
-    ui->intensityView->setImage(image.intensity());  
+  if (image.userLabels().data && ui->intensityView->isVisible())
+  {
+    cv::Mat3b user_labels;
+    image.fillRgbFromUserLabels(user_labels);
+    ui->intensityView->setImage(user_labels);
+  }
 
   int x,y;
   ui->depthView->getLastMousePos(x,y);
@@ -97,21 +103,6 @@ void RawImagesWindow::on_action_GrabOneFrame_triggered()
 void RawImagesWindow::on_action_Quit_triggered()
 {
   m_controller.quit();
-}
-
-void RawImagesWindow::on_action_Show_Object_Detector_toggled(bool active)
-{
-  m_controller.toggleObjectDetector(active);
-}
-
-void RawImagesWindow::on_action_3D_View_toggled(bool active)
-{
-  m_controller.toggleView3d(active);
-}
-
-void RawImagesWindow::on_action_Filters_toggled(bool active)
-{
-  m_controller.toggleFilters(active);
 }
 
 void RawImagesWindow::on_action_Screen_capture_mode_toggled(bool active)
@@ -145,38 +136,4 @@ void RawImagesWindow::on_actionPause_toggled(bool active)
 void RawImagesWindow::on_actionNext_frame_triggered()
 {
   m_controller.processOneFrame();
-}
-
-void RawImagesWindow::on_actionShow_IR_toggled(bool v)
-{
-#ifdef NESTK_USE_FREENECT
-  KinectGrabber* kinect_grabber = dynamic_cast<KinectGrabber*>(&m_controller.grabber());
-  if (kinect_grabber)
-    kinect_grabber->setIRMode(v);
-#endif
-}
-
-void RawImagesWindow::on_actionDual_RGB_IR_mode_toggled(bool v)
-{
-#ifdef NESTK_USE_FREENECT
-  KinectGrabber* kinect_grabber = dynamic_cast<KinectGrabber*>(&m_controller.grabber());
-  if (kinect_grabber)
-    kinect_grabber->setDualRgbIR(v);
-#endif
-}
-
-void RawImagesWindow::on_actionSave_calibration_parameters_triggered()
-{
-  if (!m_controller.lastImage().calibration())
-  {
-    ntk_dbg(0) << "Images do not have calibration.";
-    return;
-  }
-
-  QString filename = QFileDialog::getSaveFileName(this,
-                                                  "Save calibration as...",
-                                                  QString("calibration.yml"));
-  if (filename.isEmpty())
-     return;
-  m_controller.lastImage().calibration()->saveToFile(filename.toAscii());
 }

@@ -19,7 +19,7 @@
 
 #include <ntk/ntk.h>
 #include <ntk/camera/calibration.h>
-#ifdef USE_OPENNI
+#ifdef NESTK_USE_OPENNI
 # include <ntk/camera/nite_rgbd_grabber.h>
 #endif
 
@@ -34,7 +34,11 @@
 #include <ntk/camera/opencv_grabber.h>
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
-#include <ntk/camera/kinect_grabber.h>
+
+#ifdef NESTK_USE_FREENECT
+# include <ntk/camera/kinect_grabber.h>
+#endif
+
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include "GuiController.h"
@@ -55,7 +59,8 @@ namespace opt
   ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
   ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
   ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
-  ntk::arg<bool> high_resolution("--highres", "Low resolution color image.", 0);
+  ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
+  ntk::arg<bool> use_icp("--icp", "Use ICP to refine pose estimation", 0);
 }
 
 int main (int argc, char** argv)
@@ -77,7 +82,7 @@ int main (int argc, char** argv)
   RGBDGrabber* grabber = 0;
 
   bool use_openni = !opt::freenect();
-#ifndef USE_OPENNI
+#ifndef NESTK_USE_OPENNI
   use_openni = false;
 #endif
 
@@ -87,7 +92,7 @@ int main (int argc, char** argv)
     FileGrabber* file_grabber = new FileGrabber(path, opt::directory() != 0);
     grabber = file_grabber;
   }
-#ifdef USE_OPENNI
+#ifdef NESTK_USE_OPENNI
   else if (use_openni)
   {
     NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
@@ -97,6 +102,7 @@ int main (int argc, char** argv)
     grabber = k_grabber;
   }
 #endif
+#ifdef NESTK_USE_FREENECT
   else
   {
     KinectGrabber* k_grabber = new KinectGrabber();
@@ -104,6 +110,9 @@ int main (int argc, char** argv)
     k_grabber->setIRMode(false);
     grabber = k_grabber;
   }
+#endif
+
+  ntk_ensure(grabber, "Could not create any grabber. Kinect support built?");
 
   if (use_openni)
   {
@@ -121,14 +130,14 @@ int main (int argc, char** argv)
   frame_recorder.setSaveOnlyRaw(false);
 
   ntk::RGBDCalibration* calib_data = 0;
-  if (use_openni)
-  {
-    calib_data = grabber->calibrationData();
-  }
-  else if (opt::calibration_file())
+  if (opt::calibration_file())
   {
     calib_data = new RGBDCalibration();
     calib_data->loadFromFile(opt::calibration_file());
+  }
+  else if (use_openni)
+  {
+    calib_data = grabber->calibrationData();
   }
   else if (QDir::current().exists("kinect_calibration.yml"))
   {
@@ -161,7 +170,7 @@ int main (int argc, char** argv)
 
   RelativePoseEstimator* pose_estimator = 0;
   FeatureSetParams params ("FAST", "BRIEF64", true);
-  pose_estimator = new RelativePoseEstimatorFromImage(params);
+  pose_estimator = new RelativePoseEstimatorFromImage(params, opt::use_icp());
 
   acq_controller->setPoseEstimator(pose_estimator);
   gui_controller.setModelAcquisitionController(*acq_controller);

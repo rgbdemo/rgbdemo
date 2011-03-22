@@ -51,12 +51,14 @@ void ModelAcquisitionController :: reset()
   m_controller.modelAcquisitionWindow()->ui->mesh_view->swapScene();
 }
 
-bool ModelAcquisitionController :: newFrameThread(const ntk::RGBDImage& image)
+// WARNING: image must be a pointer because QTConcurrent::run gives argument
+// by copy!!
+bool ModelAcquisitionController :: newFrameThread(const ntk::RGBDImage* image)
 {
-  bool pose_ok = m_pose_estimator->estimateNewPose(image);
+  bool pose_ok = m_pose_estimator->estimateNewPose(*image);
   if (!pose_ok)
     return false;
-  m_modeler.addNewView(image, m_pose_estimator->currentPose());
+  m_modeler.addNewView(*image, m_pose_estimator->currentPose());
   m_modeler.computeMesh();
   return true;
 }
@@ -81,13 +83,13 @@ void ModelAcquisitionController :: newFrame(const ntk::RGBDImage& image)
     if (m_new_frame_run.isStarted() && m_new_frame_run.resultCount() > 0)
     {
       if (m_new_frame_run.result())
-      {
+      {        
         m_controller.modelAcquisitionWindow()->ui->mesh_view->addMesh(m_modeler.currentMesh(), Pose3D(), MeshViewer::FLAT);
         m_controller.modelAcquisitionWindow()->ui->mesh_view->swapScene();
       }
     }
     image.copyTo(m_current_image);
-    m_new_frame_run = QtConcurrent::run(this, &ModelAcquisitionController::newFrameThread, m_current_image);
+    m_new_frame_run = QtConcurrent::run(this, &ModelAcquisitionController::newFrameThread, &m_current_image);
     m_new_frame_run.waitForFinished();
   }
 }

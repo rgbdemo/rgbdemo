@@ -49,20 +49,14 @@ private:
     void closeEvent(QCloseEvent *event);
 
 private slots:
-    void on_actionSave_calibration_parameters_triggered();
     void on_actionNext_frame_triggered();
     void on_actionPause_toggled(bool );
     void on_syncMode_toggled(bool checked);
     void on_action_GrabFrames_toggled(bool );
     void on_action_Screen_capture_mode_toggled(bool );
-    void on_action_Filters_toggled(bool );
-    void on_action_3D_View_toggled(bool );
-    void on_action_Show_Object_Detector_toggled(bool );
     void on_action_Quit_triggered();
     void on_action_GrabOneFrame_triggered();
     void on_outputDirText_editingFinished();
-    void on_actionShow_IR_toggled(bool v);
-    void on_actionDual_RGB_IR_mode_toggled(bool v);
 
     friend class GuiController;
 };
