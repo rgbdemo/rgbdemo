@@ -28,5 +28,6 @@ ADD_EXECUTABLE(rgbd-viewer MACOSX_BUNDLE ${moc_sources} ${uic_sources}
 TARGET_LINK_LIBRARIES(rgbd-viewer
                       nestk)
 
+INSTALL(TARGETS rgbd-viewer DESTINATION bin)
 SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
 INSTALL_STANDALONE_BUNDLE(rgbd-viewer ${DIRS})
