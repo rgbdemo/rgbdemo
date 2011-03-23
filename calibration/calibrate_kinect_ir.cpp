@@ -91,7 +91,7 @@ static void load_intensity_file(const std::string& dir, std::string& full_filena
   else if (is_file(dir + "/raw/intensity.png"))
   {
     full_filename = dir + "/raw/intensity.png";
-    image = imread(full_filename, 0);
+    image = imread(full_filename, 1);
     ntk_ensure(image.data, ("Could not read raw intensity image from " + full_filename).c_str());
   }
 }
@@ -165,8 +165,18 @@ void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
       ntk_ensure(image.data, "Could not load intensity image");
       kinect_shift_ir_to_depth(image);
 
-      full_filename = cur_image_dir.absoluteFilePath("raw/depth.yml").toStdString();
-      cv::Mat1f depth_image = imread_yml(full_filename);
+      cv::Mat1f depth_image;
+
+      if (is_file(cur_image_dir.absoluteFilePath("raw/depth.yml").toStdString()))
+      {
+        full_filename = cur_image_dir.absoluteFilePath("raw/depth.yml").toStdString();
+        depth_image = imread_yml(full_filename);
+      }
+      else if (is_file(cur_image_dir.absoluteFilePath("raw/depth.raw").toStdString()))
+      {
+        full_filename = cur_image_dir.absoluteFilePath("raw/depth.raw").toStdString();
+        depth_image = imread_Mat1f_raw(full_filename);
+      }
       ntk_ensure(depth_image.data, "Could not load depth image");
 
       cv::Mat3b undistorted_image;
