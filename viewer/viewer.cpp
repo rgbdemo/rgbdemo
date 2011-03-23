@@ -96,10 +96,14 @@ int main (int argc, char** argv)
 #ifdef NESTK_USE_OPENNI
   else if (use_openni)
   {
+    // Config dir is supposed to be next to the binaries.
+    QDir prev = QDir::current();
+    QDir::setCurrent(QApplication::applicationDirPath());
     NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
     if (opt::high_resolution())
-        k_grabber->setHighRgbResolution(true);
+      k_grabber->setHighRgbResolution(true);
     k_grabber->initialize();
+    QDir::setCurrent(prev.absolutePath());
     grabber = k_grabber;
   }
 #endif

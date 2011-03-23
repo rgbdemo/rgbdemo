@@ -63,10 +63,14 @@ int main (int argc, char** argv)
   QApplication app (argc, argv);
 
   ntk::RGBDProcessor* processor = new NiteProcessor();
+
+  QDir prev = QDir::current();
+  QDir::setCurrent(QApplication::applicationDirPath());
   NiteRGBDGrabber* grabber = new NiteRGBDGrabber();
   if (opt::high_resolution())
     grabber->setHighRgbResolution(true);
     grabber->initialize();
+  QDir::setCurrent(prev.absolutePath());
 
   if (opt::sync())
     grabber->setSynchronous(true);
