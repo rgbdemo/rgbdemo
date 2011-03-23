@@ -31,8 +31,8 @@ ENDIF()
 
 OPTION(NESTK_USE_OPENNI "Build OpenNI support" 1)
 
-# Enable these by default when not on Windows.
-IF (NOT WIN32)
+# Enable these by default when not on Windows neither on Mac.
+IF (UNIX AND NOT APPLE)
   OPTION(NESTK_USE_PCL "Build PCL support" 1)
 ENDIF()
 
