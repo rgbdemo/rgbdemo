@@ -26,21 +26,21 @@ SET(EXECUTABLE_OUTPUT_PATH ${RGBDemo_BINARY_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${RGBDemo_BINARY_DIR}/lib)
 
 IF (NOT WIN32)
-  OPTION(NESTK_USE_FREENECT "Build freenect support" 1)
+  SET(NESTK_USE_FREENECT 1)
 ENDIF()
 
-OPTION(NESTK_USE_OPENNI "Build OpenNI support" 1)
+SET(NESTK_USE_OPENNI 1)
 
 # Enable these by default when not on Windows neither on Mac.
 IF (UNIX AND NOT APPLE)
-  OPTION(NESTK_USE_PCL "Build PCL support" 1)
+  SET(NESTK_USE_PCL 1)
 ENDIF()
 
 ADD_SUBDIRECTORY(nestk)
 ## nestk/UseNestk.cmake.in defines variable to use nestk.
 ## It itself includes nestk/deps/cmake/UseEmbeddedNestkDeps.cmake that
 ## contains most of the cmake find packages commands.
-INCLUDE("${nestk_BINARY_DIR}/UseNestk.cmake")
+INCLUDE(${NESTK_EMBEDDED_USE_FILE})
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NESTK_EXTRA_CMAKE_CXX_FLAGS}" )
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
