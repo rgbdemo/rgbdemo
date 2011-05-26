@@ -9,14 +9,19 @@ QT4_WRAP_UI(uic_sources
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-ADD_EXECUTABLE(rgbd-skeletor MACOSX_BUNDLE ${moc_sources} ${uic_sources}
+SET(rgbd_skeletor_sources ${moc_sources} ${uic_sources}
                skeletor.cpp
                RawImagesWindow.h RawImagesWindow.cpp
-               GuiController.cpp GuiController.h
-)
+               GuiController.cpp GuiController.h)
+
+IF (BUILD_MACOSX_BUNDLE)
+   ADD_EXECUTABLE(rgbd-skeletor MACOSX_BUNDLE ${rgbd_skeletor_sources}) 
+   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
+   INSTALL_STANDALONE_BUNDLE(rgbd-skeletor ${DIRS})
+ELSE()
+   ADD_EXECUTABLE(rgbd-skeletor ${rgbd_skeletor_sources})
+ENDIF()
 
 TARGET_LINK_LIBRARIES(rgbd-skeletor
                       nestk)
 INSTALL(TARGETS rgbd-skeletor DESTINATION bin)
-SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-INSTALL_STANDALONE_BUNDLE(rgbd-skeletor ${DIRS})

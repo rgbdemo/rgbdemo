@@ -13,18 +13,22 @@ QT4_WRAP_UI(uic_sources
 )
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-
-ADD_EXECUTABLE(rgbd-reconstructor MACOSX_BUNDLE ${moc_sources} ${uic_sources}
+SET(reconstructor_sources ${moc_sources} ${uic_sources}
                reconstructor.cpp
                RawImagesWindow.h RawImagesWindow.cpp
                GuiController.cpp GuiController.h
                ModelAcquisitionController.cpp ModelAcquisitionController.h
                FiltersWindow.cpp FiltersWindow.h
-               ModelAcquisitionWindow.cpp ModelAcquisitionWindow.h
-)
+               ModelAcquisitionWindow.cpp ModelAcquisitionWindow.h)
+
+IF (BUILD_MACOSX_BUNDLE)
+   ADD_EXECUTABLE(rgbd-reconstructor MACOSX_BUNDLE ${reconstructor_sources})
+   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
+   INSTALL_STANDALONE_BUNDLE(rgbd-reconstructor ${DIRS})
+ELSE()
+   ADD_EXECUTABLE(rgbd-reconstructor ${reconstructor_sources})
+ENDIF()
 
 TARGET_LINK_LIBRARIES(rgbd-reconstructor
                       nestk)
 INSTALL(TARGETS rgbd-reconstructor DESTINATION bin)
-SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-INSTALL_STANDALONE_BUNDLE(rgbd-reconstructor ${DIRS})
