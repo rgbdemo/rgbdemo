@@ -150,6 +150,7 @@ int main (int argc, char** argv)
     {
 #ifdef NESTK_USE_OPENNI
       NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+      k_grabber->setTrackUsers(false);
       if (opt::use_highres())
         k_grabber->setHighRgbResolution(true);
       k_grabber->initialize();

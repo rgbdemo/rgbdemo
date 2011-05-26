@@ -100,6 +100,7 @@ int main (int argc, char** argv)
     QDir prev = QDir::current();
     QDir::setCurrent(QApplication::applicationDirPath());
     NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+    k_grabber->setTrackUsers(false);
     if (opt::high_resolution())
       k_grabber->setHighRgbResolution(true);
     k_grabber->initialize();
