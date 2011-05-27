@@ -174,7 +174,8 @@ int main (int argc, char** argv)
   acq_controller = new ModelAcquisitionController (gui_controller, modeler);
 
   RelativePoseEstimator* pose_estimator = 0;
-  FeatureSetParams params ("FAST", "BRIEF64", true);
+  // FeatureSetParams params ("FAST", "BRIEF64", true);
+  FeatureSetParams params ("SURF", "SURF64", true);
   pose_estimator = new RelativePoseEstimatorFromImage(params, opt::use_icp());
 
   acq_controller->setPoseEstimator(pose_estimator);
