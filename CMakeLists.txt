@@ -42,7 +42,7 @@ ADD_SUBDIRECTORY(nestk)
 ## nestk/UseNestk.cmake.in defines variable to use nestk.
 ## It itself includes nestk/deps/cmake/UseEmbeddedNestkDeps.cmake that
 ## contains most of the cmake find packages commands.
-INCLUDE(${NESTK_EMBEDDED_USE_FILE})
+INCLUDE("${NESTK_EMBEDDED_USE_FILE}")
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${NESTK_EXTRA_CMAKE_CXX_FLAGS}" )
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
