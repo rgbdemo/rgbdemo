@@ -185,7 +185,7 @@ void PeopleTrackerWindow::on_loadParametersButton_clicked()
   QString filename = QFileDialog::getOpenFileName(this,
                                                   "Choose a tracker_background.yml file",
                                                   QString(),
-                                                  QString("tracker_background.yml"));
+                                                  QString("YAML files (*.yml)"));
   if (filename.isEmpty())
     return;
   m_tracker.loadBackgroundInfoFromFile(filename.toStdString());
