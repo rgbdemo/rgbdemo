@@ -28,12 +28,9 @@
 ModelAcquisitionWindow::ModelAcquisitionWindow(GuiController& controller, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ModelAcquisitionWindow),
-    m_controller(controller),
-    m_angle_delta(10),
-    m_iteration(0)
+    m_controller(controller)
 {
     ui->setupUi(this);
-    // ui->mesh_view->enableLighting();
 }
 
 ModelAcquisitionWindow::~ModelAcquisitionWindow()
@@ -47,92 +44,17 @@ void ModelAcquisitionWindow::on_resetCamera_clicked()
     ui->mesh_view->updateGL();
 }
 
-void ModelAcquisitionWindow::on_action_Grab_and_Move_triggered()
+void ModelAcquisitionWindow::on_resetModelsButton_clicked()
 {
-    m_controller.modelAcquisitionController()->grabAndMove();
-}
-
-void ModelAcquisitionWindow::on_actionModel_and_Move_triggered()
-{
-    on_resetButton_clicked();
-    m_controller.modelAcquisitionController()->modelAndMove();
-}
-
-void ModelAcquisitionWindow::on_action_Grab_Sequence_triggered()
-{
-    if (m_iteration == 0)
-    {
-        m_controller.modelAcquisitionController()->reset();
-    }
-
-    m_controller.modelAcquisitionController()->grabAndMove();
-
-    if (m_iteration < m_controller.modelAcquisitionController()->getNumberOfSteps())
-    {
-        ++m_iteration;
-        ui->action_Grab_Sequence->trigger();
-    }
-    else
-        m_iteration = 0;
-}
-
-void ModelAcquisitionWindow::on_stopSequenceButton_clicked()
-{
-    m_iteration = INT_MAX;
-}
-
-void ModelAcquisitionWindow::on_resetModelButton_clicked()
-{
-    m_iteration = 0;
-    m_controller.modelAcquisitionController()->reset();
-}
-
-void ModelAcquisitionWindow::on_resolutionSpinBox_editingFinished()
-{
-    m_controller.modelAcquisitionController()->modeler().setResolution(ui->resolutionSpinBox->value());
-}
-
-void ModelAcquisitionWindow::on_depthMarginSpinBox_editingFinished()
-{
-    m_controller.modelAcquisitionController()->modeler().setDepthMargin(ui->depthMarginSpinBox->value());
-}
-
-void ModelAcquisitionWindow::on_actionModel_Sequence_triggered()
-{
-    if (m_iteration == 0)
-    {
-        m_controller.modelAcquisitionController()->reset();
-    }
-
-    m_controller.modelAcquisitionController()->modelAndMove();
-
-    if (m_iteration < m_controller.modelAcquisitionController()->getNumberOfSteps())
-    {
-        ++m_iteration;
-        ui->actionModel_Sequence->trigger();
-    }
-    else
-        m_iteration = 0;
+    m_controller.resetModels();
 }
 
 void ModelAcquisitionWindow::on_saveMeshButton_clicked()
 {
-    m_controller.modelAcquisitionController()->modeler().computeSurfaceMesh();
-    m_controller.modelAcquisitionController()->modeler()
-            .currentMesh().saveToPlyFile("scene_mesh.ply");
+    m_controller.saveModels();
 }
 
-void ModelAcquisitionWindow::on_startButton_clicked()
+void ModelAcquisitionWindow::on_acquireModelsButton_clicked()
 {
-    m_controller.modelAcquisitionController()->setPaused(false);
-}
-
-void ModelAcquisitionWindow::on_stopButton_clicked()
-{
-    m_controller.modelAcquisitionController()->setPaused(true);
-}
-
-void ModelAcquisitionWindow::on_resetButton_clicked()
-{
-    m_controller.modelAcquisitionController()->reset();
+    m_controller.acquireNewModels();
 }

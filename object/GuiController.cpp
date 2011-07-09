@@ -33,6 +33,7 @@
 #include <ntk/mesh/mesh_viewer.h>
 #include <ntk/mesh/mesh_renderer.h>
 #include <ntk/detection/plane_estimator.h>
+#include <ntk/mesh/table_object_rgbd_modeler.h>
 
 #include <QMainWindow>
 #include <QImage>
@@ -42,6 +43,7 @@
 
 using namespace cv;
 using namespace ntk;
+using namespace pcl;
 
 GuiController :: GuiController(ntk::RGBDGrabber& producer,
                                ntk::RGBDProcessor& processor)
@@ -146,42 +148,11 @@ void GuiController :: saveCurrentFrame()
 
 void GuiController :: newModelCallback()
 {
-    modelAcquisitionController()->modeler().lastImage().copyTo(modelImage());
-    modelAcquisitionController()->modeler().computeSurfaceMesh();
-    modelAcquisitionController()->modeler().computeAccurateVerticeColors();
-
-    modelMesh() = modelAcquisitionController()->modeler().currentMesh();
-
-    modelAcquisitionWindow()->ui->mesh_view->addMesh(modelMesh(), Pose3D(), MeshViewer::FLAT);
+    for (int i = 0; i < m_meshes.size(); ++i)
+    {
+        modelAcquisitionWindow()->ui->mesh_view->addMesh(m_meshes[i], Pose3D(), MeshViewer::FLAT);
+    }
     modelAcquisitionWindow()->ui->mesh_view->swapScene();
-
-    m_object_plane = modelAcquisitionController()->modeler().supportPlane();
-
-    int min_x = INT_MAX, max_x = 0, min_y = INT_MAX, max_y = 0;
-    foreach_idx(i, modelMesh().vertices)
-    {
-        cv::Point3f p = modelImage().calibration()->rgb_pose->projectToImage(modelMesh().vertices[i]);
-        min_x = std::min((int)p.x, min_x);
-        min_y = std::min((int)p.y, min_y);
-        max_x = std::max((int)p.x, max_x);
-        max_y = std::max((int)p.y, max_y);
-    }
-    min_x *= 0.95;
-    min_y *= 0.95;
-    max_x *= 1.05;
-    max_y *= 1.05;
-
-    cv::Rect object_area(Point2i(min_x,min_y), Point2i(max_x,max_y));
-    for_all_rc(modelImage().rgb())
-    {
-        if (object_area.contains(Point2i(c,r)))
-            continue;
-        modelImage().rgbRef()(r,c) = Vec3b(0,0,0);
-        modelImage().rgbAsGrayRef()(r,c) = 0;
-    }
-#if 0
-    imwrite("/tmp/debug_model_rgb.png", modelImage().rgb());
-#endif  
 }
 
 void GuiController :: onRGBDDataUpdated()
@@ -309,3 +280,44 @@ void GuiController::toggleModeler(bool active)
     }
 }
 
+void GuiController::acquireNewModels()
+{
+    TableObjectDetector<PointXYZ> detector;
+    detector.setDepthLimits(-2, -0.5);
+    detector.setObjectVoxelSize(0.003); // 3 mm voxels.
+
+    PointCloud<PointXYZ> cloud;
+    rgbdImageToPointCloud(cloud, m_last_image);
+    bool ok = detector.detect(cloud);
+    if (!ok)
+    {
+        ntk_dbg(0) << "No clusters on a table plane found.";
+        return;
+    }
+
+    m_meshes.clear();
+    for (int cluster_id = 0; cluster_id < detector.objectClusters().size(); ++cluster_id)
+    {
+        TableObjectRGBDModeler modeler;
+        modeler.feedFromTableObjectDetector(detector, cluster_id);
+        Pose3D pose = *m_last_image.calibration()->depth_pose;
+        modeler.addNewView(m_last_image, pose);
+        modeler.computeMesh();
+        modeler.computeSurfaceMesh();
+        modeler.computeAccurateVerticeColors();
+        m_meshes.push_back(modeler.currentMesh());
+    }
+    notifyNewModel();
+}
+
+void GuiController :: resetModels()
+{
+    m_meshes.clear();
+    modelAcquisitionWindow()->ui->mesh_view->swapScene();
+}
+
+void GuiController :: saveModels()
+{
+    for (int i = 0; i < m_meshes.size(); ++i)
+        m_meshes[i].saveToPlyFile(cv::format("object%d.ply", i).c_str());
+}

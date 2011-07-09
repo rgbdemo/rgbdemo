@@ -84,8 +84,11 @@ public:
 
     ModelAcquisitionWindow* modelAcquisitionWindow() { return m_model_window; }
 
+    void acquireNewModels();
     void notifyNewModel() { m_new_model = true; }
     void newModelCallback();
+    void saveModels();
+    void resetModels();
 
 public:
     void toggleShowPlane(bool b) { m_show_plane = b; }
@@ -133,6 +136,7 @@ protected:
     bool m_show_plane;
     bool m_find_objects;
     bool m_new_model;
+    std::vector<ntk::Mesh> m_meshes;
 };
 
 

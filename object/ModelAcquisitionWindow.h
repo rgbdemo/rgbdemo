@@ -42,26 +42,12 @@ private:
 
 private slots:
     void on_saveMeshButton_clicked();
-    void on_actionModel_Sequence_triggered();
-    void on_actionModel_and_Move_triggered();
-    void on_depthMarginSpinBox_editingFinished();
-    void on_resolutionSpinBox_editingFinished();
-    void on_resetModelButton_clicked();
-    void on_stopSequenceButton_clicked();
-    void on_action_Grab_Sequence_triggered();
-    void on_action_Grab_and_Move_triggered();
-    void on_resetCamera_clicked();
+    void on_resetModelsButton_clicked();
+    void on_resetCamera_clicked();    
 
-    void on_startButton_clicked();
-
-    void on_stopButton_clicked();
-
-    void on_resetButton_clicked();
+    void on_acquireModelsButton_clicked();
 
 private:
-    float m_angle_delta;
-    int m_iteration;
-
     friend class ModelAcquisitionController;
     friend class GuiController;
     friend class FrameModelAcquisitionController;
