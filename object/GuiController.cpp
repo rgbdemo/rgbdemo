@@ -295,6 +295,10 @@ void GuiController::acquireNewModels()
         return;
     }
 
+    cv::Mat3b obj_view;
+    m_last_image.rgb().copyTo(obj_view);
+
+    cv::RNG rng;
     m_meshes.clear();
     for (int cluster_id = 0; cluster_id < detector.objectClusters().size(); ++cluster_id)
     {
@@ -303,10 +307,19 @@ void GuiController::acquireNewModels()
         Pose3D pose = *m_last_image.calibration()->depth_pose;
         modeler.addNewView(m_last_image, pose);
         modeler.computeMesh();
+        // float volume = modeler.meshVolume();
         modeler.computeSurfaceMesh();
         modeler.computeAccurateVerticeColors();
+        Vec3b color (rng(255), rng(255), rng(255));
+        foreach_idx(i, modeler.currentMesh().vertices)
+        {
+            cv::Point3f p = m_last_image.calibration()->rgb_pose->projectToImage(modeler.currentMesh().vertices[i]);
+            if (is_yx_in_range(obj_view, p.y, p.x))
+                obj_view(p.y, p.x) = color;
+        }
         m_meshes.push_back(modeler.currentMesh());
     }
+    modelAcquisitionWindow()->ui->object_view->setImage(obj_view);
     notifyNewModel();
 }
 
