@@ -148,11 +148,34 @@ void GuiController :: saveCurrentFrame()
 
 void GuiController :: newModelCallback()
 {
-    for (int i = 0; i < m_meshes.size(); ++i)
+    cv::Mat3b obj_view;
+    m_last_image.rgb().copyTo(obj_view);
+    cv::RNG rng;
+    std::list<cv::Rect> rects;
+    std::vector<ImageWidget::TextData> texts;
+
+    for (int i = 0; i < m_objects.size(); ++i)
     {
-        modelAcquisitionWindow()->ui->mesh_view->addMesh(m_meshes[i], Pose3D(), MeshViewer::FLAT);
+        Vec3b color (rng(255), rng(255), rng(255));
+        modelAcquisitionWindow()->ui->mesh_view->addMesh(m_objects[i].mesh, Pose3D(), MeshViewer::FLAT);
+
+        foreach_idx(k, m_objects[i].pixels)
+        {
+            int y = m_objects[i].pixels[k].y;
+            int x = m_objects[i].pixels[k].x;
+            if (is_yx_in_range(obj_view, y, x))
+                obj_view(y, x) = color;
+        }
+
+        rects.push_back(m_objects[i].bbox);
+        ImageWidget::TextData& text = m_objects[i].text;
+        text.color = Vec3b(0,0,255);
+        texts.push_back(text);
     }
     modelAcquisitionWindow()->ui->mesh_view->swapScene();
+    modelAcquisitionWindow()->ui->object_view->setRects(rects, cv::Vec3b(0,0,255));
+    modelAcquisitionWindow()->ui->object_view->setTexts(texts);
+    modelAcquisitionWindow()->ui->object_view->setImage(obj_view);
 }
 
 void GuiController :: onRGBDDataUpdated()
@@ -295,42 +318,46 @@ void GuiController::acquireNewModels()
         return;
     }
 
-    cv::Mat3b obj_view;
-    m_last_image.rgb().copyTo(obj_view);
-
-    cv::RNG rng;
-    m_meshes.clear();
+    m_objects.clear();
     for (int cluster_id = 0; cluster_id < detector.objectClusters().size(); ++cluster_id)
     {
+        ObjectData data;
         TableObjectRGBDModeler modeler;
         modeler.feedFromTableObjectDetector(detector, cluster_id);
         Pose3D pose = *m_last_image.calibration()->depth_pose;
         modeler.addNewView(m_last_image, pose);
         modeler.computeMesh();
-        // float volume = modeler.meshVolume();
+        float volume = modeler.meshVolume() * 100*100*100; // cm3
         modeler.computeSurfaceMesh();
         modeler.computeAccurateVerticeColors();
-        Vec3b color (rng(255), rng(255), rng(255));
+        cv::Rect bbox;
         foreach_idx(i, modeler.currentMesh().vertices)
         {
             cv::Point3f p = m_last_image.calibration()->rgb_pose->projectToImage(modeler.currentMesh().vertices[i]);
-            if (is_yx_in_range(obj_view, p.y, p.x))
-                obj_view(p.y, p.x) = color;
+            if (bbox.area() < 1)
+                bbox = Rect(p.x, p.y, 1, 1);
+            else
+                bbox |= Rect(p.x, p.y, 1, 1);
+            data.pixels.push_back(Point2i(ntk::math::rnd(p.x), ntk::math::rnd(p.y)));
         }
-        m_meshes.push_back(modeler.currentMesh());
+        data.bbox = bbox;
+        data.text.text = format("Volume = %d cm3", ntk::math::rnd(volume));
+        data.text.x = bbox.x;
+        data.text.y = bbox.y;
+        data.mesh = modeler.currentMesh();
+        m_objects.push_back(data);
     }
-    modelAcquisitionWindow()->ui->object_view->setImage(obj_view);
     notifyNewModel();
 }
 
 void GuiController :: resetModels()
 {
-    m_meshes.clear();
+    m_objects.clear();
     modelAcquisitionWindow()->ui->mesh_view->swapScene();
 }
 
 void GuiController :: saveModels()
 {
-    for (int i = 0; i < m_meshes.size(); ++i)
-        m_meshes[i].saveToPlyFile(cv::format("object%d.ply", i).c_str());
+    for (int i = 0; i < m_objects.size(); ++i)
+        m_objects[i].mesh.saveToPlyFile(cv::format("object%d.ply", i).c_str());
 }
