@@ -32,6 +32,7 @@ using namespace cv;
 
 namespace opt
 {
+ntk::arg<int> debug_level("--debug", "Debug level", 1);
 ntk::arg<const char*> dir_prefix("--prefix", "Directory prefix for output", "grab");
 ntk::arg<const char*> calibration_file1("--calibration1", "Calibration file for first Kinect (yml)", 0);
 ntk::arg<const char*> calibration_file2("--calibration2", "Calibration file for second Kinect (yml)", 0);
@@ -57,7 +58,7 @@ int main (int argc, char** argv)
 {
     arg_base::set_help_option("-h");
     arg_parse(argc, argv);
-    ntk_debug_level = 1;
+    ntk_debug_level = opt::debug_level();
     cv::setBreakOnError(true);
 
     std::vector<const char*> calibration_files(4);

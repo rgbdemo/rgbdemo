@@ -46,48 +46,49 @@ using namespace cv;
 
 namespace opt
 {
-  ntk::arg<const char*> dir_prefix("--prefix", "Directory prefix for output", "grab1");
-  ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)", 0);
-  ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
-  ntk::arg<bool> high_resolution("--highres", "Low resolution color image.", 0);
+ntk::arg<int> debug_level("--debug", "Debug level", 1);
+ntk::arg<const char*> dir_prefix("--prefix", "Directory prefix for output", "grab1");
+ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)", 0);
+ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
+ntk::arg<bool> high_resolution("--highres", "Low resolution color image.", 0);
 }
 
 int main (int argc, char** argv)
 {
-  arg_base::set_help_option("-h");
-  arg_parse(argc, argv);
-  ntk_debug_level = 1;
-  cv::setBreakOnError(true);
+    arg_base::set_help_option("-h");
+    arg_parse(argc, argv);
+    ntk_debug_level = opt::debug_level();
+    cv::setBreakOnError(true);
 
-  QApplication::setGraphicsSystem("raster");
-  QApplication app (argc, argv);
+    QApplication::setGraphicsSystem("raster");
+    QApplication app (argc, argv);
 
-  ntk::RGBDProcessor* processor = new NiteProcessor();
+    ntk::RGBDProcessor* processor = new NiteProcessor();
 
-  QDir prev = QDir::current();
-  QDir::setCurrent(QApplication::applicationDirPath());
-  NiteRGBDGrabber* grabber = new NiteRGBDGrabber();
-  if (opt::high_resolution())
-    grabber->setHighRgbResolution(true);
+    QDir prev = QDir::current();
+    QDir::setCurrent(QApplication::applicationDirPath());
+    NiteRGBDGrabber* grabber = new NiteRGBDGrabber();
+    if (opt::high_resolution())
+        grabber->setHighRgbResolution(true);
     grabber->initialize();
-  QDir::setCurrent(prev.absolutePath());
+    QDir::setCurrent(prev.absolutePath());
 
-  if (opt::sync())
-    grabber->setSynchronous(true);
+    if (opt::sync())
+        grabber->setSynchronous(true);
 
-  RGBDFrameRecorder frame_recorder (opt::dir_prefix());
-  frame_recorder.setSaveOnlyRaw(false);
+    RGBDFrameRecorder frame_recorder (opt::dir_prefix());
+    frame_recorder.setSaveOnlyRaw(false);
 
-  ntk::RGBDCalibration* calib_data = grabber->calibrationData();
+    ntk::RGBDCalibration* calib_data = grabber->calibrationData();
 
-  GuiController gui_controller (*grabber, *processor);
-  grabber->addEventListener(&gui_controller);
-  gui_controller.setFrameRecorder(frame_recorder);
+    GuiController gui_controller (*grabber, *processor);
+    grabber->addEventListener(&gui_controller);
+    gui_controller.setFrameRecorder(frame_recorder);
 
-  if (opt::sync())
-    gui_controller.setPaused(true);
+    if (opt::sync())
+        gui_controller.setPaused(true);
 
-  grabber->start();
+    grabber->start();
 
-  app.exec();
+    app.exec();
 }
