@@ -169,7 +169,7 @@ void GuiController :: newModelCallback()
 
         rects.push_back(m_objects[i].bbox);
         ImageWidget::TextData& text = m_objects[i].text;
-        text.color = Vec3b(0,0,255);
+        text.color = Vec3b(255,255,255);
         texts.push_back(text);
     }
     modelAcquisitionWindow()->ui->mesh_view->swapScene();
@@ -308,6 +308,7 @@ void GuiController::acquireNewModels()
     TableObjectDetector<PointXYZ> detector;
     detector.setDepthLimits(-2, -0.5);
     detector.setObjectVoxelSize(0.003); // 3 mm voxels.
+    detector.setObjectHeightLimits(0.02, 0.5);
 
     PointCloud<PointXYZ> cloud;
     rgbdImageToPointCloud(cloud, m_last_image);
