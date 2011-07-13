@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
 PROJECT(RGBDemo)
-SET(RGBDEMO_VERSION 0.5.0)
+SET(RGBDEMO_VERSION 0.6.0)
 
 OPTION(BUILD_MACOSX_BUNDLE "Build bundle apps on mac." 0)
 
@@ -54,9 +54,9 @@ ADD_SUBDIRECTORY(people-tracker)
 
 IF (NESTK_USE_OPENNI)
   ADD_SUBDIRECTORY(skeletor)
-  ADD_SUBDIRECTORY(multikinect)
 ENDIF()
 
 IF (NESTK_USE_OPENNI AND NESTK_USE_PCL)
+  ADD_SUBDIRECTORY(multikinect)
   ADD_SUBDIRECTORY(object)
 ENDIF()

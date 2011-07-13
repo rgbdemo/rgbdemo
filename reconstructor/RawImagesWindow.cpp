@@ -26,7 +26,7 @@
 #include <ntk/camera/rgbd_processor.h>
 #include <ntk/utils/opencv_utils.h>
 #ifdef NESTK_USE_FREENECT
-# include <ntk/camera/kinect_grabber.h>
+# include <ntk/camera/freenect_grabber.h>
 #endif
 
 #include <QCloseEvent>
@@ -139,17 +139,17 @@ void RawImagesWindow::on_actionNext_frame_triggered()
 void RawImagesWindow::on_actionShow_IR_toggled(bool v)
 {
 #ifdef NESTK_USE_FREENECT
-  KinectGrabber* kinect_grabber = dynamic_cast<KinectGrabber*>(&m_controller.grabber());
-  if (kinect_grabber)
-    kinect_grabber->setIRMode(v);
+  FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
+  if (freenect_grabber)
+    freenect_grabber->setIRMode(v);
 #endif
 }
 
 void RawImagesWindow::on_actionDual_RGB_IR_mode_toggled(bool v)
 {
 #ifdef NESTK_USE_FREENECT
-  KinectGrabber* kinect_grabber = dynamic_cast<KinectGrabber*>(&m_controller.grabber());
-  if (kinect_grabber)
-    kinect_grabber->setDualRgbIR(v);
+  FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
+  if (freenect_grabber)
+    freenect_grabber->setDualRgbIR(v);
 #endif
 }

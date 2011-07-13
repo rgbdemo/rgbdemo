@@ -41,7 +41,11 @@
 
 #include <fstream>
 
-using namespace cv;
+// FIXME: disabled because of flann name conflict with PCL.
+// using namespace cv;
+using cv::Point3f;
+using cv::Vec3f;
+using cv::Vec3b;
 using namespace ntk;
 using namespace pcl;
 
@@ -112,7 +116,7 @@ void GuiController :: setMeshGenerator(MeshGenerator& generator)
 static QImage toNormalizedQImage(const cv::Mat1f& m)
 {
     cv::Mat1b norm;
-    cv::normalize(m, norm, 0, 255, NORM_MINMAX, 0);
+    cv::normalize(m, norm, 0, 255, cv::NORM_MINMAX, 0);
 
     QImage qim (norm.cols, norm.rows, QImage::Format_RGB32);
     for (int r = 0; r < norm.rows; ++r)
@@ -336,13 +340,13 @@ void GuiController::acquireNewModels()
         {
             cv::Point3f p = m_last_image.calibration()->rgb_pose->projectToImage(modeler.currentMesh().vertices[i]);
             if (bbox.area() < 1)
-                bbox = Rect(p.x, p.y, 1, 1);
+                bbox = cv::Rect(p.x, p.y, 1, 1);
             else
-                bbox |= Rect(p.x, p.y, 1, 1);
-            data.pixels.push_back(Point2i(ntk::math::rnd(p.x), ntk::math::rnd(p.y)));
+                bbox |= cv::Rect(p.x, p.y, 1, 1);
+            data.pixels.push_back(cv::Point2i(ntk::math::rnd(p.x), ntk::math::rnd(p.y)));
         }
         data.bbox = bbox;
-        data.text.text = format("Volume = %d cm3", ntk::math::rnd(volume));
+        data.text.text = cv::format("Volume = %d cm3", ntk::math::rnd(volume));
         data.text.x = bbox.x;
         data.text.y = bbox.y;
         data.mesh = modeler.currentMesh();

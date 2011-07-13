@@ -30,13 +30,14 @@
 #include <ntk/camera/opencv_grabber.h>
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
+#include <ntk/camera/rgbd_processor.h>
 
 #ifdef NESTK_USE_OPENNI
-# include <ntk/camera/nite_rgbd_grabber.h>
+# include <ntk/camera/openni_grabber.h>
 #endif
 
 #ifdef NESTK_USE_FREENECT
-# include <ntk/camera/kinect_grabber.h>
+# include <ntk/camera/freenect_grabber.h>
 #endif
 
 #include <ntk/mesh/mesh_generator.h>
@@ -100,7 +101,7 @@ int main (int argc, char** argv)
         // Config dir is supposed to be next to the binaries.
         QDir prev = QDir::current();
         QDir::setCurrent(QApplication::applicationDirPath());
-        NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+        OpenniGrabber* k_grabber = new OpenniGrabber();
         k_grabber->setTrackUsers(false);
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
@@ -112,7 +113,7 @@ int main (int argc, char** argv)
 #ifdef NESTK_USE_FREENECT
     else
     {
-        KinectGrabber* k_grabber = new KinectGrabber();
+        FreenectGrabber* k_grabber = new FreenectGrabber();
         k_grabber->initialize();
         k_grabber->setIRMode(false);
         grabber = k_grabber;
@@ -123,11 +124,11 @@ int main (int argc, char** argv)
 
     if (use_openni)
     {
-        processor = new ntk::NiteProcessor();
+        processor = new ntk::OpenniRGBDProcessor();
     }
     else
     {
-        processor = new ntk::KinectProcessor();
+        processor = new ntk::FreenectRGBDProcessor();
     }
 
     if (opt::sync())

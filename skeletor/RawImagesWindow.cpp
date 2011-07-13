@@ -27,7 +27,7 @@
 #include <ntk/gesture/skeleton.h>
 #include <ntk/utils/opencv_utils.h>
 #ifdef NESTK_USE_FREENECT
-# include <ntk/camera/kinect_grabber.h>
+# include <ntk/camera/freenect_grabber.h>
 #endif
 
 #include <QCloseEvent>

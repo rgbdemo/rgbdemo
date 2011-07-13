@@ -1,13 +1,24 @@
-// <nicolas.burrus@uc3m.es>
-// <jgbueno@ing.uc3m.es>
+/**
+ * This file is part of the rgbdemo project.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Author: Nicolas Burrus <nicolas@burrus.name>, (C) 2010, 2011
+ */
 
 #include <ntk/ntk.h>
 #include <ntk/camera/calibration.h>
-#if defined(NESTK_USE_PMDSDK) && defined(NESTK_PRIVATE)
-# include "pmdsdk2.h"
-# include <ntk/private/camera/pmd_grabber.h>
-# include <ntk/private/camera/pmd_rgb_grabber.h>
-#endif
 
 #include <iostream>
 #include <stdio.h>
@@ -21,10 +32,10 @@
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
 #ifdef NESTK_USE_FREENECT
-# include <ntk/camera/kinect_grabber.h>
+# include <ntk/camera/freenect_grabber.h>
 #endif
 #ifdef NESTK_USE_OPENNI
-# include <ntk/camera/nite_rgbd_grabber.h>
+# include <ntk/camera/openni_grabber.h>
 #endif
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
@@ -99,24 +110,20 @@ int main (int argc, char** argv)
 #ifdef NESTK_USE_OPENNI
         if (opt::use_freenect())
         {
-            rgbd_processor = new KinectProcessor();
+            rgbd_processor = new FreenectRGBDProcessor();
         }
         else
         {
-            rgbd_processor = new NiteProcessor();
+            rgbd_processor = new OpenniRGBDProcessor();
             use_openni = true;
         }
 #else
-        rgbd_processor = new KinectProcessor();
+        rgbd_processor = new FreenectRGBDProcessor();
 #endif
     }
     else
     {
-#ifdef USE_PMDSDK
-        rgbd_processor = new PmdRgbProcessor();
-#else
         rgbd_processor = new RGBDProcessor();
-#endif
     }
 
     rgbd_processor->setMaxNormalAngle(40);
@@ -139,7 +146,7 @@ int main (int argc, char** argv)
         if (opt::use_freenect())
         {
 #ifdef NESTK_USE_FREENECT
-            KinectGrabber* k_grabber = new KinectGrabber();
+            FreenectGrabber* k_grabber = new FreenectGrabber();
             k_grabber->initialize();
             k_grabber->setIRMode(false);
             grabber = k_grabber;
@@ -150,7 +157,7 @@ int main (int argc, char** argv)
         else
         {
 #ifdef NESTK_USE_OPENNI
-            NiteRGBDGrabber* k_grabber = new NiteRGBDGrabber();
+            OpenniGrabber* k_grabber = new OpenniGrabber();
             k_grabber->setTrackUsers(false);
             if (opt::use_highres())
                 k_grabber->setHighRgbResolution(true);
@@ -163,21 +170,7 @@ int main (int argc, char** argv)
     }
     else
     {
-#ifdef USE_PMDSDK
-        ntk_dbg(0) << "Creating link with Logitech camera...";
-        OpencvGrabber& rgb_grabber = *new OpencvGrabber(cv::Size(800,600));
-        rgb_grabber.initialize(opt::camera_id());
-
-        ntk_dbg(0) << "Creating link with PMD camera...";
-        PmdGrabber& pmd_grabber = *new PmdGrabber ();
-        pmd_grabber.initialize();
-        pmd_grabber.setIntegrationTime(600);
-        grabber = new ntk::PmdRgbGrabber (rgb_grabber, pmd_grabber);
-        pmd_grabber.start();
-        rgb_grabber.start();
-#else
         ntk_assert(0, "PMDSDK support not enabled.");
-#endif
     }
 
     MeshGenerator* mesh_generator = 0;
@@ -211,11 +204,6 @@ int main (int argc, char** argv)
     grabber->addEventListener(&gui_controller);
     gui_controller.setFrameRecorder(frame_recorder);
 
-#ifdef NESTK_PRIVATE
-    ntk::PlaneEstimator plane_estimator;
-    gui_controller.setPlaneEstimator(plane_estimator);
-#endif
-
     if (opt::sync())
         gui_controller.setPaused(true);
 
@@ -223,7 +211,6 @@ int main (int argc, char** argv)
     modeler.setDepthFilling(true);
     modeler.setRemoveSmallStructures(true);
 
-    // Pa10ModelAcquisitionController model_acq_controller (gui_controller, modeler);
     ModelAcquisitionController* acq_controller = 0;
     acq_controller = new ModelAcquisitionController (gui_controller, modeler);
     acq_controller->setPaused(true);

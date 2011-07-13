@@ -20,7 +20,7 @@
 #include <ntk/ntk.h>
 #include <ntk/camera/calibration.h>
 #ifdef NESTK_USE_OPENNI
-# include <ntk/camera/nite_rgbd_grabber.h>
+# include <ntk/camera/openni_grabber.h>
 #endif
 
 #include <iostream>
@@ -34,7 +34,7 @@
 #include <ntk/camera/opencv_grabber.h>
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
-#include <ntk/camera/nite_rgbd_grabber.h>
+#include <ntk/camera/openni_grabber.h>
 #include <ntk/mesh/mesh_generator.h>
 #include "GuiController.h"
 
@@ -63,11 +63,11 @@ int main (int argc, char** argv)
     QApplication::setGraphicsSystem("raster");
     QApplication app (argc, argv);
 
-    ntk::RGBDProcessor* processor = new NiteProcessor();
+    ntk::RGBDProcessor* processor = new OpenniRGBDProcessor();
 
     QDir prev = QDir::current();
     QDir::setCurrent(QApplication::applicationDirPath());
-    NiteRGBDGrabber* grabber = new NiteRGBDGrabber();
+    OpenniGrabber* grabber = new OpenniGrabber();
     if (opt::high_resolution())
         grabber->setHighRgbResolution(true);
     grabber->initialize();
