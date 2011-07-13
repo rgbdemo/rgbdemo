@@ -8,6 +8,9 @@ ADD_EXECUTABLE(calibrate_kinect calibrate_kinect.cpp ${common_sources})
 TARGET_LINK_LIBRARIES(calibrate_kinect nestk)
 #INSTALL(TARGETS calibrate_kinect DESTINATION bin)
 
+ADD_EXECUTABLE(calibrate-multiple-kinects calibrate_multiple_kinects.cpp ${common_sources})
+TARGET_LINK_LIBRARIES(calibrate-multiple-kinects nestk)
+
 IF (BUILD_MACOSX_BUNDLE)
    ADD_EXECUTABLE(calibrate_kinect_ir MACOSX_BUNDLE calibrate_kinect_ir.cpp ${common_sources})
    SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
