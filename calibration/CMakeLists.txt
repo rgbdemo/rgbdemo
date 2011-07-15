@@ -8,6 +8,10 @@ ADD_EXECUTABLE(calibrate_kinect calibrate_kinect.cpp ${common_sources})
 TARGET_LINK_LIBRARIES(calibrate_kinect nestk)
 #INSTALL(TARGETS calibrate_kinect DESTINATION bin)
 
+ADD_EXECUTABLE(calibrate_projector calibrate_projector.cpp ${common_sources})
+TARGET_LINK_LIBRARIES(calibrate_projector nestk)
+#INSTALL(TARGETS calibrate_projector DESTINATION bin)
+
 ADD_EXECUTABLE(calibrate-multiple-kinects calibrate_multiple_kinects.cpp ${common_sources})
 TARGET_LINK_LIBRARIES(calibrate-multiple-kinects nestk)
 
