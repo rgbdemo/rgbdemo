@@ -128,7 +128,6 @@ int main (int argc, char** argv)
 
     rgbd_processor->setMaxNormalAngle(40);
     rgbd_processor->setFilterFlag(RGBDProcessor::ComputeMapping, true);
-    rgbd_processor->setFilterFlag(RGBDProcessor::ComputeNormals, true);
     rgbd_processor->setFilterFlag(RGBDProcessor::FilterThresholdDepth, true);
     rgbd_processor->setMinDepth(0.3);
     rgbd_processor->setMaxDepth(1.5);
