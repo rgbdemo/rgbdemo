@@ -105,7 +105,7 @@ int main (int argc, char** argv)
         k_grabber->setTrackUsers(false);
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
-        k_grabber->initialize();
+        k_grabber->connectToDevice();
         QDir::setCurrent(prev.absolutePath());
         grabber = k_grabber;
     }
