@@ -34,7 +34,7 @@ ENDIF()
 SET(NESTK_USE_OPENNI 1)
 
 # Enable these by default when not on Windows neither on Mac.
-IF (UNIX AND NOT APPLE)
+IF (UNIX AND NOT APPLE AND NOT DEFINED NESTK_USE_PCL)
   SET(NESTK_USE_PCL 1)
 ENDIF()
 
