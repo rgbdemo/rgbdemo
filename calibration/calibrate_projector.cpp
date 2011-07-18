@@ -40,6 +40,8 @@ public:
 	opt_image_directory(0, "RGBD images directory", 0),
 	opt_input_file("--kinect", "Input YAML filename", "kinect_calibration.yml"),
 	opt_output_file("--output", "Output YAML filename", "projector_calibration.yml"),
+	opt_projector_width("--projector-width", "Projector width in pixels", 1280),
+	opt_projector_height("--projector-height", "Projector height in pixels", 800),
 	opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 7),
 	opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 10),
 	opt_pattern_pixels("--pattern-pixels", "Pattern side length (in pixels)", 40),
@@ -53,7 +55,7 @@ public:
 	opt_offsetX_3x6("--offsetX_3x6", "Horizontal position of the 3x6 pattern", 0.66),
 	opt_offsetY_3x6("--offsetY_3x6", "Vertical position of the 3x6 pattern", 0.29),
 	image_size(640,480),
-	proj_size(1280,800),
+	proj_size(opt_projector_width(), opt_projector_height()),
 	proj_pattern_size(opt_pattern_width(), opt_pattern_height()),
 	rgb_pattern_size_3x3(3, 3),
 	rgb_pattern_size_3x4(3, 4),
@@ -64,6 +66,8 @@ public:
   ntk::arg<const char*> opt_image_directory;;
 	ntk::arg<const char*> opt_input_file;
   ntk::arg<const char*> opt_output_file;
+  ntk::arg<int> opt_projector_width;
+  ntk::arg<int> opt_projector_height;
   ntk::arg<int> opt_pattern_width;
   ntk::arg<int> opt_pattern_height;
   ntk::arg<int> opt_pattern_pixels;
