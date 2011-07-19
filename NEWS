@@ -1,3 +1,11 @@
+RGBDemo 0.6.0 (19 July 2011)
+============================
+
+* Grabbing from multiple Kinect
+* Checkerboard-based and manual calibration of multiple Kinect
+* Demo of 3D model estimation of objects lying on a table
+* Better PCL integration
+
 RGBDemo 0.5.0 (22 March 2011)
 =============================
 
