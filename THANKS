@@ -1,4 +1,4 @@
 * Jorge Garcia Bueno for initial contributions on RGBD calibration
-* Arnaud Ramey for his help on CMake integration
+* Arnaud Ramey for his help on CMake integration, and OpenNI grabber
 * Diererick/Roxlu for OpenNI CMake integration
 * Cristobal Belles for ICP integration and bug fixes
