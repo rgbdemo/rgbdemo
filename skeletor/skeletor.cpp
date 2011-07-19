@@ -65,9 +65,11 @@ int main (int argc, char** argv)
 
     ntk::RGBDProcessor* processor = new OpenniRGBDProcessor();
 
+    OpenniDriver ni_driver;
+
     QDir prev = QDir::current();
     QDir::setCurrent(QApplication::applicationDirPath());
-    OpenniGrabber* grabber = new OpenniGrabber();
+    OpenniGrabber* grabber = new OpenniGrabber(ni_driver);
     if (opt::high_resolution())
         grabber->setHighRgbResolution(true);
     grabber->initialize();

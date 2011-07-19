@@ -68,7 +68,7 @@ ntk::arg<const char*> directory4("--directory4", "Fake mode, use given still dir
 
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> use_highres("--highres", "High resolution mode (Nite only)", 0);
-ntk::arg<int> num_devices("--numdevices", "Number of connected Kinects", 2);
+ntk::arg<int> num_devices("--numdevices", "Number of connected Kinects (-1 is all)", -1);
 }
 
 int main (int argc, char** argv)
@@ -101,6 +101,15 @@ int main (int argc, char** argv)
     ntk::RGBDProcessor* rgbd_processor = new OpenniRGBDProcessor();
     rgbd_processor->setFilterFlag(RGBDProcessor::ComputeMapping, true);
 
+    OpenniDriver ni_driver;
+    ntk_ensure(ni_driver.numDevices() >= 1, "No devices connected!");
+
+    if (opt::num_devices() < 0)
+        opt::num_devices.value_ = ni_driver.numDevices();
+
+    ntk_ensure(opt::num_devices() <= ni_driver.numDevices(),
+               format("Only %d devices detected!", ni_driver.numDevices()).c_str());
+
     MultipleGrabber* grabber = new MultipleGrabber();
     for (int i = 0; i < opt::num_devices(); ++i)
     {
@@ -115,7 +124,7 @@ int main (int argc, char** argv)
         }
         else
         {
-            OpenniGrabber* ni_grabber = new OpenniGrabber(i);
+            OpenniGrabber* ni_grabber = new OpenniGrabber(ni_driver, i);
             if (opt::use_highres())
             {
                 ni_grabber->setHighRgbResolution(true);

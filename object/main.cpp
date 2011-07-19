@@ -104,6 +104,10 @@ int main (int argc, char** argv)
 
     RGBDGrabber* grabber = 0;
 
+#ifdef NESTK_USE_OPENNI
+    OpenniDriver* ni_driver = 0;
+#endif
+
     bool use_openni = false;
     if (opt::use_kinect())
     {
@@ -156,7 +160,8 @@ int main (int argc, char** argv)
         else
         {
 #ifdef NESTK_USE_OPENNI
-            OpenniGrabber* k_grabber = new OpenniGrabber();
+            if (!ni_driver) ni_driver = new OpenniDriver();
+            OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver);
             k_grabber->setTrackUsers(false);
             if (opt::use_highres())
                 k_grabber->setHighRgbResolution(true);

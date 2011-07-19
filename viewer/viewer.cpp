@@ -84,6 +84,10 @@ int main (int argc, char** argv)
 
     RGBDGrabber* grabber = 0;
 
+#ifdef NESTK_USE_OPENNI
+    OpenniDriver* ni_driver = 0;
+#endif
+
     bool use_openni = !opt::freenect();
 #ifndef NESTK_USE_OPENNI
     use_openni = false;
@@ -101,7 +105,8 @@ int main (int argc, char** argv)
         // Config dir is supposed to be next to the binaries.
         QDir prev = QDir::current();
         QDir::setCurrent(QApplication::applicationDirPath());
-        OpenniGrabber* k_grabber = new OpenniGrabber();
+        if (!ni_driver) ni_driver = new OpenniDriver();
+        OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver);
         k_grabber->setTrackUsers(false);
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
