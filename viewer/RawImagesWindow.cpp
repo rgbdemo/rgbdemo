@@ -73,8 +73,6 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
   }
   // ui->depthView->setImageAsColor(image.depth(), &min_dist, &max_dist);
   // ui->depthView->setImage(image.depth(), &min_dist, &max_dist);
-  if (image.amplitude().data && ui->amplitudeView->isVisible())
-    ui->amplitudeView->setImage(image.amplitude());
   if (image.intensity().data && ui->intensityView->isVisible())
     ui->intensityView->setImage(image.intensity());  
 
@@ -149,11 +147,7 @@ void RawImagesWindow::on_actionNext_frame_triggered()
 
 void RawImagesWindow::on_actionShow_IR_toggled(bool v)
 {
-#ifdef NESTK_USE_FREENECT
-  FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
-  if (freenect_grabber)
-    freenect_grabber->setIRMode(v);
-#endif
+    m_controller.grabber().setIRMode(v);
 }
 
 void RawImagesWindow::on_actionDual_RGB_IR_mode_toggled(bool v)
