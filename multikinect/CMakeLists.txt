@@ -21,15 +21,5 @@ SET(rgbd_multikinect_sources ${moc_sources} ${uic_sources}
                RawImagesWindow.cpp RawImagesWindow.h
 )
 
-IF (BUILD_MACOSX_BUNDLE)
-   ADD_EXECUTABLE(rgbd-multikinect MACOSX_BUNDLE ${rgbd_multikinect_sources})
-   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-   INSTALL_STANDALONE_BUNDLE(rgbd-multikinect ${DIRS})
-ELSE()
-   ADD_EXECUTABLE(rgbd-multikinect ${rgbd_multikinect_sources})
-ENDIF()
-
-TARGET_LINK_LIBRARIES(rgbd-multikinect
-                      nestk)
-
-INSTALL(TARGETS rgbd-multikinect DESTINATION bin)
+NESTK_ADD_EXECUTABLE(rgbd-multikinect ${rgbd_multikinect_sources})
+TARGET_LINK_LIBRARIES(rgbd-multikinect nestk)

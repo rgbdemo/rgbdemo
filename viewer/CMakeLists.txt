@@ -25,16 +25,6 @@ SET(rgbd_viewer_sources ${moc_sources} ${uic_sources}
                RawImagesWindow.cpp RawImagesWindow.h
 )
 
-IF (BUILD_MACOSX_BUNDLE)
-   ADD_EXECUTABLE(rgbd-viewer MACOSX_BUNDLE ${rgbd_viewer_sources}) 
-   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-   INSTALL_STANDALONE_BUNDLE(rgbd-viewer ${DIRS})
-ELSE()
-   ADD_EXECUTABLE(rgbd-viewer ${rgbd_viewer_sources})
-ENDIF()
-
-TARGET_LINK_LIBRARIES(rgbd-viewer
-                      nestk)
-
-INSTALL(TARGETS rgbd-viewer DESTINATION bin)
+NESTK_ADD_EXECUTABLE(rgbd-viewer ${rgbd_viewer_sources})
+TARGET_LINK_LIBRARIES(rgbd-viewer nestk)
 

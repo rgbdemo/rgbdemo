@@ -14,14 +14,5 @@ SET(rgbd_skeletor_sources ${moc_sources} ${uic_sources}
                RawImagesWindow.h RawImagesWindow.cpp
                GuiController.cpp GuiController.h)
 
-IF (BUILD_MACOSX_BUNDLE)
-   ADD_EXECUTABLE(rgbd-skeletor MACOSX_BUNDLE ${rgbd_skeletor_sources}) 
-   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-   INSTALL_STANDALONE_BUNDLE(rgbd-skeletor ${DIRS})
-ELSE()
-   ADD_EXECUTABLE(rgbd-skeletor ${rgbd_skeletor_sources})
-ENDIF()
-
-TARGET_LINK_LIBRARIES(rgbd-skeletor
-                      nestk)
-INSTALL(TARGETS rgbd-skeletor DESTINATION bin)
+NESTK_ADD_EXECUTABLE(rgbd-skeletor ${rgbd_skeletor_sources})
+TARGET_LINK_LIBRARIES(rgbd-skeletor nestk)

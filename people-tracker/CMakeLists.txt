@@ -21,15 +21,5 @@ SET(rgbd_people_tracker_sources ${moc_sources} ${uic_sources}
                PeopleTracker.cpp PeopleTracker.h
                PeopleTrackerWindow.cpp PeopleTrackerWindow.h)
 
-IF (BUILD_MACOSX_BUNDLE)
-   ADD_EXECUTABLE(rgbd-people-tracker MACOSX_BUNDLE ${rgbd_people_tracker_sources})
-   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-   INSTALL_STANDALONE_BUNDLE(rgbd-people-tracker ${DIRS})
-ELSE()
-   ADD_EXECUTABLE(rgbd-people-tracker ${rgbd_people_tracker_sources})
-ENDIF()
-
-TARGET_LINK_LIBRARIES(rgbd-people-tracker
-                      nestk)
-
-INSTALL(TARGETS rgbd-people-tracker DESTINATION bin)
+NESTK_ADD_EXECUTABLE(rgbd-people-tracker ${rgbd_people_tracker_sources})
+TARGET_LINK_LIBRARIES(rgbd-people-tracker nestk)

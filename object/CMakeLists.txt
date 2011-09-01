@@ -25,13 +25,5 @@ SET(rgbd_object_sources ${moc_sources} ${uic_sources}
                ModelAcquisitionWindow.cpp ModelAcquisitionWindow.h
 )
 
-IF (BUILD_MACOSX_BUNDLE)
-   ADD_EXECUTABLE(rgbd-object ${rgbd_object_sources})
-   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-   INSTALL_STANDALONE_BUNDLE(rgbd-object ${DIRS})
-ELSE()
-   ADD_EXECUTABLE(rgbd-object ${rgbd_object_sources})
-ENDIF()
-
-TARGET_LINK_LIBRARIES(rgbd-object
-                      nestk)
+NESTK_ADD_EXECUTABLE(rgbd-object ${rgbd_object_sources})
+TARGET_LINK_LIBRARIES(rgbd-object nestk)

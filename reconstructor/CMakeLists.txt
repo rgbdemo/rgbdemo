@@ -21,14 +21,6 @@ SET(reconstructor_sources ${moc_sources} ${uic_sources}
                FiltersWindow.cpp FiltersWindow.h
                ModelAcquisitionWindow.cpp ModelAcquisitionWindow.h)
 
-IF (BUILD_MACOSX_BUNDLE)
-   ADD_EXECUTABLE(rgbd-reconstructor MACOSX_BUNDLE ${reconstructor_sources})
-   SET(DIRS ${QT_LIBRARY_DIRS} ${CMAKE_BINARY_DIR}/lib ${CMAKE_BINARY_DIR}/bin)
-   INSTALL_STANDALONE_BUNDLE(rgbd-reconstructor ${DIRS})
-ELSE()
-   ADD_EXECUTABLE(rgbd-reconstructor ${reconstructor_sources})
-ENDIF()
+NESTK_ADD_EXECUTABLE(rgbd-reconstructor ${reconstructor_sources})
+TARGET_LINK_LIBRARIES(rgbd-reconstructor nestk)
 
-TARGET_LINK_LIBRARIES(rgbd-reconstructor
-                      nestk)
-INSTALL(TARGETS rgbd-reconstructor DESTINATION bin)
