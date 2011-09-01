@@ -1,3 +1,12 @@
+RGBDemo 0.6.1 (01 September 2011)
+=================================
+
+* Various bug fixes
+* Compatibility with OpenCV 2.3.1
+* Cleanup viewer interface
+* Experimental infrared support with OpenNI (still buggy)
+* Camera/Projector calibration thanks to Mariano Tepper and Christian Parsons
+
 RGBDemo 0.6.0 (19 July 2011)
 ============================
 
