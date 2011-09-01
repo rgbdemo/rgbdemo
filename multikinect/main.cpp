@@ -110,6 +110,10 @@ int main (int argc, char** argv)
     ntk_ensure(opt::num_devices() <= ni_driver.numDevices(),
                format("Only %d devices detected!", ni_driver.numDevices()).c_str());
 
+    // Config dir is supposed to be next to the binaries.
+    QDir prev_dir = QDir::current();
+    QDir::setCurrent(QApplication::applicationDirPath());
+
     MultipleGrabber* grabber = new MultipleGrabber();
     for (int i = 0; i < opt::num_devices(); ++i)
     {
@@ -139,6 +143,8 @@ int main (int argc, char** argv)
         }
         grabber->addGrabber(dev_grabber);
     }
+
+    QDir::setCurrent(prev_dir.absolutePath());
 
     MeshGenerator* mesh_generator = new MeshGenerator();
     mesh_generator->setUseColor(true);

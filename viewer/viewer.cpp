@@ -72,7 +72,7 @@ int main (int argc, char** argv)
     ntk_debug_level = opt::debug_level();
     cv::setBreakOnError(true);
 
-    QApplication::setGraphicsSystem("raster");
+    QApplication::setGraphicsSystem("native");
     QApplication app (argc, argv);
 
     const char* fake_dir = opt::image();

@@ -72,6 +72,7 @@ ntk::arg<bool> use_kinect("--kinect", "Input are kinect images", 1);
 ntk::arg<bool> use_freenect("--freenect", "Use libfreenect library", 0);
 ntk::arg<bool> use_highres("--highres", "High resolution mode (Nite only)", 0);
 ntk::arg<bool> use_icp("--icp", "use ICP refinement", 0);
+ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 ntk::arg<const char*> pose_estimator("--pose-estimator",
                                      "Relative pose estimator (file|delta|image)",
                                      "image");
@@ -160,12 +161,16 @@ int main (int argc, char** argv)
         else
         {
 #ifdef NESTK_USE_OPENNI
+            // Config dir is supposed to be next to the binaries.
+            QDir prev = QDir::current();
+            QDir::setCurrent(QApplication::applicationDirPath());
             if (!ni_driver) ni_driver = new OpenniDriver();
             OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver);
             k_grabber->setTrackUsers(false);
-            if (opt::use_highres())
+            if (opt::high_resolution())
                 k_grabber->setHighRgbResolution(true);
             k_grabber->initialize();
+            QDir::setCurrent(prev.absolutePath());
             grabber = k_grabber;
 #else
             fatal_error("OpenNI support not built, try --freenect.");
