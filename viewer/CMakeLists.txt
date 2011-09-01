@@ -1,3 +1,5 @@
+FIND_PACKAGE(Qt4)
+
 QT4_WRAP_CPP(moc_sources
   GuiController.h
   DetectorWindow.h
