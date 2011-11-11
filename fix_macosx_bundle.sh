@@ -69,20 +69,24 @@ do
     for l in ../../../common/lib/*.dylib ../../../common/*.framework; do
 	ln -sf $l .
     done
-    
+
     for lib in *.dylib; do
-        try_run install_name_tool -change $lib                @executable_path/../Frameworks/$lib ../MacOS/$bin
-        try_run install_name_tool -change lib/$lib            @executable_path/../Frameworks/$lib ../MacOS/$bin
-        try_run install_name_tool -change @executable_path/../MacOS/$lib       @executable_path/../Frameworks/$lib ../MacOS/$bin
-        try_run install_name_tool -change /opt/local/lib/$lib @executable_path/../Frameworks/$lib ../MacOS/$bin
-        try_run install_name_tool -change /usr/local/lib/$lib @executable_path/../Frameworks/$lib ../MacOS/$bin
-        try_run install_name_tool -change /usr/lib/libcminpack.1.1.3.dylib @executable_path/../Frameworks/libcminpack.1.1.3.dylib ../MacOS/$bin
+	for libpath in \
+	    "$lib" \
+	    "lib/$lib" \
+	    "@executable_path/../MacOS/$lib" \
+	    "/opt/local/lib/$lib" \
+	    "/usr/local/lib/$lib" \
+	    "/usr/lib/$lib" \
+	    "/usr/X11/lib/$lib"; do
+	    try_run install_name_tool -change "$libpath" @executable_path/../Frameworks/$lib ../MacOS/$bin
+	done
     done
 
 # If not already done, uncomment this.
 if false; then
     for bin in *.dylib; do
-	for QTLIB in QtCore QtOpenGL QtSvg QtXml QtNetwork QtGui; do
+	for QTLIB in QtCore QtOpenGL QtSvg QtXml QtNetwork QtGui QtTest; do
 	    try_run install_name_tool -change ${QTLIB}.framework/Versions/4/${QTLIB} \
 		@executable_path/../Frameworks/${QTLIB}.framework/Versions/4/${QTLIB} $bin
 	done
@@ -102,6 +106,8 @@ if false; then
 		try_run install_name_tool -change lib/$lib                @executable_path/../Frameworks/$lib $bin
 		try_run install_name_tool -change /opt/local/lib/$lib     @executable_path/../Frameworks/$lib $bin
 		try_run install_name_tool -change /usr/local/lib/$lib     @executable_path/../Frameworks/$lib $bin
+		try_run install_name_tool -change /usr/lib/$lib           @executable_path/../Frameworks/$lib $bin
+		try_run install_name_tool -change /usr/X11/lib/$lib       @executable_path/../Frameworks/$lib $bin
 		try_run install_name_tool -change ../../Bin/Release/$lib  @executable_path/../Frameworks/$lib $bin
 		try_run install_name_tool -change ../../../Bin/Release/$lib  @executable_path/../Frameworks/$lib $bin
 		try_run install_name_tool -change /usr/lib/libcminpack.1.1.3.dylib @executable_path/../Frameworks/libcminpack.1.1.3.dylib $bin
