@@ -23,7 +23,7 @@
 #include <ntk/camera/calibration.h>
 #include <ntk/projector/calibration.h>
 #include <ntk/geometry/pose_3d.h>
-#include <opencv/cv.h>
+// #include <opencv/cv.h>
 #include <fstream>
 
 #include <QDir>

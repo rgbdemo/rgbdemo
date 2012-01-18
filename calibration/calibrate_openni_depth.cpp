@@ -24,7 +24,7 @@
 #include <ntk/camera/rgbd_processor.h>
 #include <ntk/geometry/pose_3d.h>
 #include <ntk/numeric/levenberg_marquart_minimizer.h>
-#include <opencv/cv.h>
+// #include <opencv/cv.h>
 #include <fstream>
 
 #include <QDir>
