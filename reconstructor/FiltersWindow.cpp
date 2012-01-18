@@ -33,19 +33,19 @@ FiltersWindow::FiltersWindow(GuiController& controller, QWidget *parent) :
 {
   ui->setupUi(this);
 
-  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterEdges))
+  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessorFlags::FilterEdges))
     ui->edgesCheckBox->setCheckState(Qt::Checked);
 
-  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterThresholdDepth))
+  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessorFlags::FilterThresholdDepth))
     ui->depthThresholdCheckBox->setCheckState(Qt::Checked);
 
-  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterNormals))
+  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessorFlags::FilterNormals))
     ui->normalsCheckBox->setCheckState(Qt::Checked);
 
-  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterUnstable))
+  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessorFlags::FilterUnstable))
     ui->unstableCheckBox->setCheckState(Qt::Checked);
 
-  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessor::FilterMedian))
+  if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessorFlags::FilterMedian))
     ui->medianCheckBox->setCheckState(Qt::Checked);
 
   ui->minDepthLabel->setText(QString("%1 m").arg(m_controller.rgbdProcessor().minDepth(), 0, 'f', 2));
@@ -60,28 +60,28 @@ FiltersWindow::~FiltersWindow()
 
 void FiltersWindow::on_depthThresholdCheckBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FilterThresholdDepth, checked);
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterThresholdDepth, checked);
 }
 
 void FiltersWindow::on_edgesCheckBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FilterEdges, checked);
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterEdges, checked);
 }
 
 void FiltersWindow::on_medianCheckBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FilterMedian, checked);
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterMedian, checked);
 }
 
 void FiltersWindow::on_normalsCheckBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FilterNormals, checked);
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterNormals, checked);
   m_controller.rgbdProcessor().setMaxNormalAngle(60);
 }
 
 void FiltersWindow::on_unstableCheckBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FilterNormals, checked);
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterNormals, checked);
 }
 
 void FiltersWindow::updateDepthSlider()
@@ -108,12 +108,12 @@ void FiltersWindow::on_maxDepthSlider_valueChanged(int value)
 
 void FiltersWindow::on_fillSmallHolesCheckBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::FillSmallHoles, checked);
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FillSmallHoles, checked);
 }
 
 void FiltersWindow::on_removeSmallStructuresBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::RemoveSmallStructures, checked);
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::RemoveSmallStructures, checked);
 }
 
 void FiltersWindow::on_kinectTiltSlider_valueChanged(int value)

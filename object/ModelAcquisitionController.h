@@ -22,7 +22,7 @@
 
 #include <ntk/core.h>
 #include <ntk/geometry/pose_3d.h>
-#include <ntk/geometry/relative_pose_estimator.h>
+#include <ntk/geometry/incremental_pose_estimator.h>
 #include <ntk/camera/calibration.h>
 #include <ntk/mesh/rgbd_modeler.h>
 
@@ -48,7 +48,7 @@ public:
   virtual void modelAndMove();
   virtual void move() {}
   virtual void reset();
-  void setPoseEstimator(ntk::RelativePoseEstimator* estimator) { m_pose_estimator = estimator; }
+  void setPoseEstimator(ntk::IncrementalPoseEstimatorFromImage* estimator) { m_pose_estimator = estimator; }
   ntk::RGBDModeler& modeler() { return m_modeler; }
 
 protected:
@@ -57,7 +57,7 @@ protected:
 protected:
   GuiController& m_controller;
   ntk::RGBDModeler& m_modeler;
-  ntk::RelativePoseEstimator* m_pose_estimator;
+  ntk::IncrementalPoseEstimatorFromImage* m_pose_estimator;
   QFuture<bool> m_new_frame_run;
   ntk::RGBDImage m_current_image;
   bool m_paused;

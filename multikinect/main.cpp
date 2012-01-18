@@ -99,7 +99,7 @@ int main (int argc, char** argv)
     QApplication app (argc, argv);
 
     ntk::RGBDProcessor* rgbd_processor = new OpenniRGBDProcessor();
-    rgbd_processor->setFilterFlag(RGBDProcessor::ComputeMapping, true);
+    rgbd_processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
 
     OpenniDriver ni_driver;
     ntk_ensure(ni_driver.numDevices() >= 1, "No devices connected!");

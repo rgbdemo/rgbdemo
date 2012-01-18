@@ -21,5 +21,6 @@ SET(rgbd_multikinect_sources ${moc_sources} ${uic_sources}
                RawImagesWindow.cpp RawImagesWindow.h
 )
 
-NESTK_ADD_EXECUTABLE(rgbd-multikinect ${rgbd_multikinect_sources})
-TARGET_LINK_LIBRARIES(rgbd-multikinect nestk)
+# FIXME: TEMP
+#NESTK_ADD_EXECUTABLE(rgbd-multikinect ${rgbd_multikinect_sources})
+#TARGET_LINK_LIBRARIES(rgbd-multikinect nestk)

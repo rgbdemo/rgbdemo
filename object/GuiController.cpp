@@ -145,7 +145,7 @@ static QImage toQImage(const cv::Mat3b& m)
 
 void GuiController :: saveCurrentFrame()
 {
-    std::string frame_dir = m_frame_recorder->getNextFrameDirectory();
+    std::string frame_dir = m_frame_recorder->getNextFrameDirectory(lastImage());
     m_frame_recorder->saveCurrentFrame(lastImage());
 }
 
@@ -313,8 +313,8 @@ void GuiController::acquireNewModels()
     detector.setObjectVoxelSize(0.003); // 3 mm voxels.
     detector.setObjectHeightLimits(0.02, 0.5);
 
-    PointCloud<PointXYZ> cloud;
-    rgbdImageToPointCloud(cloud, m_last_image);
+    PointCloud<PointXYZ>::Ptr cloud (new PointCloud<PointXYZ>);
+    rgbdImageToPointCloud(*cloud, m_last_image);
     bool ok = detector.detect(cloud);
     if (!ok)
     {

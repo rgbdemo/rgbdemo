@@ -126,7 +126,7 @@ int main (int argc, char** argv)
     {
         processor = new ntk::FreenectRGBDProcessor();
     }
-    processor->setFilterFlag(RGBDProcessor::FilterEdges, true);
+    processor->setFilterFlag(RGBDProcessorFlags::FilterEdges, true);
 
     if (opt::sync())
         grabber->setSynchronous(true);

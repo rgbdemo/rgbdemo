@@ -286,7 +286,7 @@ void GuiController::refineCalibrationWithICP()
         return;
     }
 
-    RelativePoseEstimatorICP estimator;
+    RelativePoseEstimatorICP<pcl::PointXYZ> estimator;
     estimator.setReferenceImage(m_last_images[0]);
     bool ok = estimator.estimateNewPose(m_last_images[m_active_device]);
     if (!ok)

@@ -39,7 +39,7 @@
 # include <ntk/camera/freenect_grabber.h>
 #endif
 
-#include <ntk/geometry/relative_pose_estimator_from_image.h>
+#include <ntk/geometry/incremental_pose_estimator_from_rgb_features.h>
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include "GuiController.h"
@@ -174,17 +174,17 @@ int main (int argc, char** argv)
 
     SurfelsRGBDModeler modeler;
     modeler.setMinViewsPerSurfel(1);
-    processor->setFilterFlag(RGBDProcessor::ComputeNormals, 1);
+    processor->setFilterFlag(RGBDProcessorFlags::ComputeNormals, 1);
     processor->setMaxNormalAngle(90);
-    processor->setFilterFlag(RGBDProcessor::ComputeMapping, true);
+    processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
 
     ModelAcquisitionController* acq_controller = 0;
     acq_controller = new ModelAcquisitionController (gui_controller, modeler);
 
-    RelativePoseEstimator* pose_estimator = 0;
+    IncrementalPoseEstimatorFromImage* pose_estimator = 0;
     // FeatureSetParams params ("FAST", "BRIEF64", true);
     FeatureSetParams params ("SURF", "SURF64", true);
-    pose_estimator = new RelativePoseEstimatorFromImage(params, opt::use_icp());
+    pose_estimator = new IncrementalPoseEstimatorFromRgbFeatures(params, opt::use_icp());
 
     acq_controller->setPoseEstimator(pose_estimator);
     gui_controller.setModelAcquisitionController(*acq_controller);

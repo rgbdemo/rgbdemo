@@ -58,7 +58,8 @@ bool ModelAcquisitionController :: newFrame(const ntk::RGBDImage& image)
 
 bool ModelAcquisitionController :: newFrameImpl(const ntk::RGBDImage& image)
 {
-    bool pose_ok = m_pose_estimator->estimateNewPose(image);
+    m_pose_estimator->addNewImage(image);
+    bool pose_ok = m_pose_estimator->estimateCurrentPose();
     if (!pose_ok)
         return false;
     m_modeler.addNewView(image, m_pose_estimator->currentPose());

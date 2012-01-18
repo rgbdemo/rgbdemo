@@ -41,6 +41,8 @@
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include <ntk/mesh/table_object_rgbd_modeler.h>
 
+#include <ntk/geometry/incremental_pose_estimator.h>
+
 #include "GuiController.h"
 #include "ModelAcquisitionController.h"
 
@@ -132,8 +134,8 @@ int main (int argc, char** argv)
     }
 
     rgbd_processor->setMaxNormalAngle(40);
-    rgbd_processor->setFilterFlag(RGBDProcessor::ComputeMapping, true);
-    rgbd_processor->setFilterFlag(RGBDProcessor::FilterThresholdDepth, true);
+    rgbd_processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
+    rgbd_processor->setFilterFlag(RGBDProcessorFlags::FilterThresholdDepth, true);
     rgbd_processor->setMinDepth(0.3);
     rgbd_processor->setMaxDepth(1.5);
 
@@ -143,7 +145,7 @@ int main (int argc, char** argv)
         FileGrabber* file_grabber = new FileGrabber(path, is_directory);
         grabber = file_grabber;
         // Image are saved with flipping applied.
-        rgbd_processor->setFilterFlag(RGBDProcessor::FlipColorImage, false);
+        rgbd_processor->setFilterFlag(RGBDProcessorFlags::FlipColorImage, false);
     }
     else if (opt::use_kinect())
     {
@@ -224,7 +226,7 @@ int main (int argc, char** argv)
     acq_controller = new ModelAcquisitionController (gui_controller, modeler);
     acq_controller->setPaused(true);
 
-    RelativePoseEstimator* pose_estimator = new DummyRelativePoseEstimator();
+    IncrementalPoseEstimatorFromImage* pose_estimator = new DummyIncrementalPoseEstimator();
 
     acq_controller->setPoseEstimator(pose_estimator);
     gui_controller.setModelAcquisitionController(*acq_controller);

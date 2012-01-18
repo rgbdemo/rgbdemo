@@ -78,7 +78,7 @@ public slots:
   void on_depth_mouse_moved(int x, int y);
 
 protected:
-  virtual void handleAsyncEvent() { onRGBDDataUpdated(); }
+  virtual void handleAsyncEvent(ntk::EventListener::Event) { onRGBDDataUpdated(); }
 
 protected:
   ntk::RGBDGrabber& m_grabber;
