@@ -20,14 +20,14 @@
 #include "View3dWindow.h"
 #include "ui_View3dWindow.h"
 
-#include "GuiController.h"
+#include "GuiMultiKinectController.h"
 
 #include <ntk/mesh/mesh_generator.h>
 
 using namespace cv;
 using namespace ntk;
 
-View3DWindow::View3DWindow(GuiController& controller, QWidget *parent) :
+View3DWindow::View3DWindow(GuiMultiKinectController& controller, QWidget *parent) :
     QMainWindow(parent),    
     ui(new Ui::View3DWindow),
     m_controller(controller)
@@ -41,6 +41,59 @@ View3DWindow::~View3DWindow()
     delete ui;
 }
 
+void View3DWindow::on_trianglePushButton_clicked()
+{
+    m_controller.scanner().meshGeneratorBlock().setMeshType(ntk::MeshGenerator::TriangleMesh);
+}
+
+void View3DWindow::on_pointCloudPushButton_clicked()
+{
+    m_controller.scanner().meshGeneratorBlock().setMeshType(ntk::MeshGenerator::PointCloudMesh);
+}
+
+void View3DWindow::on_surfelsPushButton_clicked()
+{
+    m_controller.scanner().meshGeneratorBlock().setMeshType(ntk::MeshGenerator::SurfelsMesh);
+}
+
+void View3DWindow::on_colorMappingCheckBox_toggled(bool checked)
+{
+    m_controller.scanner().meshGeneratorBlock().setMeshUseColor(checked);
+}
+
+void View3DWindow::closeEvent(QCloseEvent *event)
+{
+    m_controller.toggleView3d(false);
+}
+
+void View3DWindow::on_saveMeshPushButton_clicked()
+{
+    m_controller.saveLastMeshes();
+}
+
+void View3DWindow::on_resetCamera_clicked()
+{
+    ui->mesh_view->resetCamera();
+    ui->mesh_view->updateGL();
+}
+
+void View3DWindow :: on_mergeViewsCheckBox_toggled(bool checked)
+{
+    m_controller.setMergeViews(checked);
+}
+
+void View3DWindow::on_resolutionFactorSpinBox_valueChanged(double value)
+{
+    m_controller.scanner().meshGeneratorBlock().setMeshResolutionFactor(value);
+}
+
+void View3DWindow::on_txValue_editingFinished() { updateToCalibration(); }
+void View3DWindow::on_tyValue_editingFinished() { updateToCalibration(); }
+void View3DWindow::on_tzValue_editingFinished() { updateToCalibration(); }
+void View3DWindow::on_rxValue_editingFinished() { updateToCalibration(); }
+void View3DWindow::on_ryValue_editingFinished() { updateToCalibration(); }
+void View3DWindow::on_rzValue_editingFinished() { updateToCalibration(); }
+
 void View3DWindow :: getCalibration(cv::Vec3f& t, cv::Vec3f& r) const
 {
     t[0] = ui->txValue->value();
@@ -52,7 +105,7 @@ void View3DWindow :: getCalibration(cv::Vec3f& t, cv::Vec3f& r) const
 }
 
 void View3DWindow :: updateFromCalibration(const cv::Vec3f& t, const cv::Vec3f& r)
-{    
+{
     ui->txValue->setValue(t[0]);
     ui->tyValue->setValue(t[1]);
     ui->tzValue->setValue(t[2]);
@@ -71,66 +124,13 @@ void View3DWindow :: updateToCalibration()
     r[0] = deg_to_rad(ui->rxValue->value());
     r[1] = deg_to_rad(ui->ryValue->value());
     r[2] = deg_to_rad(ui->rzValue->value());
-    m_controller.updateCameraCalibration(t, r);
-}
-
-void View3DWindow::on_resetCamera_clicked()
-{
-    ui->mesh_view->resetCamera();
-    ui->mesh_view->updateGL();
-}
-
-void View3DWindow::on_colorMappingCheckBox_toggled(bool checked)
-{
-    m_controller.meshGenerator()->setUseColor(checked);
-}
-
-void View3DWindow::on_resolutionFactorSpinBox_valueChanged(double value)
-{
-    m_controller.meshGenerator()->setResolutionFactor(value);
-}
-
-void View3DWindow::on_pointCloudPushButton_clicked()
-{
-    m_controller.meshGenerator()->setMeshType(ntk::MeshGenerator::PointCloudMesh);
-}
-
-void View3DWindow::on_surfelsPushButton_clicked()
-{
-    m_controller.meshGenerator()->setMeshType(ntk::MeshGenerator::SurfelsMesh);
-}
-
-void View3DWindow::on_trianglePushButton_clicked()
-{
-    m_controller.meshGenerator()->setMeshType(ntk::MeshGenerator::TriangleMesh);
-}
-
-void View3DWindow::on_saveMeshPushButton_clicked()
-{
-    m_controller.meshGenerator()->mesh().saveToPlyFile("current_mesh.ply");
-}
-
-void View3DWindow :: on_mergeViewsCheckBox_toggled(bool checked)
-{
-    m_controller.setMergeViews(checked);
+    m_controller.updateCameraCalibrationToGrabber(t, r);
 }
 
 void View3DWindow :: on_calibrationModeCheckBox_toggled(bool checked)
 {
     ui->mesh_view->setCalibrationMode(checked);
 }
-
-void View3DWindow :: on_refineWithICPButton_clicked()
-{
-    m_controller.refineCalibrationWithICP();
-}
-
-void View3DWindow::on_txValue_editingFinished() { updateToCalibration(); }
-void View3DWindow::on_tyValue_editingFinished() { updateToCalibration(); }
-void View3DWindow::on_tzValue_editingFinished() { updateToCalibration(); }
-void View3DWindow::on_rxValue_editingFinished() { updateToCalibration(); }
-void View3DWindow::on_ryValue_editingFinished() { updateToCalibration(); }
-void View3DWindow::on_rzValue_editingFinished() { updateToCalibration(); }
 
 void CalibrationMeshViewer::onCameraPositionUpdate(const cv::Vec3f &translation, const cv::Vec3f &rotation)
 {
@@ -175,4 +175,14 @@ void CalibrationMeshViewer::onCameraPositionUpdate(const cv::Vec3f &translation,
 
     window->updateFromCalibration(p.cvTranslation(), p.cvEulerRotation());
     window->updateToCalibration();
+}
+
+void View3DWindow :: on_refineWithICPButton_clicked()
+{
+    m_controller.refineCalibrationWithICP();
+}
+
+void View3DWindow :: on_refineWithChessboardButton_clicked()
+{
+    m_controller.refineCalibrationWithChessboard();
 }

@@ -29,7 +29,7 @@ namespace Ui {
     class View3DWindow;
 }
 
-class GuiController;
+class GuiMultiKinectController;
 
 class View3DWindow;
 class CalibrationMeshViewer : public ntk::MeshViewer
@@ -55,7 +55,7 @@ class View3DWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit View3DWindow(GuiController& controller, QWidget *parent = 0);
+    explicit View3DWindow(GuiMultiKinectController& controller, QWidget *parent = 0);
     ~View3DWindow();
 
 public:
@@ -65,27 +65,33 @@ public:
 
 private:
     Ui::View3DWindow *ui;
-    GuiController& m_controller;
+    GuiMultiKinectController& m_controller;
+
+public slots:
+    void closeEvent(QCloseEvent *event);
 
 private slots:
-    void on_saveMeshPushButton_clicked();
     void on_trianglePushButton_clicked();
     void on_surfelsPushButton_clicked();
     void on_pointCloudPushButton_clicked();
-    void on_resolutionFactorSpinBox_valueChanged(double );
     void on_colorMappingCheckBox_toggled(bool checked);
+    void on_saveMeshPushButton_clicked();
     void on_resetCamera_clicked();
+    void on_mergeViewsCheckBox_toggled(bool checked);
+    void on_resolutionFactorSpinBox_valueChanged(double value);
+
     void on_txValue_editingFinished();
     void on_tyValue_editingFinished();
     void on_tzValue_editingFinished();
     void on_rxValue_editingFinished();
     void on_ryValue_editingFinished();
     void on_rzValue_editingFinished();
-    void on_mergeViewsCheckBox_toggled(bool checked);
     void on_calibrationModeCheckBox_toggled(bool checked);
-    void on_refineWithICPButton_clicked();
 
-    friend class GuiController;
+    void on_refineWithICPButton_clicked();
+    void on_refineWithChessboardButton_clicked();
+
+    friend class GuiMultiKinectController;
     friend class CalibrationMeshViewer;
 };
 

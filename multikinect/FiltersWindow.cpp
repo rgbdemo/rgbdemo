@@ -20,19 +20,20 @@
 #include "FiltersWindow.h"
 #include "ui_FiltersWindow.h"
 
-#include "GuiController.h"
+#include "GuiMultiKinectController.h"
 #include <ntk/camera/rgbd_grabber.h>
 #include <ntk/camera/rgbd_processor.h>
 
 using namespace ntk;
 
-FiltersWindow::FiltersWindow(GuiController& controller, QWidget *parent) :
+FiltersWindow::FiltersWindow(GuiMultiKinectController& controller, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::FiltersWindow),
     m_controller(controller)
 {
   ui->setupUi(this);
 
+#if FIXME
   if ( m_controller.rgbdProcessor().hasFilterFlag(RGBDProcessorFlags::FilterEdges))
     ui->edgesCheckBox->setCheckState(Qt::Checked);
 
@@ -54,6 +55,7 @@ FiltersWindow::FiltersWindow(GuiController& controller, QWidget *parent) :
   ui->minDepthSlider->setValue(m_controller.rgbdProcessor().minDepth()*100);
   ui->maxDepthSlider->setValue(m_controller.rgbdProcessor().maxDepth()*100);
   updateDepthSlider(); // to update labels.
+#endif
 }
 
 FiltersWindow::~FiltersWindow()
@@ -63,33 +65,7 @@ FiltersWindow::~FiltersWindow()
 
 void FiltersWindow::on_depthThresholdCheckBox_toggled(bool checked)
 {
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterThresholdDepth, checked);
-}
-
-void FiltersWindow::on_edgesCheckBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterEdges, checked);
-}
-
-void FiltersWindow::on_amplitudeCheckBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterAmplitude, checked);
-}
-
-void FiltersWindow::on_medianCheckBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterMedian, checked);
-}
-
-void FiltersWindow::on_normalsCheckBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterNormals, checked);
-  m_controller.rgbdProcessor().setMaxNormalAngle(60);
-}
-
-void FiltersWindow::on_unstableCheckBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterNormals, checked);
+  m_controller.scanner().processorBlock().setProcessorFilterFlag(RGBDProcessorFlags::FilterThresholdDepth, checked);
 }
 
 void FiltersWindow::updateDepthSlider()
@@ -100,8 +76,41 @@ void FiltersWindow::updateDepthSlider()
   ui->minDepthLabel->setText(QString("%1 m").arg(min_meters, 0, 'f', 2));
   ui->maxDepthLabel->setText(QString("%1 m").arg(max_meters, 0, 'f', 2));
 
-  m_controller.rgbdProcessor().setMinDepth(min_meters);
-  m_controller.rgbdProcessor().setMaxDepth(max_meters);
+  m_controller.scanner().processorBlock().setMinDepth(min_meters);
+  m_controller.scanner().processorBlock().setMaxDepth(max_meters);
+}
+
+void FiltersWindow::on_minDepthSlider_valueChanged(int value)
+{
+  updateDepthSlider();
+}
+
+void FiltersWindow::on_maxDepthSlider_valueChanged(int value)
+{
+  updateDepthSlider();
+}
+
+void FiltersWindow::on_medianCheckBox_toggled(bool checked)
+{
+  m_controller.scanner().processorBlock().setProcessorFilterFlag(RGBDProcessorFlags::FilterMedian, checked);
+}
+
+void FiltersWindow::on_fillSmallHolesCheckBox_toggled(bool checked)
+{
+  m_controller.scanner().processorBlock().setProcessorFilterFlag(RGBDProcessorFlags::FillSmallHoles, checked);
+}
+
+void FiltersWindow::on_removeSmallStructuresBox_toggled(bool checked)
+{
+  m_controller.scanner().processorBlock().setProcessorFilterFlag(RGBDProcessorFlags::RemoveSmallStructures, checked);
+}
+
+#if FIXME
+
+void FiltersWindow::on_normalsCheckBox_toggled(bool checked)
+{
+  m_controller.setFilterFlag(RGBDProcessorFlags::FilterNormals, checked);
+  m_controller.setMaxNormalAngle(60);
 }
 
 void FiltersWindow::updateAmplitudeSlider()
@@ -116,14 +125,19 @@ void FiltersWindow::updateAmplitudeSlider()
   m_controller.rgbdProcessor().setMaxAmplitude(max_amplitude);
 }
 
-void FiltersWindow::on_minDepthSlider_valueChanged(int value)
+void FiltersWindow::on_edgesCheckBox_toggled(bool checked)
 {
-  updateDepthSlider();
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterEdges, checked);
 }
 
-void FiltersWindow::on_maxDepthSlider_valueChanged(int value)
+void FiltersWindow::on_amplitudeCheckBox_toggled(bool checked)
 {
-  updateDepthSlider();
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterAmplitude, checked);
+}
+
+void FiltersWindow::on_unstableCheckBox_toggled(bool checked)
+{
+  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FilterNormals, checked);
 }
 
 void FiltersWindow::on_minAmplitudeSlider_valueChanged(int value)
@@ -136,18 +150,9 @@ void FiltersWindow::on_maxAmplitudeSlider_valueChanged(int value)
   updateAmplitudeSlider();
 }
 
-
-void FiltersWindow::on_fillSmallHolesCheckBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::FillSmallHoles, checked);
-}
-
-void FiltersWindow::on_removeSmallStructuresBox_toggled(bool checked)
-{
-  m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::RemoveSmallStructures, checked);
-}
-
 void FiltersWindow::on_kinectTiltSlider_valueChanged(int value)
 {
   m_controller.grabber().setTiltAngle(value);
 }
+
+#endif

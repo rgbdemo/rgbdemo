@@ -39,7 +39,8 @@
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 
-#include "GuiController.h"
+#include "GuiMultiKinectController.h"
+#include "MultiKinectScanner.h"
 
 #include <QApplication>
 #include <QMetaType>
@@ -47,24 +48,22 @@
 using namespace ntk;
 using namespace cv;
 
+class ConsoleMultiKinectController : public MultiKinectController
+{
+public:
+    virtual void onNewImage(ntk::RGBDImageConstPtr image)
+    {
+        ntk_dbg(1) << "Controller has received an image!";
+        ntk_dbg_print(image->rgbWidth(), 1);
+    }
+};
+
 namespace opt
 {
 ntk::arg<int> debug_level("--debug", "Debug level", 1);
 ntk::arg<const char*> dir_prefix("--prefix", "Directory prefix for output", "grab");
-ntk::arg<const char*> calibration_file1("--calibration1", "Calibration file for first Kinect (yml)", 0);
-ntk::arg<const char*> calibration_file2("--calibration2", "Calibration file for second Kinect (yml)", 0);
-ntk::arg<const char*> calibration_file3("--calibration3", "Calibration file for third Kinect (yml)", 0);
-ntk::arg<const char*> calibration_file4("--calibration4", "Calibration file for fourth Kinect (yml)", 0);
-
-ntk::arg<const char*> image1("--image1", "Fake mode, use given still image for first Kinect", 0);
-ntk::arg<const char*> image2("--image2", "Fake mode, use given still image for second Kinect", 0);
-ntk::arg<const char*> image3("--image3", "Fake mode, use given still image for third Kinect", 0);
-ntk::arg<const char*> image4("--image4", "Fake mode, use given still image for fourth Kinect", 0);
-
-ntk::arg<const char*> directory1("--directory1", "Fake mode, use given still directory for first Kinect", 0);
-ntk::arg<const char*> directory2("--directory2", "Fake mode, use given still directory for second Kinect", 0);
-ntk::arg<const char*> directory3("--directory3", "Fake mode, use given still directory for third Kinect", 0);
-ntk::arg<const char*> directory4("--directory4", "Fake mode, use given still directory for fourth Kinect", 0);
+ntk::arg<const char*> calibration_dir("--calibration", "Directory where the calibration files are", 0);
+ntk::arg<const char*> directory("--directory", "Fake mode, specify a directory where the streams are", 0);
 
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> use_highres("--highres", "High resolution mode (Nite only)", 0);
@@ -78,73 +77,117 @@ int main (int argc, char** argv)
     ntk_debug_level = opt::debug_level();
     cv::setBreakOnError(true);
 
-    std::vector<const char*> calibration_files(4);
-    calibration_files[0] = opt::calibration_file1();
-    calibration_files[1] = opt::calibration_file2();
-    calibration_files[2] = opt::calibration_file3();
-    calibration_files[3] = opt::calibration_file4();
+    bool fake_mode = false;
+    if (opt::directory())
+        fake_mode = true;
 
-    std::vector<const char*> image_files(4);
-    image_files[0] = opt::image1();
-    image_files[1] = opt::image2();
-    image_files[2] = opt::image3();
-    image_files[3] = opt::image4();
+    std::vector<std::string> calibration_files;
+    std::vector<std::string> image_directories;
 
-    std::vector<const char*> image_directories(4);
-    image_directories[0] = opt::directory1();
-    image_directories[1] = opt::directory2();
-    image_directories[2] = opt::directory3();
-    image_directories[3] = opt::directory4();
+    if (fake_mode)
+    {
+        QDir root_path (opt::directory());
+        QStringList devices = root_path.entryList(QStringList("*"), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
+        foreach (QString name, devices)
+        {
+            QString camera_path = root_path.absoluteFilePath(name);
+            if (QDir(camera_path).entryList(QStringList("view*"), QDir::Dirs, QDir::Name).size() == 0)
+            {
+                ntk_dbg(0) << "Warning, directory " << camera_path << " has no images, skipping.";
+                continue;
+            }
+            ntk_dbg_print(camera_path, 1);
+            image_directories.push_back(camera_path.toStdString());
+            if (opt::calibration_dir())
+                calibration_files.push_back(cv::format("%s/calibration-%s.yml", opt::calibration_dir(), (const char*)name.toAscii()));
+        }
+    }
 
     QApplication app (argc, argv);
 
     ntk::RGBDProcessor* rgbd_processor = new OpenniRGBDProcessor();
     rgbd_processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
 
-    OpenniDriver ni_driver;
-    ntk_ensure(ni_driver.numDevices() >= 1, "No devices connected!");
+    OpenniDriver* ni_driver = 0;
+    if (!fake_mode)
+    {
+        ni_driver = new OpenniDriver;
+        if (opt::num_devices() < 0)
+            opt::num_devices.value_ = ni_driver->numDevices();
 
-    if (opt::num_devices() < 0)
-        opt::num_devices.value_ = ni_driver.numDevices();
+        if (opt::calibration_dir())
+        {
+            calibration_files.resize(ni_driver->numDevices());
+            for (size_t i = 0; i < ni_driver->numDevices(); ++i)
+            {
+                std::string name = ni_driver->deviceInfo(i).serial;
+                calibration_files[i] = cv::format("%s/calibration-%s.yml", opt::calibration_dir(), name.c_str());
+            }
+        }
+    }
+    else
+    {
+        opt::num_devices.value_ = image_directories.size();
+    }
 
-    ntk_ensure(opt::num_devices() <= ni_driver.numDevices(),
-               format("Only %d devices detected!", ni_driver.numDevices()).c_str());
+    ntk_ensure(fake_mode || opt::num_devices() <= ni_driver->numDevices(),
+               format("Only %d devices detected!", ni_driver->numDevices()).c_str());
 
     // Config dir is supposed to be next to the binaries.
     QDir prev_dir = QDir::current();
     QDir::setCurrent(QApplication::applicationDirPath());
 
     MultipleGrabber* grabber = new MultipleGrabber();
+    MultiKinectScanner scanner;
     for (int i = 0; i < opt::num_devices(); ++i)
     {
         RGBDGrabber* dev_grabber = 0;
-        if (image_files[i])
-        {
-            dev_grabber = new FileGrabber(image_files[i], false);
-        }
-        else if (image_directories[i])
+        if (fake_mode)
         {
             dev_grabber = new FileGrabber(image_directories[i], true);
         }
         else
         {
-            OpenniGrabber* ni_grabber = new OpenniGrabber(ni_driver, i);
+            ntk_ensure(ni_driver->numDevices() >= 1, "No devices connected!");
+
+            OpenniGrabber* ni_grabber = new OpenniGrabber(*ni_driver, i);
+
+            ni_grabber->setCustomBayerDecoding(false);
+
             if (opt::use_highres())
             {
                 ni_grabber->setHighRgbResolution(true);
             }
+            ni_grabber->setTrackUsers(false);
             dev_grabber = ni_grabber;
         }
-        if (calibration_files[i])
+        if (opt::calibration_dir())
         {
             RGBDCalibration* calib_data = new RGBDCalibration();
-            calib_data->loadFromFile(calibration_files[i]);
+            calib_data->loadFromFile(calibration_files[i].c_str());
             dev_grabber->setCalibrationData(*calib_data);
         }
+
+        if (opt::sync())
+            dev_grabber->setSynchronous(true);
+
         grabber->addGrabber(dev_grabber);
+        scanner.addGrabber(dev_grabber);
     }
 
     QDir::setCurrent(prev_dir.absolutePath());
+
+    GuiMultiKinectController* controller = new GuiMultiKinectController(&scanner);
+    scanner.plugController(controller);
+    controller->scanner().calibratorBlock().setCalibrationPattern(0.034, 10, 7);
+
+    if (opt::sync())
+        controller->scanner().setPaused(true);
+
+    scanner.start();
+    return app.exec();
+
+#if 0
 
     MeshGenerator* mesh_generator = new MeshGenerator();
     mesh_generator->setUseColor(true);
@@ -159,6 +202,8 @@ int main (int argc, char** argv)
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());
     frame_recorder.setSaveOnlyRaw(true);
     frame_recorder.setUseBinaryRaw(true);
+    frame_recorder.setSaveIntensity(false);
+    frame_recorder.setUseCompressedFormat(false);
 
     GuiController gui_controller (*grabber, *rgbd_processor);
     gui_controller.setFrameRecorder(frame_recorder);
@@ -174,4 +219,6 @@ int main (int argc, char** argv)
     grabber->start();
 
     app.exec();
+
+#endif
 }

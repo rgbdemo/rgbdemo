@@ -1,5 +1,5 @@
 QT4_WRAP_CPP(moc_sources
-  GuiController.h
+  GuiMultiKinectController.h
   View3dWindow.h
   FiltersWindow.h
   RawImagesWindow.h
@@ -19,8 +19,10 @@ SET(rgbd_multikinect_sources ${moc_sources} ${uic_sources}
                View3dWindow.cpp View3dWindow.h
                FiltersWindow.cpp FiltersWindow.h
                RawImagesWindow.cpp RawImagesWindow.h
+               MultiKinectScanner.cpp MultiKinectScanner.h
+               GuiMultiKinectController.cpp GuiMultiKinectController.h
+               ScannerBlock.cpp ScannerBlock.h
 )
 
-# FIXME: TEMP
-#NESTK_ADD_EXECUTABLE(rgbd-multikinect ${rgbd_multikinect_sources})
-#TARGET_LINK_LIBRARIES(rgbd-multikinect nestk)
+NESTK_ADD_EXECUTABLE(rgbd-multikinect ${rgbd_multikinect_sources})
+TARGET_LINK_LIBRARIES(rgbd-multikinect nestk)

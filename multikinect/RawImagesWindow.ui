@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>952</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuShow">
@@ -74,7 +74,6 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="action_GrabOneFrame"/>
     <addaction name="action_GrabFrames"/>
     <addaction name="action_Screen_capture_mode"/>
     <addaction name="actionSave_calibration_parameters"/>
@@ -294,9 +293,6 @@
    <property name="text">
     <string>Grab one frame</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+G</string>
-   </property>
   </action>
   <action name="action_Quit">
    <property name="text">
@@ -342,6 +338,9 @@
    </property>
    <property name="text">
     <string>Grab all frames</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
   <action name="action_Filters">

@@ -17,6 +17,8 @@
  * Author: Nicolas Burrus <nicolas.burrus@uc3m.es>, (C) 2010
  */
 
+#if 0
+
 #include "GuiController.h"
 #include "ui_View3dWindow.h"
 #include "ui_RawImagesWindow.h"
@@ -150,9 +152,12 @@ void GuiController :: onRGBDDataUpdated()
     }
 
     TimeCount tc_rgbd_process("m_processor.processImage", 2);
-    for(int i = 0; i < m_last_images.size(); ++i)
+    if (!m_grab_frames)
     {
-        m_processor.processImage(m_last_images[i]);
+        for(int i = 0; i < m_last_images.size(); ++i)
+        {
+            m_processor.processImage(m_last_images[i]);
+        }
     }
     tc_rgbd_process.stop();
 
@@ -161,10 +166,12 @@ void GuiController :: onRGBDDataUpdated()
     if (m_raw_images_window->isVisible())
         m_raw_images_window->update(m_last_image);
 
+    ntk::TimeCount tc_save("write to disk", 1);
     if (m_frame_recorder && (m_screen_capture_mode || m_grab_frames))
     {
         saveCurrentFrames();
     }
+    tc_save.stop();
 
     if (m_screen_capture_mode)
         m_raw_window_grabber.saveFrame(QPixmap::grabWindow(m_raw_images_window->winId()));
@@ -287,15 +294,18 @@ void GuiController::refineCalibrationWithICP()
     }
 
     RelativePoseEstimatorICP<pcl::PointXYZ> estimator;
-    estimator.setReferenceImage(m_last_images[0]);
-    bool ok = estimator.estimateNewPose(m_last_images[m_active_device]);
+    estimator.setTargetImage(m_last_images[0]);
+    estimator.setSourceImage(m_last_images[m_active_device]);
+    bool ok = estimator.estimateNewPose();
     if (!ok)
         return;
 
-    *m_last_images[m_active_device].calibration()->depth_pose = estimator.currentPose();
+    *m_last_images[m_active_device].calibration()->depth_pose = estimator.estimatedSourcePose();
 
-    cv::Vec3f t = estimator.currentPose().cvTranslation();
-    cv::Vec3f r = estimator.currentPose().cvEulerRotation();
+    cv::Vec3f t = estimator.estimatedSourcePose().cvTranslation();
+    cv::Vec3f r = estimator.estimatedSourcePose().cvEulerRotation();
     updateCameraCalibration(t, r);
     m_view3d_window->updateFromCalibration(t, r);
 }
+
+#endif

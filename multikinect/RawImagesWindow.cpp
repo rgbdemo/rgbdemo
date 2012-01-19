@@ -20,7 +20,7 @@
 #include "RawImagesWindow.h"
 #include "ui_RawImagesWindow.h"
 
-#include "GuiController.h"
+#include "GuiMultiKinectController.h"
 
 #include <ntk/camera/rgbd_frame_recorder.h>
 #include <ntk/camera/rgbd_processor.h>
@@ -35,7 +35,7 @@
 
 using namespace ntk;
 
-RawImagesWindow::RawImagesWindow(GuiController& controller, QWidget *parent) :
+RawImagesWindow::RawImagesWindow(GuiMultiKinectController& controller, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::RawImagesWindow),
     m_controller(controller)
@@ -49,8 +49,10 @@ RawImagesWindow::RawImagesWindow(GuiController& controller, QWidget *parent) :
     ui->action_Show_Object_Detector->setDisabled(true);
     ui->action_3D_View->setDisabled(true);
 
-    if (m_controller.grabber().isSynchronous())
+    if (m_controller.scanner().areGrabbersSynchronous())
         ui->syncMode->setChecked(true);
+
+    on_outputDirText_editingFinished();
 }
 
 RawImagesWindow::~RawImagesWindow()
@@ -64,8 +66,9 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
         ui->colorView->setImage(image.rgb());
     if (ui->depthView->isVisible())
     {
-        double min_dist = m_controller.rgbdProcessor().minDepth();
-        double max_dist = m_controller.rgbdProcessor().maxDepth();
+        double min_dist = m_controller.scanner().processorBlock().minDepth();
+        double max_dist = m_controller.scanner().processorBlock().maxDepth();
+
         cv::Mat1f masked_distance; image.depth().copyTo(masked_distance);
         apply_mask(masked_distance, image.depthMask());
         cv::Mat3b depth_as_color;
@@ -84,15 +87,10 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
     m_controller.on_depth_mouse_moved(x,y);
 }
 
-void RawImagesWindow::on_outputDirText_editingFinished()
+void RawImagesWindow::closeEvent(QCloseEvent *event)
 {
-    QString dir = ui->outputDirText->text();
-    m_controller.frameRecorder()->setDirectory(dir.toStdString());
-}
-
-void RawImagesWindow::on_action_GrabOneFrame_triggered()
-{
-    m_controller.saveCurrentFrames();
+    ui->action_Quit->trigger();
+    event->accept();
 }
 
 void RawImagesWindow::on_action_Quit_triggered()
@@ -100,66 +98,20 @@ void RawImagesWindow::on_action_Quit_triggered()
     m_controller.quit();
 }
 
-void RawImagesWindow::on_action_3D_View_toggled(bool active)
+void RawImagesWindow::on_syncMode_toggled(bool checked)
 {
-    m_controller.toggleView3d(active);
+    m_controller.scanner().setGrabberSynchronous(checked);
 }
 
-void RawImagesWindow::on_action_Filters_toggled(bool active)
+void RawImagesWindow::on_outputDirText_editingFinished()
 {
-    m_controller.toggleFilters(active);
-}
-
-void RawImagesWindow::on_action_Screen_capture_mode_toggled(bool active)
-{
-    m_controller.setScreenCaptureMode(active);
+    QString dir = ui->outputDirText->text();
+    m_controller.scanner().recorderBlock().setOutputDirectoryPrefix(dir.toStdString());
 }
 
 void RawImagesWindow::on_action_GrabFrames_toggled(bool active)
 {
-    m_controller.setGrabFrames(active);
-}
-
-void RawImagesWindow::on_syncMode_toggled(bool checked)
-{
-    m_controller.grabber().setSynchronous(checked);
-    if (checked)
-        m_controller.grabber().newEvent();
-}
-
-void RawImagesWindow::closeEvent(QCloseEvent *event)
-{
-    ui->action_Quit->trigger();
-    event->accept();
-}
-
-void RawImagesWindow::on_actionPause_toggled(bool active)
-{
-    // m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::Pause, active);
-    m_controller.setPaused(active);
-}
-
-void RawImagesWindow::on_actionNext_frame_triggered()
-{
-    m_controller.processOneFrame();
-}
-
-void RawImagesWindow::on_actionShow_IR_toggled(bool v)
-{
-#ifdef NESTK_USE_FREENECT
-    FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
-    if (freenect_grabber)
-        freenect_grabber->setIRMode(v);
-#endif
-}
-
-void RawImagesWindow::on_actionDual_RGB_IR_mode_toggled(bool v)
-{
-#ifdef NESTK_USE_FREENECT
-    FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
-    if (freenect_grabber)
-        freenect_grabber->setDualRgbIR(v);
-#endif
+    m_controller.scanner().recorderBlock().setConnected(active);
 }
 
 void RawImagesWindow::on_actionSave_calibration_parameters_triggered()
@@ -171,19 +123,23 @@ void RawImagesWindow::on_actionSave_calibration_parameters_triggered()
     }
 
     QString filename = QFileDialog::getSaveFileName(this,
-                                                    "Save calibration as...",
-                                                    QString("calibration.yml"));
+                                                    "Save calibration as... (serials numbers will be appended)",
+                                                    QString("calibration"));
     if (filename.isEmpty())
         return;
-    m_controller.lastImage().calibration()->saveToFile(filename.toAscii());
+
+    m_controller.scanner().saveGrabbersCalibration(filename.toStdString());
 }
 
-void RawImagesWindow :: on_actionAlternate_devices_triggered(bool checked)
+void RawImagesWindow::on_actionPause_toggled(bool active)
 {
-    MultipleGrabber* multi_grabber = dynamic_cast<MultipleGrabber*>(&m_controller.grabber());
-    if (!multi_grabber)
-        return;
-    multi_grabber->setAlternativeDisconnectMode(checked);
+    // m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::Pause, active);
+    m_controller.scanner().setPaused(active);
+}
+
+void RawImagesWindow::on_actionNext_frame_triggered()
+{
+    m_controller.scanner().processOneFrame();
 }
 
 void RawImagesWindow::on_actionKinect_0_triggered()
@@ -205,3 +161,54 @@ void RawImagesWindow::on_actionKinect_3_triggered()
 {
     m_controller.setActiveDevice(3);
 }
+
+void RawImagesWindow::on_action_Filters_toggled(bool active)
+{
+    m_controller.toggleFilters(active);
+}
+
+void RawImagesWindow::on_action_3D_View_toggled(bool active)
+{
+    m_controller.toggleView3d(active);
+}
+
+#if FIXME
+
+void RawImagesWindow::on_action_GrabOneFrame_triggered()
+{
+    m_controller.saveCurrentFrames();
+}
+
+
+void RawImagesWindow::on_action_Screen_capture_mode_toggled(bool active)
+{
+    m_controller.setScreenCaptureMode(active);
+}
+
+void RawImagesWindow::on_actionShow_IR_toggled(bool v)
+{
+#ifdef NESTK_USE_FREENECT
+    FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
+    if (freenect_grabber)
+        freenect_grabber->setIRMode(v);
+#endif
+}
+
+void RawImagesWindow::on_actionDual_RGB_IR_mode_toggled(bool v)
+{
+#ifdef NESTK_USE_FREENECT
+    FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
+    if (freenect_grabber)
+        freenect_grabber->setDualRgbIR(v);
+#endif
+}
+
+void RawImagesWindow :: on_actionAlternate_devices_triggered(bool checked)
+{
+    MultipleGrabber* multi_grabber = dynamic_cast<MultipleGrabber*>(&m_controller.grabber());
+    if (!multi_grabber)
+        return;
+    multi_grabber->setAlternativeDisconnectMode(checked);
+}
+
+#endif

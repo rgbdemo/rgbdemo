@@ -20,6 +20,8 @@
 #ifndef GUICONTROLLER_H
 #define GUICONTROLLER_H
 
+#if 0
+
 #include <ntk/core.h>
 #include "GuiController.h"
 
@@ -120,3 +122,5 @@ protected:
 };
 
 #endif // GUICONTROLLER_H
+
+#endif // 0
