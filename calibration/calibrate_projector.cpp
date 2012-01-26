@@ -23,7 +23,7 @@
 #include <ntk/camera/calibration.h>
 #include <ntk/projector/calibration.h>
 #include <ntk/geometry/pose_3d.h>
-// #include <opencv/cv.h>
+//#include <opencv/cv.h>
 #include <fstream>
 
 #include <QDir>
@@ -54,9 +54,7 @@ public:
         opt_offsetY_3x5("--offsetY_3x5", "Vertical position of the 3x5 pattern", 0.33),
         opt_offsetX_3x6("--offsetX_3x6", "Horizontal position of the 3x6 pattern", 0.66),
         opt_offsetY_3x6("--offsetY_3x6", "Vertical position of the 3x6 pattern", 0.29),
-        image_size(640,480),
-        proj_size(opt_projector_width(), opt_projector_height()),
-        proj_pattern_size(opt_pattern_width(), opt_pattern_height()),
+	image_size(640,480),
         rgb_pattern_size_3x3(3, 3),
         rgb_pattern_size_3x4(3, 4),
         rgb_pattern_size_3x5(3, 5),
@@ -82,9 +80,8 @@ public:
 	ntk::arg<float> opt_offsetY_3x6;
 
 	const cv::Size image_size;
-	const cv::Size proj_size;
-	
-	const cv::Size proj_pattern_size;
+	cv::Size proj_size;
+	cv::Size proj_pattern_size;
 	const cv::Size rgb_pattern_size_3x3;
 	const cv::Size rgb_pattern_size_3x4;
 	const cv::Size rgb_pattern_size_3x5;
@@ -401,7 +398,7 @@ void calibrate_projector(Context& context, const std::vector<cv::Mat1d*>& homogr
 	//   context.T(1,0) = H(1,3);
 	//   context.T(2,0) = H(2,3);
 
-	context.T =  context.rgb_R * context.T + context.rgb_T;
+	context.T =  context.rgb_R * context.T - context.rgb_T;
 	context.R =  context.rgb_R * context.R;
 
 	// 	std::cout << "---" << std::endl;
@@ -488,6 +485,12 @@ int main(int argc, char** argv)
 	arg_base::set_help_option("--help");
 	arg_parse(argc, argv);
 	ntk::ntk_debug_level = 1;
+
+        context.proj_size.width = context.opt_projector_width();
+	context.proj_size.height = context.opt_projector_height();
+
+        context.proj_pattern_size.width = context.opt_pattern_width();
+	context.proj_pattern_size.height = context.opt_pattern_height();
 
 	cv::namedWindow("corners");
 
