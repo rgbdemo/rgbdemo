@@ -44,7 +44,6 @@ private slots:
     void on_saveMeshButton_clicked();
     void on_resetModelsButton_clicked();
     void on_resetCamera_clicked();    
-
     void on_acquireModelsButton_clicked();
 
 private:

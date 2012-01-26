@@ -33,7 +33,7 @@
        <item>
         <widget class="QPushButton" name="acquireModelsButton">
          <property name="text">
-          <string>Acquire new models</string>
+          <string>Acquire generic models</string>
          </property>
         </widget>
        </item>
@@ -45,9 +45,43 @@
         </widget>
        </item>
        <item>
+        <widget class="QComboBox" name="modelComboBox">
+         <item>
+          <property name="text">
+           <string>Model 0</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 5</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="saveMeshButton">
          <property name="text">
-          <string>Save to objectXX.ply</string>
+          <string>Save as...</string>
          </property>
         </widget>
        </item>

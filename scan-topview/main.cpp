@@ -40,7 +40,6 @@
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include <ntk/mesh/table_object_rgbd_modeler.h>
-
 #include <ntk/geometry/incremental_pose_estimator.h>
 
 #include "GuiController.h"
@@ -49,14 +48,7 @@
 #include <QApplication>
 #include <QMetaType>
 
-#ifdef NESTK_PRIVATE
-# include <ntk/private/mesh/table_object_rgbd_modeler.h>
-# include <ntk/private/mesh/silhouette_rgbd_modeler.h>
-# include <ntk/private/detection/plane_estimator.h>
-#endif
-
 using namespace ntk;
-using namespace cv;
 
 namespace opt
 {

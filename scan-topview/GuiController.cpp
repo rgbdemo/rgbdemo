@@ -36,6 +36,7 @@
 #include <ntk/mesh/table_object_rgbd_modeler.h>
 
 #include <QMainWindow>
+#include <QFileDialog>
 #include <QImage>
 #include <QApplication>
 
@@ -152,7 +153,7 @@ void GuiController :: saveCurrentFrame()
 void GuiController :: newModelCallback()
 {
     cv::Mat3b obj_view;
-    m_last_image.rgb().copyTo(obj_view);
+    m_model_image.rgb().copyTo(obj_view);
     cv::RNG rng;
     std::list<cv::Rect> rects;
     std::vector<ImageWidget::TextData> texts;
@@ -312,9 +313,12 @@ void GuiController::acquireNewModels()
     detector.setDepthLimits(-2, -0.5);
     detector.setObjectVoxelSize(0.003); // 3 mm voxels.
     detector.setObjectHeightLimits(0.02, 0.5);
+    detector.setMaxDistToPlane(0.1);
 
-    PointCloud<PointXYZ>::Ptr cloud (new PointCloud<PointXYZ>);
-    rgbdImageToPointCloud(*cloud, m_last_image);
+    m_last_image.copyTo(m_model_image);
+
+    PointCloud<PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+    rgbdImageToPointCloud(*cloud, m_model_image);
     bool ok = detector.detect(cloud);
     if (!ok)
     {
@@ -328,8 +332,8 @@ void GuiController::acquireNewModels()
         ObjectData data;
         TableObjectRGBDModeler modeler;
         modeler.feedFromTableObjectDetector(detector, cluster_id);
-        Pose3D pose = *m_last_image.calibration()->depth_pose;
-        modeler.addNewView(m_last_image, pose);
+        Pose3D pose = *m_model_image.calibration()->depth_pose;
+        modeler.addNewView(m_model_image, pose);
         modeler.computeMesh();
         float volume = modeler.meshVolume() * 100*100*100; // cm3
         modeler.computeSurfaceMesh();
@@ -337,7 +341,7 @@ void GuiController::acquireNewModels()
         cv::Rect bbox;
         foreach_idx(i, modeler.currentMesh().vertices)
         {
-            cv::Point3f p = m_last_image.calibration()->rgb_pose->projectToImage(modeler.currentMesh().vertices[i]);
+            cv::Point3f p = m_model_image.calibration()->rgb_pose->projectToImage(modeler.currentMesh().vertices[i]);
             if (bbox.area() < 1)
                 bbox = cv::Rect(p.x, p.y, 1, 1);
             else
@@ -345,12 +349,14 @@ void GuiController::acquireNewModels()
             data.pixels.push_back(cv::Point2i(ntk::math::rnd(p.x), ntk::math::rnd(p.y)));
         }
         data.bbox = bbox;
-        data.text.text = cv::format("Volume = %d cm3", ntk::math::rnd(volume));
+        data.text.text = cv::format("Model %d -- Volume = %d cm3",
+                                    m_objects.size(), ntk::math::rnd(volume));
         data.text.x = bbox.x;
         data.text.y = bbox.y;
         data.mesh = modeler.currentMesh();
         m_objects.push_back(data);
     }
+    ntk_dbg_print(m_objects.size(), 1);
     notifyNewModel();
 }
 
@@ -360,8 +366,27 @@ void GuiController :: resetModels()
     modelAcquisitionWindow()->ui->mesh_view->swapScene();
 }
 
-void GuiController :: saveModels()
+void saveSingleViewModel(const char* filename,
+                         const ntk::RGBDImage& image,
+                         const ntk::Mesh& mesh)
 {
-    for (int i = 0; i < m_objects.size(); ++i)
-        m_objects[i].mesh.saveToPlyFile(cv::format("object%d.ply", i).c_str());
+    QDir dir;
+    dir.mkpath(filename);
+    std::string model_path (filename);
+    RGBDFrameRecorder recorder (model_path);
+    recorder.setSaveRgbPose(true);
+    recorder.saveCurrentFrame(image);
+    mesh.saveToPlyFile((model_path + "/mesh.ply").c_str());
+    image.calibration()->saveToFile((model_path + "/calibration.yml").c_str());
+}
+
+void GuiController :: saveModel(int obj_id)
+{
+    if (obj_id >= m_objects.size())
+        return;
+
+    QString filename = QFileDialog::getSaveFileName(modelAcquisitionWindow(),
+                                                    "Save model as...",
+                                                    QString("object1.model"));
+    saveSingleViewModel(filename.toAscii(), m_model_image, m_objects[obj_id].mesh);
 }

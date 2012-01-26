@@ -15,7 +15,7 @@ QT4_WRAP_UI(uic_sources
 )
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
-SET(rgbd_object_sources ${moc_sources} ${uic_sources}
+SET(scan_topview_sources ${moc_sources} ${uic_sources}
                main.cpp
                GuiController.cpp GuiController.h
                ModelAcquisitionController.cpp ModelAcquisitionController.h
@@ -25,5 +25,5 @@ SET(rgbd_object_sources ${moc_sources} ${uic_sources}
                ModelAcquisitionWindow.cpp ModelAcquisitionWindow.h
 )
 
-NESTK_ADD_EXECUTABLE(rgbd-object ${rgbd_object_sources})
-TARGET_LINK_LIBRARIES(rgbd-object nestk)
+NESTK_ADD_EXECUTABLE(rgbd-scan-topview ${scan_topview_sources})
+TARGET_LINK_LIBRARIES(rgbd-scan-topview nestk)

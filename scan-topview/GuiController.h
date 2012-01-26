@@ -97,7 +97,7 @@ public:
     void acquireNewModels();
     void notifyNewModel() { m_new_model = true; }
     void newModelCallback();
-    void saveModels();
+    void saveModel(int obj_id);
     void resetModels();
 
 public:

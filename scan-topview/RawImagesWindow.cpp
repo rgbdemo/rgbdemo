@@ -143,7 +143,7 @@ void RawImagesWindow::closeEvent(QCloseEvent *event)
 
 void RawImagesWindow::on_actionPause_toggled(bool active)
 {
-    // m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::Pause, active);
+    // m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::Pause, active);
     m_controller.setPaused(active);
 }
 
