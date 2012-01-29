@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FiltersWindow</class>
+ <widget class="QMainWindow" name="FiltersWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>361</width>
+    <height>282</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Filters</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QCheckBox" name="depthThresholdCheckBox">
+            <property name="text">
+             <string>Depth threshold</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="minDepthLabel">
+            <property name="text">
+             <string>0 m</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="minDepthSlider">
+            <property name="maximum">
+             <number>700</number>
+            </property>
+            <property name="sliderPosition">
+             <number>30</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="maxDepthLabel">
+            <property name="text">
+             <string>7 m</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="maxDepthSlider">
+            <property name="maximum">
+             <number>1000</number>
+            </property>
+            <property name="value">
+             <number>400</number>
+            </property>
+            <property name="sliderPosition">
+             <number>400</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="edgesCheckBox">
+          <property name="text">
+           <string>Edges</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="medianCheckBox">
+          <property name="text">
+           <string>Median</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="normalsCheckBox">
+          <property name="text">
+           <string>Normals</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="unstableCheckBox">
+          <property name="text">
+           <string>Unstable pixels</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="removeSmallStructuresBox">
+          <property name="text">
+           <string>Remove small structures</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCheckBox" name="fillSmallHolesCheckBox">
+          <property name="text">
+           <string>Fill small holes</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="text">
+             <string>Kinect Tilt</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="kinectTiltSlider">
+            <property name="minimum">
+             <number>-31</number>
+            </property>
+            <property name="maximum">
+             <number>31</number>
+            </property>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>361</width>
+     <height>21</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

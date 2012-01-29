@@ -55,7 +55,7 @@ ntk::arg<int> first_index("--istart", "First image index", 0);
 ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)", 0);
 ntk::arg<const char*> image("--image", "Fake mode, use given still image", 0);
 ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? images in dir.", 0);
-ntk::arg<const char*> database("--database", "Model database path.", "database");
+ntk::arg<const char*> database("--database", "Model database path.", ".");
 ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
 ntk::arg<bool> pa10("--pa10", "WARNING: hold the emergency button -- Enable PA10 Controller", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
