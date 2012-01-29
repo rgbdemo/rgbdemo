@@ -50,6 +50,7 @@ using namespace ntk;
 
 namespace opt
 {
+ntk::arg<int> debug_level("--debug", "Debug level", 1);
 ntk::arg<const char*> dir_prefix("--prefix", "Directory prefix for output", "grab1");
 ntk::arg<int> first_index("--istart", "First image index", 0);
 ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)", 0);
@@ -76,7 +77,7 @@ int main (int argc, char** argv)
 {
     arg_base::set_help_option("-h");
     arg_parse(argc, argv);
-    ntk_debug_level = 1;
+    ntk_debug_level = opt::debug_level();
     cv::setBreakOnError(true);
 
     QApplication::setGraphicsSystem("raster");

@@ -115,7 +115,7 @@ void ModelAcquisitionController :: newFrame(const ntk::RGBDImage& image)
                 m_controller.modelAcquisitionWindow()->ui->marker_image->setImage(im_with_markers);
                 m_controller.modelAcquisitionWindow()->ui->mesh_view->addMesh(m_current_mesh, Pose3D(), MeshViewer::FLAT);
                 m_controller.modelAcquisitionWindow()->ui->mesh_view->swapScene();
-                m_controller.modelAcquisitionController()->setPaused(true);
+                // m_controller.modelAcquisitionController()->setPaused(true);
             }
         }
     }

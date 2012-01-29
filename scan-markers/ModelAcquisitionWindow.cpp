@@ -76,7 +76,7 @@ void ModelAcquisitionWindow::on_saveMeshButton_clicked()
     m_controller.modelAcquisitionController()->currentImage().calibration()->saveToFile((model_path + "/calibration.yml").c_str());
 }
 
-void ModelAcquisitionWindow::on_addCurrentFrameButton_clicked()
+void ModelAcquisitionWindow::on_startButton_clicked()
 {
     m_controller.modelAcquisitionController()->setPaused(false);
 }
@@ -89,4 +89,9 @@ void ModelAcquisitionWindow::on_resetButton_clicked()
 void ModelAcquisitionWindow::on_removeFloorPlaneButton_clicked()
 {
     m_controller.modelAcquisitionController()->removeFloorPlane();
+}
+
+void ModelAcquisitionWindow::on_stopButton_clicked()
+{
+    m_controller.modelAcquisitionController()->setPaused(true);
 }

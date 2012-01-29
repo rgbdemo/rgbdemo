@@ -138,16 +138,19 @@ void ObjectWindow :: processNewFrame(const ntk::RGBDImage& image)
 
     // Refine with ICP.
     pcl::PointCloud<pcl::PointXYZ>::Ptr scene_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    if (first_match.matchedPoints().size() > 100)
-        vectorToPointCloud(*scene_cloud, first_match.matchedPoints());
-    else
-        rgbdImageToPointCloud(*scene_cloud, filtered_image);
+    // if (first_match.matchedPoints().size() > 100)
+    //     vectorToPointCloud(*scene_cloud, first_match.matchedPoints());
+    // else
+    rgbdImageToPointCloud(*scene_cloud, filtered_image);
 
+#if 0
     pose_estimator.setTargetCloud(scene_cloud); // FIXME: Find out whether the removal of the (deep-copying) scene_cloud.makeShared() call sped things up.
     pose_estimator.setSourceCloud(model_cloud); // FIXME: Find out whether the removal of the (deep-copying) model_cloud.makeShared() call sped things up.
     pose_estimator.estimateNewPose();
     Pose3D mesh_transform = pose_estimator.estimatedSourcePose();
     mesh.applyTransform(mesh_transform);
+#endif
+
     m_object_mesh = mesh;
     m_object_mesh.colors.clear();
     m_object_mesh.colors.resize(m_object_mesh.vertices.size(), cv::Vec3b(255,0,0));
