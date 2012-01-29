@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.6)
 
 PROJECT(RGBDemo)
-SET(RGBDEMO_VERSION 0.6.1)
+SET(RGBDEMO_VERSION 0.7.0)
 
 OPTION(BUILD_MACOSX_BUNDLE "Build bundle apps on mac." 0)
 
