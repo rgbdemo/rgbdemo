@@ -44,7 +44,7 @@ ObjectWindow::ObjectWindow(GuiController& controller, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::ObjectWindow),
     m_controller(controller),
-    m_database_path("database"),
+    m_database_path("."),
     m_object_finder(false),
     m_current_model_index(0),
     m_show_detection(true)
@@ -138,16 +138,19 @@ void ObjectWindow :: processNewFrame(const ntk::RGBDImage& image)
 
     // Refine with ICP.
     pcl::PointCloud<pcl::PointXYZ>::Ptr scene_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    if (first_match.matchedPoints().size() > 100)
-        vectorToPointCloud(*scene_cloud, first_match.matchedPoints());
-    else
-        rgbdImageToPointCloud(*scene_cloud, filtered_image);
+    // if (first_match.matchedPoints().size() > 100)
+    //     vectorToPointCloud(*scene_cloud, first_match.matchedPoints());
+    // else
+    rgbdImageToPointCloud(*scene_cloud, filtered_image);
 
+#if 0
     pose_estimator.setTargetCloud(scene_cloud); // FIXME: Find out whether the removal of the (deep-copying) scene_cloud.makeShared() call sped things up.
     pose_estimator.setSourceCloud(model_cloud); // FIXME: Find out whether the removal of the (deep-copying) model_cloud.makeShared() call sped things up.
     pose_estimator.estimateNewPose();
     Pose3D mesh_transform = pose_estimator.estimatedSourcePose();
-    // mesh.applyTransform(mesh_transform);
+    mesh.applyTransform(mesh_transform);
+#endif
+
     m_object_mesh = mesh;
     m_object_mesh.colors.clear();
     m_object_mesh.colors.resize(m_object_mesh.vertices.size(), cv::Vec3b(255,0,0));
@@ -182,7 +185,7 @@ void ObjectWindow::initializeDetector()
     params.feature = SiftParameters();
     params.object_database = ui->databasePathLineEdit->text().toStdString();
     params.use_tracking = false;
-    // params.object_detector = "fpfh";
+    //params.object_detector = "fpfh";
     params.object_detector = "sift";
     params.keep_only_best_match = true;
     m_object_finder = ObjectFinderPtr(new ObjectFinder());
