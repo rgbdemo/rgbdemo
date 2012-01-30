@@ -206,6 +206,8 @@ copy_rgbdemo_libraries()
     run cd "$PRODUCT_DIR"/"$@".app/Contents/Frameworks
 
     USR_LIBS="\
+        libbz2.1.0.dylib \
+        libz.1.dylib \
         libflann_cpp.1.6.dylib \
         libboost_date_time-mt.dylib \
         libboost_filesystem-mt.dylib \
@@ -222,6 +224,7 @@ copy_rgbdemo_libraries()
     OPENCV_VERSION=2.3
 
     USR_LOCAL_LIBS="\
+        libjpeg.8.dylib \
         libqhull6.dylib \
         libpcl_io.1.4.dylib \
         libpcl_octree.1.4.dylib \
@@ -253,6 +256,8 @@ copy_rgbdemo_libraries()
         libopencv_video.$OPENCV_VERSION.dylib \
         vtk-5.8/libvtkHybrid.5.8.dylib \
         vtk-5.8/libvtkRendering.5.8.dylib \
+        vtk-5.8/libvtkVolumeRendering.5.8.dylib \
+        vtk-5.8/libvtkWidgets.5.8.dylib \
         vtk-5.8/libvtkGraphics.5.8.dylib \
         vtk-5.8/libvtkverdict.5.8.dylib \
         vtk-5.8/libvtkImaging.5.8.dylib \
@@ -272,25 +277,46 @@ copy_rgbdemo_libraries()
         vtk-5.8/libvtktiff.5.8.dylib \
         vtk-5.8/libvtkexpat.5.8.dylib \
         vtk-5.8/libvtkftgl.5.8.dylib \
-        vtk-5.8/libvtkexoIIc.5.8.dylib
+        vtk-5.8/libvtkexoIIc.5.8.dylib \
     "
 
     for usr_local_lib in $USR_LOCAL_LIBS; do
         run cp /usr/local/lib/$usr_local_lib .
     done
 
+    OTHER_LIBS="\
+        /usr/X11/lib/libpng12.0.dylib \
+        /usr/local/Cellar/libtiff/3.9.5/lib/libtiff.3.dylib \
+        /usr/local/Cellar/jasper/1.900.1/lib/libjasper.1.dylib"
+
+    for other_lib in $OTHER_LIBS; do
+        run cp $other_lib .
+    done
+
     run chmod -R u+w .
 
     # Boost and pcl libraries have braindead install names that requires fixing.
     for bin in ../MacOS/"$@" *.dylib; do
+        try_run install_name_tool -change /usr/local/Cellar/jpeg/8c/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
+        try_run install_name_tool -change /usr/local/Cellar/jpeg/8b/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
+	try_run install_name_tool -change /usr/local/lib/libqhull6.6.2.0.1385.dylib @executable_path/../Frameworks/libqhull6.dylib $bin
+        try_run install_name_tool -change /usr/lib/libcminpack.1.1.3.dylib @executable_path/../Frameworks/libcminpack.1.1.3.dylib $bin
+
+	for lib in QtGui QtCore QtNetwork QtOpenGL QtSvg QtXml QtTest; do
+            try_run install_name_tool -change ${lib}.framework/Versions/4/${lib} @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} $bin
+	done
+
         for lib in *.dylib; do
             try_run install_name_tool -id                         @executable_path/../Frameworks/$lib $bin
             try_run install_name_tool -change $lib                @executable_path/../Frameworks/$lib $bin
             try_run install_name_tool -change lib/$lib            @executable_path/../Frameworks/$lib $bin
             try_run install_name_tool -change /opt/local/lib/$lib @executable_path/../Frameworks/$lib $bin
             try_run install_name_tool -change /usr/local/lib/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/lib/$lib       @executable_path/../Frameworks/$lib $bin
             try_run install_name_tool -change /usr/local/Cellar/vtk/5.8.0/lib/vtk-5.8/$lib @executable_path/../Frameworks/$lib $bin
-            try_run install_name_tool -change /usr/lib/libcminpack.1.1.3.dylib @executable_path/../Frameworks/libcminpack.1.1.3.dylib $bin
+            try_run install_name_tool -change /usr/X11/lib/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/local/Cellar/libtiff/3.9.5/lib/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/local/Cellar/jasper/1.900.1/lib/$lib @executable_path/../Frameworks/$lib $bin
         done
     done
 
@@ -353,9 +379,7 @@ echo product_targets       \
 
 product_cleanup
 
-apps="rgbd-viewer \
-      rgbd-reconstructor
-"
+apps="rgbd-viewer"
 
 for app in $apps; do 
     product_applications ${BUILD_DIR}/bin/${app}.app
