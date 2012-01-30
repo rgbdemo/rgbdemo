@@ -379,7 +379,19 @@ echo product_targets       \
 
 product_cleanup
 
-apps="rgbd-viewer"
+apps="rgbd-viewer \
+      rgbd-reconstructor \
+      rgbd-detect-objects \
+      rgbd-multikinect \
+      rgbd-people-tracker \
+      rgbd-scan-markers \
+      rgbd-scan-topview \
+      rgbd-skeletor \
+      calibrate_kinect_ir \
+      calibrate_openni_intrinsics \
+      calibrate_projector \
+      calibrate_multiple_kinect
+     "
 
 for app in $apps; do 
     product_applications ${BUILD_DIR}/bin/${app}.app
