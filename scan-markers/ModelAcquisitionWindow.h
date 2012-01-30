@@ -1,5 +1,5 @@
 /**
- * This file is part of the nestk library.
+ * This file is part of the rgbdemo project.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Author: Nicolas Burrus <nicolas.burrus@uc3m.es>, (C) 2010
+ * Author: Nicolas Burrus <nicolas@burrus.name>, (C) 2010, 2011
  */
 
 #ifndef MODELACQUISITIONWINDOW_H
@@ -42,14 +42,19 @@ private:
 
 private slots:
     void on_saveMeshButton_clicked();
-    void on_resetModelsButton_clicked();
-    void on_resetCamera_clicked();    
+    void on_resetCamera_clicked();
 
-    void on_acquireModelsButton_clicked();
+    void on_startButton_clicked();
+    void on_stopButton_clicked();
+    void on_resetButton_clicked();
+
+    void on_removeFloorPlaneButton_clicked();
 
 private:
+    float m_angle_delta;
+    int m_iteration;
+
     friend class ModelAcquisitionController;
-    friend class GuiController;
     friend class FrameModelAcquisitionController;
 };
 

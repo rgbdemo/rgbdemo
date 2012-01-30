@@ -21,7 +21,6 @@
 #include "ui_RawImagesWindow.h"
 
 #include "GuiController.h"
-#include "ModelAcquisitionController.h"
 
 #include <ntk/camera/rgbd_frame_recorder.h>
 #include <ntk/camera/rgbd_processor.h>
@@ -74,6 +73,7 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
         cv::Mat3b depth_as_color;
         compute_color_encoded_depth(masked_distance, depth_as_color, &min_dist, &max_dist);
         ui->depthView->setImage(depth_as_color);
+        // ui->depthView->setImage(image.depth(), &min_dist, &max_dist);
     }
     // ui->depthView->setImageAsColor(image.depth(), &min_dist, &max_dist);
     // ui->depthView->setImage(image.depth(), &min_dist, &max_dist);
@@ -130,11 +130,6 @@ void RawImagesWindow::on_syncMode_toggled(bool checked)
         m_controller.grabber().newEvent();
 }
 
-void RawImagesWindow::on_action_Show_Modeler_toggled(bool active)
-{
-    m_controller.toggleModeler(active);
-}
-
 void RawImagesWindow::closeEvent(QCloseEvent *event)
 {
     ui->action_Quit->trigger();
@@ -143,7 +138,7 @@ void RawImagesWindow::closeEvent(QCloseEvent *event)
 
 void RawImagesWindow::on_actionPause_toggled(bool active)
 {
-    // m_controller.rgbdProcessor().setFilterFlag(RGBDProcessor::Pause, active);
+    // m_controller.rgbdProcessor().setFilterFlag(RGBDProcessorFlags::Pause, active);
     m_controller.setPaused(active);
 }
 
@@ -190,4 +185,9 @@ void RawImagesWindow::on_actionSave_calibration_parameters_triggered()
     if (filename.isEmpty())
         return;
     m_controller.lastImage().calibration()->saveToFile(filename.toAscii());
+}
+
+void RawImagesWindow::on_actionObject_tracker_toggled(bool active)
+{
+    m_controller.toggleObject(active);
 }

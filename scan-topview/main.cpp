@@ -40,7 +40,6 @@
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include <ntk/mesh/table_object_rgbd_modeler.h>
-
 #include <ntk/geometry/incremental_pose_estimator.h>
 
 #include "GuiController.h"
@@ -49,14 +48,7 @@
 #include <QApplication>
 #include <QMetaType>
 
-#ifdef NESTK_PRIVATE
-# include <ntk/private/mesh/table_object_rgbd_modeler.h>
-# include <ntk/private/mesh/silhouette_rgbd_modeler.h>
-# include <ntk/private/detection/plane_estimator.h>
-#endif
-
 using namespace ntk;
-using namespace cv;
 
 namespace opt
 {
@@ -72,7 +64,6 @@ ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<const char*> pa10_controller("--pa10-controller", "Pa10 trajectory controller", "model");
 ntk::arg<bool> use_kinect("--kinect", "Input are kinect images", 1);
 ntk::arg<bool> use_freenect("--freenect", "Use libfreenect library", 0);
-ntk::arg<bool> use_highres("--highres", "High resolution mode (Nite only)", 0);
 ntk::arg<bool> use_icp("--icp", "use ICP refinement", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 ntk::arg<const char*> pose_estimator("--pose-estimator",

@@ -51,7 +51,8 @@ void ModelAcquisitionWindow::on_resetModelsButton_clicked()
 
 void ModelAcquisitionWindow::on_saveMeshButton_clicked()
 {
-    m_controller.saveModels();
+    int obj_id = ui->modelComboBox->currentIndex();
+    m_controller.saveModel(obj_id);
 }
 
 void ModelAcquisitionWindow::on_acquireModelsButton_clicked()

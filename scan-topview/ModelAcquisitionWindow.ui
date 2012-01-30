@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ModelAcquisitionWindow</class>
+ <widget class="QMainWindow" name="ModelAcquisitionWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>3D View</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QFrame" name="frame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QPushButton" name="acquireModelsButton">
+         <property name="text">
+          <string>Acquire generic models</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="resetModelsButton">
+         <property name="text">
+          <string>Reset Models</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="modelComboBox">
+         <item>
+          <property name="text">
+           <string>Model 0</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 1</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 2</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 3</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 4</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>Model 5</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="saveMeshButton">
+         <property name="text">
+          <string>Save as...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="resetCamera">
+         <property name="text">
+          <string>Reset camera</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frame_2">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="ntk::MeshViewer" name="mesh_view" native="true">
+         <property name="focusPolicy">
+          <enum>Qt::ClickFocus</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3"/>
+        </widget>
+       </item>
+       <item>
+        <widget class="ntk::ImageWidget" name="object_view" native="true"/>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="action_Grab_and_Move">
+   <property name="text">
+    <string>Grab and Move</string>
+   </property>
+  </action>
+  <action name="action_Grab_Sequence">
+   <property name="text">
+    <string>Grab Sequence</string>
+   </property>
+  </action>
+  <action name="actionModel_and_Move">
+   <property name="text">
+    <string>Model and Move</string>
+   </property>
+  </action>
+  <action name="actionModel_Sequence">
+   <property name="text">
+    <string>Model Sequence</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ntk::MeshViewer</class>
+   <extends>QWidget</extends>
+   <header location="global">ntk/mesh/mesh_viewer.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ntk::ImageWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">ntk/gui/image_widget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>acquireModelsButton</sender>
+   <signal>clicked()</signal>
+   <receiver>actionModel_and_Move</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>44</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
