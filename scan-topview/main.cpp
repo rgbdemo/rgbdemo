@@ -64,7 +64,6 @@ ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<const char*> pa10_controller("--pa10-controller", "Pa10 trajectory controller", "model");
 ntk::arg<bool> use_kinect("--kinect", "Input are kinect images", 1);
 ntk::arg<bool> use_freenect("--freenect", "Use libfreenect library", 0);
-ntk::arg<bool> use_highres("--highres", "High resolution mode (Nite only)", 0);
 ntk::arg<bool> use_icp("--icp", "use ICP refinement", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 ntk::arg<const char*> pose_estimator("--pose-estimator",
