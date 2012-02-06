@@ -170,6 +170,17 @@ product_applications () # APPLICATION ...
     done
 }
 
+product_dmg ()
+{
+    run rm -rf "$PACKAGES_DIR/$PRODUCT"
+    run mkdir -p "$PACKAGES_DIR/$PRODUCT/$NAME"
+    run rsync -avl "$PRODUCT_DIR/" "$PACKAGES_DIR/$PRODUCT/$NAME/"
+    run cd "$PACKAGES_DIR/$PRODUCT"
+    run ln -s /Applications .
+    run cd "$PACKAGES_DIR"
+    run zip --symlinks -r "${PRODUCT}.zip" "$PRODUCT"
+}
+
 product_zip ()
 {
     run mkdir -p "$PACKAGES_DIR"
@@ -184,15 +195,15 @@ product_zip ()
 
 copy_rgbdemo_libraries()
 {
-    run mkdir -p "$PRODUCT_DIR"/"$@".app/Contents/MacOS
+    run mkdir -p "$PRODUCT_DIR"/Common/Contents/MacOS
 
-    run cd "$PRODUCT_DIR"/"$@".app/Contents/MacOS
+    run cd "$PRODUCT_DIR"/Common/Contents/MacOS
 
     # FIXME: Do not blindly copy ALL of the built dynamic libraries, but only rgbdemo ones instead.
     # FIXME: OpenNI module paths are referenced from a dynamically generated configuration file and MUST be placed next to the program executable, (instead of in Contents/Plugins) for now.
     run cp -a "$BUILD_DIR"/lib/*.dylib .
 
-    for bin in ../MacOS/"$@" *.dylib; do
+    for bin in *.dylib; do
         for lib in *.dylib; do
             run install_name_tool -change "$BUILD_DIR"/lib/$lib @executable_path/$lib $bin
             run install_name_tool -change                  $lib @executable_path/$lib $bin
@@ -201,9 +212,9 @@ copy_rgbdemo_libraries()
 
     run cd -
 
-    run mkdir -p "$PRODUCT_DIR"/"$@".app/Contents/Frameworks
+    run mkdir -p "$PRODUCT_DIR"/Common/Contents/Frameworks
 
-    run cd "$PRODUCT_DIR"/"$@".app/Contents/Frameworks
+    run cd "$PRODUCT_DIR"/Common/Contents/Frameworks
 
     USR_LIBS="\
         libbz2.1.0.dylib \
@@ -320,6 +331,67 @@ copy_rgbdemo_libraries()
         done
     done
 
+    # For some reasons QtOpenGL does not get copied by macdeployqt
+    run mkdir -p QtOpenGL.framework/Versions/4
+    run cp -r /Library/Frameworks/QtOpenGL.framework/Versions/4/QtOpenGL QtOpenGL.framework/Versions/4/QtOpenGL
+    run install_name_tool -id @executable_path/../Frameworks/QtOpenGL.framework/Versions/4/QtOpenGL QtOpenGL.framework/Versions/4/QtOpenGL
+    for lib in QtCore QtGui; do
+	run install_name_tool -change ${lib}.framework/Versions/4/$lib @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} QtOpenGL.framework/Versions/4/QtOpenGL
+    done
+
+    run cd -
+}
+
+link_rgbdemo_libraries()
+{
+    run mkdir -p "$PRODUCT_DIR"/"$@".app/Contents/MacOS
+
+    run cd "$PRODUCT_DIR"/"$@".app/Contents/MacOS
+
+    for lib in ../../../Common/Contents/MacOS/*.dylib; do
+	ln -s $lib .
+    done
+
+    for bin in ../MacOS/"$@"; do
+        for lib in *.dylib; do
+            run install_name_tool -change "$BUILD_DIR"/lib/$lib @executable_path/$lib $bin
+            run install_name_tool -change                  $lib @executable_path/$lib $bin
+        done
+    done
+
+    run cd -
+
+    run cd "$PRODUCT_DIR"/"$@".app/Contents
+
+    run ln -s ../../Common/Contents/Frameworks .
+
+    run cd Frameworks
+
+    # Boost and pcl libraries have braindead install names that requires fixing.
+    for bin in "$PRODUCT_DIR"/"$@".app/Contents/MacOS/"$@"; do
+        try_run install_name_tool -change /usr/local/Cellar/jpeg/8c/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
+        try_run install_name_tool -change /usr/local/Cellar/jpeg/8b/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
+	try_run install_name_tool -change /usr/local/lib/libqhull6.6.2.0.1385.dylib @executable_path/../Frameworks/libqhull6.dylib $bin
+        try_run install_name_tool -change /usr/lib/libcminpack.1.1.3.dylib @executable_path/../Frameworks/libcminpack.1.1.3.dylib $bin
+
+	for lib in QtGui QtCore QtNetwork QtOpenGL QtSvg QtXml QtTest; do
+            try_run install_name_tool -change ${lib}.framework/Versions/4/${lib} @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} $bin
+	done
+
+        for lib in *.dylib; do
+            try_run install_name_tool -id                         @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change $lib                @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change lib/$lib            @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /opt/local/lib/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/local/lib/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/lib/$lib       @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/local/Cellar/vtk/5.8.0/lib/vtk-5.8/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/X11/lib/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/local/Cellar/libtiff/3.9.5/lib/$lib @executable_path/../Frameworks/$lib $bin
+            try_run install_name_tool -change /usr/local/Cellar/jasper/1.900.1/lib/$lib @executable_path/../Frameworks/$lib $bin
+        done
+    done
+
     run cd -
 }
 
@@ -336,7 +408,7 @@ copy_rgbdemo_resources()
 
 #-------------------------------------------------------------------------------
 
-product rgbdemo 0.7.0 macosx-x64
+product RGBDemo 0.7.0 Darwin
 
 #skip()
 {
@@ -351,7 +423,7 @@ product rgbdemo 0.7.0 macosx-x64
 # For now, just build for the default architecture.
 #    -DCMAKE_OSX_ARCHITECTURES:STRING=i386;x86_64 \
 
-echo product_configuration \
+products_configuration \
     -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
     -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_MACOSX_BUNDLE:BOOL=TRUE \
@@ -359,9 +431,8 @@ echo product_configuration \
 
 # FIXME: Because rgbdemo does not depend on dynamically loaded OpenNI modules, all targets must be built, so that the following copy operation can succeed:
 # cp release/builds/rgbdemo-0.7.0-macosx-x64/bin/lib{nimCodecs,nimMockNodes,nimRecorder,XnDevicesSensorV2,XnDeviceFile,XnVFeatures,XnVHandGenerator}.dylib release/products/rgbdemo-0.7.0-macosx-x64/skanect.app/Contents/MacOS
-echo product_targets       \
-    rgbd-viewer       \
-    rgbd-reconstructor \
+product_targets       \
+    all               \
     glew              \
     glview            \
     OpenNI            \
@@ -374,31 +445,32 @@ echo product_targets       \
     XnDDK             \
     XnDeviceFile      \
     XnDevicesSensorV2
-
 }
 
 product_cleanup
 
 apps="rgbd-viewer \
       rgbd-reconstructor \
-      rgbd-detect-objects \
       rgbd-multikinect \
       rgbd-people-tracker \
       rgbd-scan-markers \
       rgbd-scan-topview \
       rgbd-skeletor \
       calibrate_kinect_ir \
-      calibrate_openni_intrinsics \
+      calibrate-openni-intrinsics \
       calibrate_projector \
-      calibrate_multiple_kinect
-     "
+      calibrate-multiple-kinects \
+      "
+
+copy_rgbdemo_libraries
 
 for app in $apps; do 
     product_applications ${BUILD_DIR}/bin/${app}.app
-    copy_rgbdemo_libraries $app
-    run macdeployqt ${PRODUCT_DIR}/${app}.app
+    link_rgbdemo_libraries $app
 done
 
-#copy_rgbdemo_resources
+copy_rgbdemo_resources
 
 #product_zip
+
+product_dmg
