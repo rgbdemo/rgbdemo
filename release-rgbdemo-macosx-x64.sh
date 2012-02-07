@@ -165,8 +165,8 @@ product_applications () # APPLICATION ...
     run mkdir -p "$PRODUCT_DIR"
 
     for APPLICATION in "$@"; do
-        NAME="$(basename $APPLICATION)"
-        run rsync -avL "$APPLICATION/" "$PRODUCT_DIR/$NAME/"
+        name="$(basename $APPLICATION)"
+        run rsync -avL "$APPLICATION/" "$PRODUCT_DIR/$name/"
     done
 }
 
@@ -174,7 +174,7 @@ product_dmg ()
 {
     run rm -rf "$PACKAGES_DIR/$PRODUCT"
     run mkdir -p "$PACKAGES_DIR/$PRODUCT/$NAME"
-    run rsync -avl "$PRODUCT_DIR/" "$PACKAGES_DIR/$PRODUCT/$NAME/"
+    run rsync -avl "$PRODUCT_DIR/" "$PACKAGES_DIR/$PRODUCT/$NAME"
     run cd "$PACKAGES_DIR/$PRODUCT"
     run ln -s /Applications .
     run cd "$PACKAGES_DIR"
@@ -205,6 +205,7 @@ copy_rgbdemo_libraries()
 
     for bin in *.dylib; do
         for lib in *.dylib; do
+            run install_name_tool -id @executable_path/$lib $bin
             run install_name_tool -change "$BUILD_DIR"/lib/$lib @executable_path/$lib $bin
             run install_name_tool -change                  $lib @executable_path/$lib $bin
         done
@@ -307,7 +308,7 @@ copy_rgbdemo_libraries()
     run chmod -R u+w .
 
     # Boost and pcl libraries have braindead install names that requires fixing.
-    for bin in ../MacOS/"$@" *.dylib; do
+    for bin in *.dylib; do
         try_run install_name_tool -change /usr/local/Cellar/jpeg/8c/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
         try_run install_name_tool -change /usr/local/Cellar/jpeg/8b/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
 	try_run install_name_tool -change /usr/local/lib/libqhull6.6.2.0.1385.dylib @executable_path/../Frameworks/libqhull6.dylib $bin
@@ -467,6 +468,7 @@ copy_rgbdemo_libraries
 for app in $apps; do 
     product_applications ${BUILD_DIR}/bin/${app}.app
     link_rgbdemo_libraries $app
+    run macdeployqt ${PRODUCT_DIR}/${app}.app
 done
 
 copy_rgbdemo_resources
