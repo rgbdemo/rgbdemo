@@ -167,9 +167,10 @@ void RawImagesWindow::on_actionSave_calibration_parameters_triggered()
     return;
   }
 
+  std::string default_name = std::string("calibration-") + m_controller.lastImage().cameraSerial() + ".yml";
   QString filename = QFileDialog::getSaveFileName(this,
                                                   "Save calibration as...",
-                                                  QString("calibration.yml"));
+                                                  QString(default_name.c_str()));
   if (filename.isEmpty())
      return;
   m_controller.lastImage().calibration()->saveToFile(filename.toAscii());

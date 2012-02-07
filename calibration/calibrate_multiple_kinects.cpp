@@ -180,7 +180,7 @@ int main(int argc, char** argv)
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
 
-    global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????"), QDir::Dirs, QDir::Name);
+    global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 
     std::vector< std::vector<Point2f> > ref_corners;
     get_calibrated_kinect_corners(global::ref_images_dir,
