@@ -110,7 +110,6 @@ void GuiMultiKinectController::processNewImage(RGBDImageConstPtr image)
     {
         status = QString("Processor = %1 fps / MainLoop = %3 fps")
                 .arg(scanner().processorBlock().frameRate(), 0, 'f', 1)
-                .arg(scanner().recorderBlock().frameRate(), 0, 'f', 1)
                 .arg(scanner().frameRate(), 0, 'f', 1);
     }
 
