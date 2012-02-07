@@ -100,12 +100,20 @@ void GuiMultiKinectController::processNewImage(RGBDImageConstPtr image)
 
     QString status;
     if (m_grabbing)
-        status = "[GRABBING] ";
+    {
+        status = QString("[GRABBING] Processor = %1 fps / Recorder = %2 fps / MainLoop = %3 fps")
+                .arg(scanner().processorBlock().frameRate(), 0, 'f', 1)
+                .arg(scanner().recorderBlock().frameRate(), 0, 'f', 1)
+                .arg(scanner().frameRate(), 0, 'f', 1);
+    }
+    else
+    {
+        status = QString("Processor = %1 fps / MainLoop = %3 fps")
+                .arg(scanner().processorBlock().frameRate(), 0, 'f', 1)
+                .arg(scanner().recorderBlock().frameRate(), 0, 'f', 1)
+                .arg(scanner().frameRate(), 0, 'f', 1);
+    }
 
-    status += QString("Processor = %1 fps / Recorder = %2 fps / MainLoop = %3 fps")
-            .arg(scanner().processorBlock().frameRate(), 0, 'f', 1)
-            .arg(scanner().recorderBlock().frameRate(), 0, 'f', 1)
-            .arg(scanner().frameRate(), 0, 'f', 1);
     m_raw_images_window->ui->statusbar->showMessage(status);
 }
 
