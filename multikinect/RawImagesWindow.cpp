@@ -111,7 +111,7 @@ void RawImagesWindow::on_outputDirText_editingFinished()
 
 void RawImagesWindow::on_action_GrabFrames_toggled(bool active)
 {
-    m_controller.scanner().recorderBlock().setConnected(active);
+    m_controller.setGrabbing(active);
 }
 
 void RawImagesWindow::on_actionSave_calibration_parameters_triggered()
