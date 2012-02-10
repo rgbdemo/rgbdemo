@@ -54,6 +54,7 @@ public slots:
     void onCameraExtrinsicsChanged(CalibrationParametersPtr params);
     void refineCalibrationWithICP();
     void refineCalibrationWithChessboard();
+    void setGrabbing(bool grab);
 
 protected:
     // In GUI thread.
@@ -76,6 +77,7 @@ private:
     EventBroadcaster m_init_broadcaster;
     EventBroadcaster m_synchronized_images_broadcaster;
     EventBroadcaster m_synchronized_meshes_broadcaster;
+    bool m_grabbing;
 };
 
 #endif // GUIMULTIKINECTCONTROLLER_H

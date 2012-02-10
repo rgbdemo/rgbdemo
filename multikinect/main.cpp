@@ -152,8 +152,6 @@ int main (int argc, char** argv)
 
             OpenniGrabber* ni_grabber = new OpenniGrabber(*ni_driver, i);
 
-            ni_grabber->setCustomBayerDecoding(false);
-
             if (opt::use_highres())
             {
                 ni_grabber->setHighRgbResolution(true);

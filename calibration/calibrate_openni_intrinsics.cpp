@@ -38,13 +38,13 @@ using namespace cv;
 namespace global
 {
 ntk::arg<const char*> opt_image_directory(0, "RGBD images directory", 0);
-ntk::arg<const char*> opt_input_file(0, "Input calibration file YAML", "calibration.yml");
-ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "openni_calibration.yml");
+ntk::arg<const char*> opt_input_file(0, "Calibration file YAML", "calibration.yml");
 ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboard, circles, asymcircles)", "chessboard");
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
 ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
 ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", false);
+std::string output_filename;
 
 PatternType pattern_type;
 
@@ -63,7 +63,16 @@ void calibrate_kinect_rgb(std::vector< std::vector<Point2f> >& stereo_corners)
         QString filename = global::images_list[i_image];
         QDir cur_image_dir (global::images_dir.absoluteFilePath(filename));
 
-        std::string full_filename = cur_image_dir.absoluteFilePath("raw/color.png").toStdString();
+        std::string full_filename;
+        if (cur_image_dir.exists("raw/color.png"))
+            full_filename = cur_image_dir.absoluteFilePath("raw/color.png").toStdString();
+        else if (cur_image_dir.exists("raw/color.bmp"))
+            full_filename = cur_image_dir.absoluteFilePath("raw/color.bmp").toStdString();
+        else
+        {
+            ntk::fatal_error(("Cannot load " + full_filename).c_str());
+        }
+
         ntk_dbg_print(full_filename, 1);
         cv::Mat3b image = imread(full_filename);
         ntk_ensure(image.data, "Could not load color image");
@@ -110,7 +119,7 @@ void calibrate_kinect_rgb(std::vector< std::vector<Point2f> >& stereo_corners)
 
 void writeNestkMatrix()
 {
-    global::calibration.saveToFile(global::opt_output_file());
+    global::calibration.saveToFile(global::opt_input_file());
 }
 
 int main(int argc, char** argv)
@@ -130,7 +139,8 @@ int main(int argc, char** argv)
 
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
-    global::images_list = global::images_dir.entryList(QStringList("view????"), QDir::Dirs, QDir::Name);
+
+    global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 
     std::vector< std::vector<Point2f> > rgb_stereo_corners;
     calibrate_kinect_rgb(rgb_stereo_corners);

@@ -214,8 +214,18 @@ void computeHomographies_rgb(const Context& context, std::vector<cv::Mat1d*>& ho
 	{
 		QString filename = context.images_list[i_image];
 		QDir cur_image_dir (context.images_dir.absoluteFilePath(filename));
-		std::string full_filename = cur_image_dir.absoluteFilePath("raw/color.png").toStdString();
+
+        std::string full_filename;
+        if (cur_image_dir.exists("raw/color.png"))
+            full_filename = cur_image_dir.absoluteFilePath("raw/color.png").toStdString();
+        else if (cur_image_dir.exists("raw/color.bmp"))
+            full_filename = cur_image_dir.absoluteFilePath("raw/color.bmp").toStdString();
+        else
+        {
+            ntk::fatal_error(("Cannot load " + full_filename).c_str());
+        }
 		ntk_dbg_print(full_filename, 1);
+
 		cv::Mat3b image = cv::imread(full_filename);
 		ntk_ensure(image.data, "Could not load color image");
 
@@ -496,7 +506,7 @@ int main(int argc, char** argv)
 
 	context.images_dir = QDir(context.opt_image_directory());
 	ntk_ensure(context.images_dir.exists(), (context.images_dir.absolutePath() + " is not a directory.").toAscii());
-	context.images_list = context.images_dir.entryList(QStringList("view????"), QDir::Dirs, QDir::Name);
+    context.images_list = context.images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 	
 	RGBDCalibration calib;
 	calib.loadFromFile(context.opt_input_file());

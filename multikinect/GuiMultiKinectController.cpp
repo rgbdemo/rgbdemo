@@ -13,7 +13,8 @@
 using namespace ntk;
 
 GuiMultiKinectController::GuiMultiKinectController(MultiKinectScanner* scanner)
-    : MultiKinectController(scanner)
+    : MultiKinectController(scanner),
+      m_grabbing(false)
 {
     addEventListener(this);
     m_init_broadcaster.addEventListener(this);
@@ -97,10 +98,21 @@ void GuiMultiKinectController::processNewImage(RGBDImageConstPtr image)
     if (m_raw_images_window->isVisible())
         m_raw_images_window->update(*image);
 
-    QString status = QString("Processor = %1 fps / Recorder = %2 fps / MainLoop = %3 fps")
-            .arg(scanner().processorBlock().frameRate(), 0, 'f', 1)
-            .arg(scanner().recorderBlock().frameRate(), 0, 'f', 1)
-            .arg(scanner().frameRate(), 0, 'f', 1);
+    QString status;
+    if (m_grabbing)
+    {
+        status = QString("[GRABBING] Processor = %1 fps / Recorder = %2 fps / MainLoop = %3 fps")
+                .arg(scanner().processorBlock().frameRate(), 0, 'f', 1)
+                .arg(scanner().recorderBlock().frameRate(), 0, 'f', 1)
+                .arg(scanner().frameRate(), 0, 'f', 1);
+    }
+    else
+    {
+        status = QString("Processor = %1 fps / MainLoop = %2 fps")
+                .arg(scanner().processorBlock().frameRate(), 0, 'f', 1)
+                .arg(scanner().frameRate(), 0, 'f', 1);
+    }
+
     m_raw_images_window->ui->statusbar->showMessage(status);
 }
 
@@ -255,4 +267,10 @@ void GuiMultiKinectController::refineCalibrationWithChessboard()
 {
     scanner().calibratorBlock().setCalibrationAlgorithm(CalibratorBlock::Chessboard);
     scanner().calibrateCameras();
+}
+
+void GuiMultiKinectController::setGrabbing(bool grab)
+{
+    m_grabbing = grab;
+    scanner().recorderBlock().setConnected(grab);
 }
