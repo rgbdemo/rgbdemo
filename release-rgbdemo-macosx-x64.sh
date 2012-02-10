@@ -333,10 +333,13 @@ copy_rgbdemo_libraries()
     done
 
     # For some reasons QtOpenGL does not get copied by macdeployqt
-    run mkdir -p QtOpenGL.framework/Versions/4
-    run cp -r /Library/Frameworks/QtOpenGL.framework/Versions/4/QtOpenGL QtOpenGL.framework/Versions/4/QtOpenGL
-    run install_name_tool -id @executable_path/../Frameworks/QtOpenGL.framework/Versions/4/QtOpenGL QtOpenGL.framework/Versions/4/QtOpenGL
-    for lib in QtCore QtGui; do
+    for lib in QtOpenGL QtSvg; do
+	run mkdir -p ${lib}.framework/Versions/4
+	run cp -r /Library/Frameworks/${lib}.framework/Versions/4/${lib} ${lib}.framework/Versions/4/${lib}
+	run install_name_tool -id @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} ${lib}.framework/Versions/4/${lib}
+    done
+
+    for lib in QtCore QtGui QtOpenGL QtSvg; do
 	run install_name_tool -change ${lib}.framework/Versions/4/$lib @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} QtOpenGL.framework/Versions/4/QtOpenGL
     done
 
@@ -457,9 +460,9 @@ apps="rgbd-viewer \
       rgbd-scan-markers \
       rgbd-scan-topview \
       rgbd-skeletor \
-      calibrate_kinect_ir \
+      calibrate-kinect-ir \
       calibrate-openni-intrinsics \
-      calibrate_projector \
+      calibrate-projector \
       calibrate-multiple-kinects \
       "
 
