@@ -56,6 +56,7 @@ QDir ref_images_dir;
 QStringList ref_images_list;
 
 QDir images_dir;
+QStringList images_list;
 
 OpenniRGBDProcessor rgbd_processor;
 
@@ -180,7 +181,9 @@ int main(int argc, char** argv)
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
 
+    // FIXME: use timestamps to synchronize image lists
     global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
+    global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 
     std::vector< std::vector<Point2f> > ref_corners;
     get_calibrated_kinect_corners(global::ref_images_dir,
@@ -191,7 +194,7 @@ int main(int argc, char** argv)
 
     std::vector< std::vector<Point2f> > corners;
     get_calibrated_kinect_corners(global::images_dir,
-                                  global::ref_images_list,
+                                  global::images_list,
                                   global::calibration,
                                   global::rgbd_processor,
                                   corners);
