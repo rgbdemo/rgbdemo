@@ -63,6 +63,8 @@ ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
+ntk::arg<bool> software_registration("--swregis", "Use software registration. (OpenNI only; breaks OpenNI calibration)", 0);
+ntk::arg<bool> save_processed("--save_processed", "Save processed images", 0);
 }
 
 int main (int argc, char** argv)
@@ -106,10 +108,12 @@ int main (int argc, char** argv)
         QDir prev = QDir::current();
         QDir::setCurrent(QApplication::applicationDirPath());
         if (!ni_driver) ni_driver = new OpenniDriver();
-        OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver);
+        OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver, opt::camera_id());
         k_grabber->setTrackUsers(false);
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
+        if (opt::software_registration())
+            k_grabber->UseHardwareRegistration(false);
         k_grabber->connectToDevice();
         QDir::setCurrent(prev.absolutePath());
         grabber = k_grabber;
@@ -118,7 +122,7 @@ int main (int argc, char** argv)
 #ifdef NESTK_USE_FREENECT
     else
     {
-        FreenectGrabber* k_grabber = new FreenectGrabber();
+        FreenectGrabber* k_grabber = new FreenectGrabber(opt::camera_id());
         k_grabber->initialize();
         k_grabber->setIRMode(false);
         grabber = k_grabber;
@@ -141,7 +145,8 @@ int main (int argc, char** argv)
 
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());
     frame_recorder.setFrameIndex(opt::first_index());
-    frame_recorder.setSaveOnlyRaw(true);
+    if(opt::save_processed())
+        frame_recorder.setSaveOnlyRaw(false);
     frame_recorder.setUseBinaryRaw(true);
 
     ObjectDetector detector;
