@@ -182,7 +182,17 @@ void View3DWindow :: on_refineWithICPButton_clicked()
     m_controller.refineCalibrationWithICP();
 }
 
-void View3DWindow :: on_refineWithChessboardButton_clicked()
+void View3DWindow::on_addCheckerboardImageButton_clicked()
+{
+
+}
+
+void View3DWindow::on_calibrateWithCheckerboardButton_clicked()
 {
     m_controller.refineCalibrationWithChessboard();
+}
+
+void View3DWindow::on_resetCheckerboardImages_clicked()
+{
+
 }

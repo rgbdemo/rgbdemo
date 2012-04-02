@@ -108,10 +108,10 @@ void MultiKinectScanner::processLastImageFromGrabber(RGBDGrabber& grabber)
     m_frame_synchronizer_block.newEvent(this, (EventDataPtr)image);
 }
 
-void MultiKinectScanner::calibrateCameras()
+void MultiKinectScanner::calibrateCameras(FrameVectorVectorPtr frames)
 {
     if (m_last_processed_frame_vector)
-        m_calibrator_block.newEvent(this, m_last_processed_frame_vector);
+        m_calibrator_block.newEvent(this, frames);
 }
 
 void MultiKinectScanner::updateCameraCalibration(CalibrationParametersPtr params)

@@ -38,6 +38,10 @@ public:
     void setActiveDevice(int device);
 
 public:
+    void resetCheckboardImages();
+    void addCheckboardImage(FrameVectorConstPtr frame);
+
+public:
     // Callbacks from MultiKinectScanner
     virtual void onScannerInitialized();
     virtual void onNewImage(ntk::RGBDImageConstPtr image);

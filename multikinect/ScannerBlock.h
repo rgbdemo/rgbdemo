@@ -21,6 +21,12 @@ struct FrameVector : public ntk::EventData
 };
 ntk_ptr_typedefs(FrameVector)
 
+struct FrameVectorVector : public ntk::EventData
+{
+    std::vector<FrameVectorConstPtr> frames;
+};
+ntk_ptr_typedefs(FrameVectorVector)
+
 struct MeshVector : public ntk::EventData
 {
     std::vector<std::string> camera_serials;
@@ -158,8 +164,8 @@ public:
     void setCalibrationPattern(float square_size, int num_corners_x, int num_corners_y);
 
 protected:
-    void calibrateWithICP(FrameVectorConstPtr frames);
-    void calibrateWithChessboard(FrameVectorConstPtr frames);
+    void calibrateWithICP(FrameVectorVectorConstPtr frames);
+    void calibrateWithChessboard(FrameVectorVectorConstPtr frames);
 
 protected:
     virtual void run();
@@ -171,6 +177,7 @@ private:
     float m_pattern_size;
     int m_pattern_num_corners_x;
     int m_pattern_num_corners_y;
+    std::vector<FrameVectorConstPtr> m_checkerboard_frames;
 };
 
 #endif // SCANNERBLOCK_H

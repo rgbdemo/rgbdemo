@@ -260,13 +260,17 @@ void GuiMultiKinectController::processNewCalibrationParameters(CalibrationParame
 void GuiMultiKinectController::refineCalibrationWithICP()
 {
     scanner().calibratorBlock().setCalibrationAlgorithm(CalibratorBlock::ICP);
-    scanner().calibrateCameras();
+    FrameVectorVectorPtr frames (new FrameVectorVector);
+    frames->frames.push_back(scanner().lastProcessedFrameVector());
+    scanner().calibrateCameras(frames);
 }
 
 void GuiMultiKinectController::refineCalibrationWithChessboard()
 {
     scanner().calibratorBlock().setCalibrationAlgorithm(CalibratorBlock::Chessboard);
-    scanner().calibrateCameras();
+    FrameVectorVectorPtr frames (new FrameVectorVector);
+    frames->frames.push_back(scanner().lastProcessedFrameVector());
+    scanner().calibrateCameras(frames);
 }
 
 void GuiMultiKinectController::setGrabbing(bool grab)

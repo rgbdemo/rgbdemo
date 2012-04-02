@@ -196,8 +196,9 @@ void CalibratorBlock::setCalibrationAlgorithm(CalibratorBlock::Algorithm algo)
     m_algo = algo;
 }
 
-void CalibratorBlock::calibrateWithICP(FrameVectorConstPtr frames)
+void CalibratorBlock::calibrateWithICP(FrameVectorVectorConstPtr frames_)
 {
+    FrameVectorConstPtr frames = frames_->frames[0];
     if (frames->images.size() < 2)
     {
         ntk_dbg(0) << "Only one device, no need for alignment!";
@@ -251,8 +252,9 @@ void CalibratorBlock::calibrateWithICP(FrameVectorConstPtr frames)
     }
 }
 
-void CalibratorBlock::calibrateWithChessboard(FrameVectorConstPtr frames)
+void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames_)
 {
+    FrameVectorConstPtr frames = frames_->frames[0];
     for (size_t i = 0; i < frames->images.size(); ++i)
     {
         if (!frames->images[i]->calibration())
@@ -308,7 +310,7 @@ void CalibratorBlock::run()
         if (event.isNull())
             continue;
 
-        FrameVectorConstPtr data = dynamic_Ptr_cast<FrameVector>(event.data);
+        FrameVectorVectorConstPtr data = dynamic_Ptr_cast<FrameVectorVector>(event.data);
         if (!data)
             continue;
 

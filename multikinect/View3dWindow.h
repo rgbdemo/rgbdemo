@@ -89,7 +89,9 @@ private slots:
     void on_calibrationModeCheckBox_toggled(bool checked);
 
     void on_refineWithICPButton_clicked();
-    void on_refineWithChessboardButton_clicked();
+    void on_addCheckerboardImageButton_clicked();
+    void on_calibrateWithCheckerboardButton_clicked();
+    void on_resetCheckerboardImages_clicked();
 
     friend class GuiMultiKinectController;
     friend class CalibrationMeshViewer;
