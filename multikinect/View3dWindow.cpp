@@ -184,7 +184,7 @@ void View3DWindow :: on_refineWithICPButton_clicked()
 
 void View3DWindow::on_addCheckerboardImageButton_clicked()
 {
-
+    m_controller.addCheckboardImage();
 }
 
 void View3DWindow::on_calibrateWithCheckerboardButton_clicked()
@@ -194,5 +194,5 @@ void View3DWindow::on_calibrateWithCheckerboardButton_clicked()
 
 void View3DWindow::on_resetCheckerboardImages_clicked()
 {
-
+    m_controller.resetCheckboardImages();
 }

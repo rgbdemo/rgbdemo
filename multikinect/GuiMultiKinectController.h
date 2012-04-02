@@ -39,7 +39,7 @@ public:
 
 public:
     void resetCheckboardImages();
-    void addCheckboardImage(FrameVectorConstPtr frame);
+    void addCheckboardImage();
 
 public:
     // Callbacks from MultiKinectScanner
@@ -76,12 +76,13 @@ private:
     View3DWindow* m_view3d_window;
     ntk::RGBDImage m_last_image;
     std::string m_active_device_serial;
-    MeshVectorPtr m_last_mesh_vector;
+    MeshVectorPtr m_last_mesh_vector;    
     bool m_merge_views;
     EventBroadcaster m_init_broadcaster;
     EventBroadcaster m_synchronized_images_broadcaster;
     EventBroadcaster m_synchronized_meshes_broadcaster;
     bool m_grabbing;
+    FrameVectorVectorPtr m_checkerboard_frames;
 };
 
 #endif // GUIMULTIKINECTCONTROLLER_H

@@ -186,8 +186,8 @@ void CalibratorBlock::setCalibrationPattern(float square_size, int num_corners_x
 {
     QMutexLocker _(&m_calibrator_mutex);
     m_pattern_size = square_size;
-    m_pattern_num_corners_x = num_corners_x;
-    m_pattern_num_corners_y = num_corners_y;
+    m_pattern_width = num_corners_x;
+    m_pattern_height = num_corners_y;
 }
 
 void CalibratorBlock::setCalibrationAlgorithm(CalibratorBlock::Algorithm algo)
@@ -264,11 +264,11 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames_)
         }
 
         std::vector<cv::Point3f> model;
-        calibrationPattern(model, m_pattern_num_corners_x, m_pattern_num_corners_y, m_pattern_size);
+        calibrationPattern(model, m_pattern_width, m_pattern_height, m_pattern_size);
 
         std::vector<cv::Point2f> corners;
         calibrationCorners(cv::format("debug_%d", i), "",
-                           m_pattern_num_corners_x, m_pattern_num_corners_y,
+                           m_pattern_width, m_pattern_height,
                            corners,
                            frames->images[i]->rgb(),
                            1.0);

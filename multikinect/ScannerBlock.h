@@ -155,7 +155,7 @@ public:
 
 public:
     CalibratorBlock() : m_controller(0), m_algo(ICP),
-        m_pattern_size(a4SquareSize()), m_pattern_num_corners_x(10), m_pattern_num_corners_y(7)
+        m_pattern_size(a4SquareSize()), m_pattern_width(10), m_pattern_height(7)
     {}
 
 public:
@@ -175,8 +175,8 @@ private:
     RecursiveQMutex m_calibrator_mutex;
     Algorithm m_algo;
     float m_pattern_size;
-    int m_pattern_num_corners_x;
-    int m_pattern_num_corners_y;
+    int m_pattern_width;
+    int m_pattern_height;
     std::vector<FrameVectorConstPtr> m_checkerboard_frames;
 };
 
