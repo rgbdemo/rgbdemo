@@ -87,7 +87,7 @@ void calibrate_kinect_rgb(std::vector< std::vector<Point2f> >& stereo_corners)
         {
             good_corners.push_back(current_view_corners);
             stereo_corners[i_image] = current_view_corners;
-            show_corners(image, current_view_corners, 1);
+            showCheckerboardCorners(image, current_view_corners, 1);
         }
         else
         {

@@ -124,7 +124,7 @@ void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
         {
             good_corners.push_back(current_view_corners);
             stereo_corners[i_image] = current_view_corners;
-            show_corners(image, current_view_corners, 1);
+            showCheckerboardCorners(image, current_view_corners, 1);
         }
         else
         {
@@ -198,7 +198,7 @@ void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
             if (current_view_corners.size() == (global::opt_pattern_width()*global::opt_pattern_height()))
             {
                 stereo_corners[stereo_i] = current_view_corners;
-                show_corners(undistorted_image, stereo_corners[stereo_i], 200);
+                showCheckerboardCorners(undistorted_image, stereo_corners[stereo_i], 200);
             }
             else
             {
@@ -276,7 +276,7 @@ void calibrate_kinect_rgb(std::vector< std::vector<Point2f> >& stereo_corners)
         {
             good_corners.push_back(current_view_corners);
             stereo_corners[i_image] = current_view_corners;
-            show_corners(image, current_view_corners, 1);
+            showCheckerboardCorners(image, current_view_corners, 1);
         }
         else
         {
@@ -333,7 +333,7 @@ void calibrate_kinect_rgb(std::vector< std::vector<Point2f> >& stereo_corners)
             if (current_view_corners.size() == (global::opt_pattern_width()*global::opt_pattern_height()))
             {
                 stereo_corners[stereo_i] = current_view_corners;
-                show_corners(undistorted_image, stereo_corners[stereo_i], 200);
+                showCheckerboardCorners(undistorted_image, stereo_corners[stereo_i], 200);
             }
             else
             {
@@ -345,7 +345,7 @@ void calibrate_kinect_rgb(std::vector< std::vector<Point2f> >& stereo_corners)
 }
 
 
-void calibrate_kinect_stereo(const std::vector< std::vector<Point2f> >& undistorted_rgb_corners,
+void calibrateStereoFromCheckerboard(const std::vector< std::vector<Point2f> >& undistorted_rgb_corners,
                              const std::vector< std::vector<Point2f> >& undistorted_depth_corners)
 {
     ntk_assert(undistorted_depth_corners.size() == undistorted_rgb_corners.size(), "Size should be equal.");
@@ -381,7 +381,7 @@ void calibrate_kinect_stereo(const std::vector< std::vector<Point2f> >& undistor
                     TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 50, 1e-6),
                     CALIB_FIX_INTRINSIC);
 
-    double error = computeError(F,
+    double error = computeCalibrationError(F,
                                 undistorted_good_rgb, undistorted_good_depth);
     std::cout << "Average pixel reprojection error: " << error << std::endl;
 }
@@ -507,7 +507,7 @@ int main(int argc, char** argv)
 
     calibrate_kinect_rgb(rgb_stereo_corners);
     calibrate_kinect_depth(depth_stereo_corners, depth_values);
-    calibrate_kinect_stereo(rgb_stereo_corners, depth_stereo_corners);
+    calibrateStereoFromCheckerboard(rgb_stereo_corners, depth_stereo_corners);
 
     estimate_depth_function(depth_values);
 
