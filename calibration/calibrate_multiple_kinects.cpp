@@ -56,6 +56,7 @@ QDir ref_images_dir;
 QStringList ref_images_list;
 
 QDir images_dir;
+QStringList images_list;
 
 OpenniRGBDProcessor rgbd_processor;
 }
@@ -87,7 +88,11 @@ int main(int argc, char** argv)
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
 
+    // Images of the two cameras are saved in different view folders due to timestamps and unique IDs.
+    // You have to create two lists. These may contain the same number of images (not caught!!!) and they are not
+    // synchronous (not fixed!!!). This is just a workaround to get a somehow working implementation.
     global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
+    global::images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 
     std::vector<RGBDImage> ref_images;
     loadImageList(global::ref_images_dir,
@@ -98,7 +103,7 @@ int main(int argc, char** argv)
 
     std::vector<RGBDImage> images;
     loadImageList(global::images_dir,
-                   global::ref_images_list,
+                   global::images_list,
                    global::rgbd_processor,
                    global::calibration,
                    images);
