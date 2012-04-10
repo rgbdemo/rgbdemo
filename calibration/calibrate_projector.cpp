@@ -378,7 +378,7 @@ void calibrate_projector(Context& context, const std::vector<cv::Mat1d*>& homogr
 					cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 50, 1e-6),
 					cv::CALIB_FIX_INTRINSIC);
 
-	double error = computeError(F, undistorted_good_proj, undistorted_good_rgb);
+	double error = computeCalibrationError(F, undistorted_good_proj, undistorted_good_rgb);
 	std::cout << "Average pixel reprojection error: " << error << std::endl;
 	
 	// 	std::cout << context.R << std::endl;

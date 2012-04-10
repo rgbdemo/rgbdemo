@@ -9,12 +9,14 @@
 #include "FiltersWindow.h"
 
 #include <ntk/utils/time.h>
+#include <ntk/camera/calibration.h>
 
 using namespace ntk;
 
 GuiMultiKinectController::GuiMultiKinectController(MultiKinectScanner* scanner)
     : MultiKinectController(scanner),
-      m_grabbing(false)
+      m_grabbing(false),
+      m_checkerboard_frames(new FrameVectorVector)
 {
     addEventListener(this);
     m_init_broadcaster.addEventListener(this);
@@ -260,17 +262,58 @@ void GuiMultiKinectController::processNewCalibrationParameters(CalibrationParame
 void GuiMultiKinectController::refineCalibrationWithICP()
 {
     scanner().calibratorBlock().setCalibrationAlgorithm(CalibratorBlock::ICP);
-    scanner().calibrateCameras();
+    FrameVectorVectorPtr frames (new FrameVectorVector);
+    frames->frames.push_back(scanner().lastProcessedFrameVector());
+    scanner().calibrateCameras(frames);
 }
 
 void GuiMultiKinectController::refineCalibrationWithChessboard()
-{
+{    
+    int pattern_width = m_view3d_window->ui->patternWidthSpinBox->value();
+    int pattern_height = m_view3d_window->ui->patternHeightSpinBox->value();
+    float pattern_size = m_view3d_window->ui->patternSizeSpinBox->value();
+
     scanner().calibratorBlock().setCalibrationAlgorithm(CalibratorBlock::Chessboard);
-    scanner().calibrateCameras();
+    scanner().calibratorBlock().setCalibrationPattern(pattern_size, pattern_width, pattern_height);
+    FrameVectorVectorPtr frames (new FrameVectorVector);
+    frames->frames = m_checkerboard_frames->frames; // keep a copy.
+    if (frames->frames.size() == 0)
+        return;
+    scanner().calibrateCameras(frames);
 }
 
 void GuiMultiKinectController::setGrabbing(bool grab)
 {
     m_grabbing = grab;
     scanner().recorderBlock().setConnected(grab);
+}
+
+void GuiMultiKinectController::addCheckboardImage()
+{
+    FrameVectorConstPtr frame = scanner().lastProcessedFrameVector();
+    if (!frame)
+        return;
+
+    int pattern_width = m_view3d_window->ui->patternWidthSpinBox->value();
+    int pattern_height = m_view3d_window->ui->patternHeightSpinBox->value();
+    float pattern_size = m_view3d_window->ui->patternSizeSpinBox->value();
+
+    std::vector<cv::Point2f> corners;
+    cv::Mat3b checkerboard_image;
+    calibrationCorners("checkboard", "",
+                       pattern_width, pattern_height,
+                       corners,
+                       frame->images[0]->rgb(),
+                       1.0,
+                       PatternChessboard,
+                       &checkerboard_image);
+    m_view3d_window->ui->checkerboard_view->setImage(checkerboard_image);
+    m_checkerboard_frames->frames.push_back(frame);
+    m_view3d_window->ui->labelCheckboard->setText(QString("%1 images").arg(m_checkerboard_frames->frames.size()));
+}
+
+void GuiMultiKinectController::resetCheckboardImages()
+{
+    m_checkerboard_frames = toPtr(new FrameVectorVector);
+    m_view3d_window->ui->labelCheckboard->setText(QString("%1 images").arg(m_checkerboard_frames->frames.size()));
 }

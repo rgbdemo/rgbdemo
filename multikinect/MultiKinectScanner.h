@@ -65,8 +65,9 @@ public:
     DeviceInfo getDeviceInfo(int device) { return m_devices[device]; }
 
     void saveGrabbersCalibration(const std::string &prefix);
-    void calibrateCameras();
+    void calibrateCameras(FrameVectorVectorPtr frames);
     void updateCameraCalibration(CalibrationParametersPtr params);
+    FrameVectorPtr lastProcessedFrameVector() const { return m_last_processed_frame_vector; }
 
 protected:
     void processLastImageFromGrabber(ntk::RGBDGrabber& grabber);

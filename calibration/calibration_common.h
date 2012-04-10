@@ -20,16 +20,5 @@
 #ifndef CALIBRATION_COMMON_H
 #define CALIBRATION_COMMON_H
 
-# include <ntk/core.h>
-# include <vector>
-
-double computeError(const cv::Mat& F,
-                    const std::vector<std::vector<cv::Point2f> >& rgb_corners,
-                    const std::vector<std::vector<cv::Point2f> >& depth_corners);
-
-void show_corners(const cv::Mat3b& image, const std::vector<cv::Point2f>& corners, int wait_time = 10);
-
-// Apply translation coeffs, see http://www.ros.org/wiki/kinect_calibration/technical
-void kinect_shift_ir_to_depth(cv::Mat3b& im);
 
 #endif // CALIBRATION_COMMON_H

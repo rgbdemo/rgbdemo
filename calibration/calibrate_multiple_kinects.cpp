@@ -56,103 +56,9 @@ QDir ref_images_dir;
 QStringList ref_images_list;
 
 QDir images_dir;
-QStringList images_list;
 
 OpenniRGBDProcessor rgbd_processor;
-
-cv::Mat1d R, T;
 }
-
-void get_calibrated_kinect_corners(const QDir& image_dir,
-                                   const QStringList& view_list,
-                                   RGBDCalibration& calibration,
-                                   RGBDProcessor& processor,
-                                   std::vector< std::vector<Point2f> >& output_corners)
-{
-    std::vector< std::vector<Point2f> > good_corners;
-    output_corners.resize(view_list.size());
-    for (int i_image = 0; i_image < view_list.size(); ++i_image)
-    {
-        QString filename = view_list[i_image];
-        QDir cur_image_dir (image_dir.absoluteFilePath(filename));
-
-        RGBDImage image;
-        image.loadFromDir(cur_image_dir.absolutePath().toStdString(), &calibration, &processor);
-
-        std::vector<Point2f> current_view_corners;
-        calibrationCorners(filename.toStdString(), "corners",
-                           global::opt_pattern_width(), global::opt_pattern_height(),
-                           current_view_corners, image.rgb(), 1,
-                           global::pattern_type);
-
-        if (current_view_corners.size() == global::opt_pattern_height()*global::opt_pattern_width())
-        {
-            output_corners[i_image] = current_view_corners;
-            show_corners(image.rgb(), current_view_corners, 1);
-        }
-        else
-        {
-            ntk_dbg(0) << "Warning: corners not detected";
-            output_corners[i_image].resize(0);
-        }
-    }
-}
-
-void calibrate_kinect_stereo(const std::vector< std::vector<Point2f> >& undistorted_ref_corners,
-                             const std::vector< std::vector<Point2f> >& undistorted_corners)
-{
-  ntk_assert(undistorted_ref_corners.size() == undistorted_corners.size(), "Size should be equal.");
-  std::vector< std::vector<Point2f> > undistorted_good_corners;
-  std::vector< std::vector<Point2f> > undistorted_good_ref_corners;
-
-  foreach_idx(i, undistorted_ref_corners)
-  {
-    if (undistorted_ref_corners[i].size() > 0 && undistorted_corners[i].size() > 0)
-    {
-      ntk_assert(undistorted_ref_corners[i].size() == undistorted_corners[i].size(),
-                 "Sizes should be equal.");
-      undistorted_good_ref_corners.push_back(undistorted_ref_corners[i]);
-      undistorted_good_corners.push_back(undistorted_corners[i]);
-    }
-  }
-
-  std::vector< std::vector<Point3f> > pattern_points;
-  calibrationPattern(pattern_points,
-                     global::opt_pattern_width(),  global::opt_pattern_height(), global::opt_square_size(),
-                     undistorted_good_ref_corners.size());
-
-  cv::Mat E(3,3,CV_64F),F(3,3,CV_64F);
-  cv::Mat zero_dist (global::calibration.depth_distortion.size(), global::calibration.depth_distortion.type());
-  zero_dist = Scalar(0);
-
-  stereoCalibrate(pattern_points,
-                  undistorted_good_ref_corners, undistorted_good_corners,
-                  global::calibration.rgb_intrinsics, zero_dist,
-                  global::calibration.rgb_intrinsics, zero_dist,
-                  global::calibration.rgbSize(),
-                  global::R, global::T, E, F,
-                  TermCriteria(TermCriteria::COUNT+TermCriteria::EPS, 50, 1e-6),
-                  CALIB_FIX_INTRINSIC);
-
-  // OpenCV coords has y down and z toward scene.
-  // OpenGL classical 3d coords has y up and z backwards
-  // This is the transform matrix.
-
-  cv::Mat1d to_gl_base(3,3); setIdentity(to_gl_base);
-  to_gl_base(1,1) = -1;
-  to_gl_base(2,2) = -1;
-
-  cv::Mat1d new_R = to_gl_base.inv() * global::R * to_gl_base;
-  cv::Mat1d new_T = to_gl_base * (global::T);
-
-  new_R.copyTo(global::R);
-  new_T.copyTo(global::T);
-
-  double error = computeError(F,
-                              undistorted_good_ref_corners, undistorted_good_corners);
-  std::cout << "Average pixel reprojection error: " << error << std::endl;
-}
-
 
 void writeNestkMatrix()
 {
@@ -181,27 +87,35 @@ int main(int argc, char** argv)
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
 
-    // FIXME: use timestamps to synchronize image lists
     global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
-    global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
+
+    std::vector<RGBDImage> ref_images;
+    loadImageList(global::ref_images_dir,
+                   global::ref_images_list,
+                   global::rgbd_processor,
+                   global::ref_calibration,
+                   ref_images);
+
+    std::vector<RGBDImage> images;
+    loadImageList(global::images_dir,
+                   global::ref_images_list,
+                   global::rgbd_processor,
+                   global::calibration,
+                   images);
 
     std::vector< std::vector<Point2f> > ref_corners;
-    get_calibrated_kinect_corners(global::ref_images_dir,
-                                  global::ref_images_list,
-                                  global::ref_calibration,
-                                  global::rgbd_processor,
+    getCalibratedCheckerboardCorners(ref_images,
+                                  global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
                                   ref_corners);
 
     std::vector< std::vector<Point2f> > corners;
-    get_calibrated_kinect_corners(global::images_dir,
-                                  global::images_list,
-                                  global::calibration,
-                                  global::rgbd_processor,
+    getCalibratedCheckerboardCorners(images,
+                                  global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
                                   corners);
 
-    calibrate_kinect_stereo(ref_corners, corners);
-    global::R.copyTo(global::calibration.R_extrinsics);
-    global::T.copyTo(global::calibration.T_extrinsics);
+    calibrateStereoFromCheckerboard(ref_corners, corners,
+                            global::opt_pattern_width(), global::opt_pattern_height(), global::opt_square_size(),
+                            global::calibration);
 
     writeNestkMatrix();
     return 0;

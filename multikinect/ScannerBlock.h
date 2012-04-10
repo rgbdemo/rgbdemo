@@ -21,6 +21,12 @@ struct FrameVector : public ntk::EventData
 };
 ntk_ptr_typedefs(FrameVector)
 
+struct FrameVectorVector : public ntk::EventData
+{
+    std::vector<FrameVectorConstPtr> frames;
+};
+ntk_ptr_typedefs(FrameVectorVector)
+
 struct MeshVector : public ntk::EventData
 {
     std::vector<std::string> camera_serials;
@@ -149,7 +155,7 @@ public:
 
 public:
     CalibratorBlock() : m_controller(0), m_algo(ICP),
-        m_pattern_size(a4SquareSize()), m_pattern_num_corners_x(10), m_pattern_num_corners_y(7)
+        m_pattern_size(a4SquareSize()), m_pattern_width(10), m_pattern_height(7)
     {}
 
 public:
@@ -158,8 +164,8 @@ public:
     void setCalibrationPattern(float square_size, int num_corners_x, int num_corners_y);
 
 protected:
-    void calibrateWithICP(FrameVectorConstPtr frames);
-    void calibrateWithChessboard(FrameVectorConstPtr frames);
+    void calibrateWithICP(FrameVectorVectorConstPtr frames);
+    void calibrateWithChessboard(FrameVectorVectorConstPtr frames);
 
 protected:
     virtual void run();
@@ -169,8 +175,9 @@ private:
     RecursiveQMutex m_calibrator_mutex;
     Algorithm m_algo;
     float m_pattern_size;
-    int m_pattern_num_corners_x;
-    int m_pattern_num_corners_y;
+    int m_pattern_width;
+    int m_pattern_height;
+    std::vector<FrameVectorConstPtr> m_checkerboard_frames;
 };
 
 #endif // SCANNERBLOCK_H
