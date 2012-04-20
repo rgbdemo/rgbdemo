@@ -63,6 +63,8 @@ ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
+ntk::arg<int> subsampling_factor("--subsampling", "Depth subsampling factor", 1);
+ntk::arg<bool> savePCD("--savepcd", "Include PCL point clouds in recorded images", 0);
 }
 
 int main (int argc, char** argv)
@@ -72,7 +74,7 @@ int main (int argc, char** argv)
     ntk_debug_level = opt::debug_level();
     cv::setBreakOnError(true);
 
-    QApplication::setGraphicsSystem("native");
+    QApplication::setGraphicsSystem("raster");
     QApplication app (argc, argv);
 
     const char* fake_dir = opt::image();
@@ -106,10 +108,11 @@ int main (int argc, char** argv)
         QDir prev = QDir::current();
         QDir::setCurrent(QApplication::applicationDirPath());
         if (!ni_driver) ni_driver = new OpenniDriver();
-        OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver);
+        OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver, opt::camera_id());
         k_grabber->setTrackUsers(false);
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
+        k_grabber->setSubsamplingFactor(opt::subsampling_factor());
         k_grabber->connectToDevice();
         QDir::setCurrent(prev.absolutePath());
         grabber = k_grabber;
@@ -143,6 +146,7 @@ int main (int argc, char** argv)
     frame_recorder.setFrameIndex(opt::first_index());
     frame_recorder.setSaveOnlyRaw(true);
     frame_recorder.setUseBinaryRaw(true);
+    frame_recorder.setSavePCLPointCloud(opt::savePCD());
 
     ObjectDetector detector;
 

@@ -58,6 +58,7 @@ private slots:
     void on_action_Filters_toggled(bool );
     void on_action_3D_View_toggled(bool );
     void on_action_Show_Object_Detector_toggled(bool );
+    void on_actionCalibration_triggered(bool );
     void on_action_Quit_triggered();
     void on_action_GrabOneFrame_triggered();
     void on_outputDirText_editingFinished();

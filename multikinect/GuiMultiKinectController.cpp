@@ -16,7 +16,8 @@ using namespace ntk;
 GuiMultiKinectController::GuiMultiKinectController(MultiKinectScanner* scanner)
     : MultiKinectController(scanner),
       m_grabbing(false),
-      m_checkerboard_frames(new FrameVectorVector)
+      m_checkerboard_frames(new FrameVectorVector),
+      m_frame_recorder("")
 {
     addEventListener(this);
     m_init_broadcaster.addEventListener(this);
@@ -33,6 +34,10 @@ GuiMultiKinectController::GuiMultiKinectController(MultiKinectScanner* scanner)
     this->scanner().meshGeneratorBlock().setMeshUseColor(m_view3d_window->ui->colorMappingCheckBox->isChecked());
 
     setMergeViews(m_view3d_window->ui->mergeViewsCheckBox->isChecked());
+
+    m_frame_recorder.setDirectory(m_raw_images_window->ui->outputDirText->text().toStdString());
+    m_frame_recorder.setSaveOnlyRaw(true);
+    m_frame_recorder.setUseBinaryRaw(true);
 }
 
 GuiMultiKinectController::~GuiMultiKinectController()
@@ -286,6 +291,17 @@ void GuiMultiKinectController::setGrabbing(bool grab)
 {
     m_grabbing = grab;
     scanner().recorderBlock().setConnected(grab);
+}
+
+void GuiMultiKinectController::grabOneFrame()
+{
+    FrameVectorPtr frames = scanner().lastProcessedFrameVector();
+    std::vector<RGBDImage> images;
+    for (int i = 0; i < frames->images.size(); ++i)
+    {
+        images.push_back(*frames->images[i]);
+    }
+    m_frame_recorder.saveCurrentFrames(images);
 }
 
 void GuiMultiKinectController::addCheckboardImage()

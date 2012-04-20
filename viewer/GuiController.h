@@ -35,6 +35,7 @@ class RawImagesWindow;
 class View3DWindow;
 class FiltersWindow;
 class DetectorWindow;
+class CalibrationWindow;
 class Pa10ControllerWindow;
 class ModelAcquisitionWindow;
 class ModelAcquisitionController;
@@ -49,6 +50,7 @@ namespace ntk
 namespace Ui {
   class RawImagesWindow;
   class DetectorWindow;
+  class CalibrationWindow;
 }
 
 class GuiController : public ntk::AsyncEventListener
@@ -81,6 +83,7 @@ public:
   void toggleView3d(bool );
   void toggleObjectDetector(bool );
   void toggleFilters(bool );
+  void toggleCalibration(bool );
   void setScreenCaptureMode(bool active) { m_screen_capture_mode = active; }
   void setGrabFrames(bool active) { m_grab_frames = active; }
   void quit();
@@ -99,6 +102,7 @@ protected:
   DetectorWindow* m_detector_window;
   View3DWindow* m_view3d_window;
   FiltersWindow* m_filters_window;
+  CalibrationWindow* m_calibration_window;
   ntk::RGBDFrameRecorder* m_frame_recorder;
   ObjectDetector* m_object_detector;
   ntk::MeshGenerator* m_mesh_generator;
@@ -116,3 +120,4 @@ protected:
 };
 
 #endif // GUICONTROLLER_H
+

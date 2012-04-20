@@ -4,6 +4,7 @@ QT4_WRAP_CPP(moc_sources
   View3dWindow.h
   FiltersWindow.h
   RawImagesWindow.h
+  CalibrationWindow.h
 )
 
 QT4_WRAP_UI(uic_sources
@@ -11,11 +12,12 @@ QT4_WRAP_UI(uic_sources
   View3dWindow.ui
   FiltersWindow.ui
   DetectorWindow.ui
+  CalibrationWindow.ui
 )
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
-SET(rgbd_viewer_sources ${moc_sources} ${uic_sources}
+SET(viewer_sources ${moc_sources} ${uic_sources}
                viewer.cpp
                GuiController.cpp GuiController.h
                ObjectDetector.cpp ObjectDetector.h
@@ -23,8 +25,8 @@ SET(rgbd_viewer_sources ${moc_sources} ${uic_sources}
                FiltersWindow.cpp FiltersWindow.h
                DetectorWindow.cpp DetectorWindow.h
                RawImagesWindow.cpp RawImagesWindow.h
+               CalibrationWindow.cpp CalibrationWindow.h
 )
 
-NESTK_ADD_EXECUTABLE(rgbd-viewer ${rgbd_viewer_sources})
+NESTK_ADD_EXECUTABLE(rgbd-viewer ${viewer_sources})
 TARGET_LINK_LIBRARIES(rgbd-viewer nestk)
-

@@ -79,6 +79,7 @@ void calibrate_kinect_depth(std::vector< DepthCalibrationPoint >& depth_values)
         std::string full_filename = cur_image_dir.absoluteFilePath("raw/color.png").toStdString();
         RGBDImage image;
         OpenniRGBDProcessor processor;
+        processor.setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
         image.loadFromDir(cur_image_dir.absolutePath().toStdString(), &global::calibration, &processor);
 
         imshow_normalized("mapped depth", image.mappedDepth());
@@ -113,7 +114,9 @@ void calibrate_kinect_depth(std::vector< DepthCalibrationPoint >& depth_values)
         foreach_idx(pattern_i, pattern_points[0])
         {
             Point3f p = pose.projectToImage(pattern_points[0][pattern_i]);
+            ntk_dbg_print(p, 1);
             float kinect_raw = image.mappedDepth()(p.y, p.x);
+            ntk_dbg_print(kinect_raw, 1);
             if (kinect_raw < 1e-5) continue;
             float err = kinect_raw-p.z;
             cv::putText(debug_img, format("%d", (int)(err*1000)), Point(p.x, p.y), CV_FONT_NORMAL, 0.4, Scalar(255,0,0));
@@ -163,19 +166,23 @@ int main(int argc, char** argv)
 
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
-    global::images_list = global::images_dir.entryList(QStringList("view????"), QDir::Dirs, QDir::Name);
+    global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 
     std::vector<DepthCalibrationPoint> depth_values;
     calibrate_kinect_depth(depth_values);
     generate_plot(depth_values);
 
     float error_mean = 0;
+    float geometric_mean = 0;
     foreach_idx(i, depth_values)
     {
         error_mean += (depth_values[i].kinect_raw - depth_values[i].estimated);
+        geometric_mean += (depth_values[i].kinect_raw / depth_values[i].estimated);
     }
     error_mean /= depth_values.size();
+    geometric_mean /= depth_values.size();
     ntk_dbg_print(error_mean, 0);
+    ntk_dbg_print(geometric_mean, 0);
 
     writeNestkMatrix();
     return 0;

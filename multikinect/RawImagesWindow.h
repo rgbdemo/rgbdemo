@@ -74,6 +74,8 @@ private slots:
 #endif
 
     friend class GuiMultiKinectController;
+private slots:
+    void on_actionGrab_one_frame_triggered();
 };
 
 #endif // RAWIMAGESWINDOW_H

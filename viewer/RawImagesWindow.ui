@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>582</height>
+    <width>735</width>
+    <height>564</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -36,9 +36,6 @@
        <enum>QFrame::Raised</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_2">
-       <property name="margin">
-        <number>1</number>
-       </property>
        <item>
         <widget class="ntk::ImageWidget" name="depthView" native="true">
          <property name="minimumSize">
@@ -62,8 +59,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>22</height>
+     <width>735</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuShow">
@@ -73,6 +70,7 @@
     <addaction name="action_Show_Object_Detector"/>
     <addaction name="action_3D_View"/>
     <addaction name="action_Filters"/>
+    <addaction name="actionCalibration"/>
    </widget>
    <widget class="QMenu" name="menuFile">
     <property name="title">
@@ -100,12 +98,6 @@
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget">
-   <property name="minimumSize">
-    <size>
-     <width>240</width>
-     <height>146</height>
-    </size>
-   </property>
    <property name="windowTitle">
     <string>Color Image</string>
    </property>
@@ -120,9 +112,6 @@
      </size>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <property name="margin">
-      <number>1</number>
-     </property>
      <item>
       <widget class="ntk::ImageWidget" name="colorView" native="true">
        <property name="sizePolicy">
@@ -137,14 +126,8 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget_2">
-   <property name="minimumSize">
-    <size>
-     <width>240</width>
-     <height>146</height>
-    </size>
-   </property>
    <property name="windowTitle">
-    <string>Infrared Image (IR)</string>
+    <string>Intensity Image (IR)</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
@@ -157,11 +140,29 @@
      </size>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_4">
-     <property name="margin">
-      <number>1</number>
-     </property>
      <item>
       <widget class="ntk::ImageWidget" name="intensityView" native="true"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_3">
+   <property name="windowTitle">
+    <string>Amplitude image</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <property name="minimumSize">
+     <size>
+      <width>160</width>
+      <height>120</height>
+     </size>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="ntk::ImageWidget" name="amplitudeView" native="true"/>
      </item>
     </layout>
    </widget>
@@ -415,7 +416,15 @@
   </action>
   <action name="actionSave_calibration_parameters">
    <property name="text">
-    <string>Save calibration parameters</string>
+    <string>Save default calibration parameters</string>
+   </property>
+  </action>
+  <action name="actionCalibration">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Calibration</string>
    </property>
   </action>
  </widget>

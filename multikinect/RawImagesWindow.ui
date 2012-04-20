@@ -74,6 +74,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
+    <addaction name="actionGrab_one_frame"/>
     <addaction name="action_GrabFrames"/>
     <addaction name="action_Screen_capture_mode"/>
     <addaction name="actionSave_calibration_parameters"/>
@@ -474,6 +475,11 @@
    </property>
    <property name="text">
     <string>Alternate devices</string>
+   </property>
+  </action>
+  <action name="actionGrab_one_frame">
+   <property name="text">
+    <string>Grab one frame</string>
    </property>
   </action>
  </widget>
