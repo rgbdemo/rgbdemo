@@ -42,7 +42,7 @@ ntk::arg<const char*> opt_input_file(0, "Calibration file YAML", "calibration.ym
 ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboard, circles, asymcircles)", "chessboard");
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
-ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
+ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025f);
 ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", true);
 ntk::arg<bool> opt_fix_center("--fix-center", "Do not estimate the central point", true);
 ntk::arg<bool> opt_optimize_scale_factor_only("--scale-factor-only", "Only estimate the scale factor", true);

@@ -45,7 +45,7 @@ ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "calib
 ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboard, circles, asymcircles)", "chessboard");
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
-ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
+ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025f);
 
 PatternType pattern_type;
 
@@ -54,7 +54,6 @@ RGBDCalibration calibration;
 
 QDir ref_images_dir;
 QStringList ref_images_list;
-QStringList images_list;
 
 QDir images_dir;
 QStringList images_list;

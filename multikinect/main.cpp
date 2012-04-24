@@ -177,7 +177,7 @@ int main (int argc, char** argv)
 
     GuiMultiKinectController* controller = new GuiMultiKinectController(&scanner);
     scanner.plugController(controller);
-    controller->scanner().calibratorBlock().setCalibrationPattern(0.034, 10, 7);
+    controller->scanner().calibratorBlock().setCalibrationPattern(0.034f, 10, 7);
 
     if (opt::sync())
         controller->scanner().setPaused(true);

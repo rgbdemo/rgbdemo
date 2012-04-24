@@ -143,8 +143,8 @@ void CalibrationMeshViewer::onCameraPositionUpdate(const cv::Vec3f &translation,
     GLdouble m[16];
     GLdouble deltam[16];
 
-    const float rotation_scale = 0.2;
-    const float translation_scale = 0.2;
+    const float rotation_scale = 0.2f;
+    const float translation_scale = 0.2f;
 
     // Get the delta transformation is visualization frame.
     makeCurrent();
