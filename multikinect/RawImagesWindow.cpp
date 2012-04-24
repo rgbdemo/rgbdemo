@@ -106,6 +106,7 @@ void RawImagesWindow::on_syncMode_toggled(bool checked)
 void RawImagesWindow::on_outputDirText_editingFinished()
 {
     QString dir = ui->outputDirText->text();
+    m_controller.setRecorderDirectory(dir.toStdString());
     m_controller.scanner().recorderBlock().setOutputDirectoryPrefix(dir.toStdString());
 }
 
@@ -212,3 +213,8 @@ void RawImagesWindow :: on_actionAlternate_devices_triggered(bool checked)
 }
 
 #endif
+
+void RawImagesWindow::on_actionGrab_one_frame_triggered()
+{
+    m_controller.grabOneFrame();
+}

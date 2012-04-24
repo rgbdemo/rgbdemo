@@ -59,8 +59,9 @@ RawImagesWindow::~RawImagesWindow()
 
 void RawImagesWindow :: update(const ntk::RGBDImage& image)
 {
-  if (ui->colorView->isVisible())
+  if (image.hasRgb() && ui->colorView->isVisible())
     ui->colorView->setImage(image.rgb());
+
   if (ui->depthView->isVisible())
   {
     double min_dist = m_controller.rgbdProcessor().minDepth();
@@ -70,9 +71,12 @@ void RawImagesWindow :: update(const ntk::RGBDImage& image)
     cv::Mat3b depth_as_color;
     compute_color_encoded_depth(masked_distance, depth_as_color, &min_dist, &max_dist);
     ui->depthView->setImage(depth_as_color);
+    // ui->depthView->setImage(image.depth(), &min_dist, &max_dist);
   }
   // ui->depthView->setImageAsColor(image.depth(), &min_dist, &max_dist);
   // ui->depthView->setImage(image.depth(), &min_dist, &max_dist);
+  if (image.amplitude().data && ui->amplitudeView->isVisible())
+    ui->amplitudeView->setImage(image.amplitude());
   if (image.intensity().data && ui->intensityView->isVisible())
     ui->intensityView->setImage(image.intensity());  
 
@@ -112,6 +116,11 @@ void RawImagesWindow::on_action_Filters_toggled(bool active)
   m_controller.toggleFilters(active);
 }
 
+void RawImagesWindow::on_actionCalibration_triggered(bool active)
+{
+    m_controller.toggleCalibration(active);
+}
+
 void RawImagesWindow::on_action_Screen_capture_mode_toggled(bool active)
 {
   m_controller.setScreenCaptureMode(active);
@@ -147,7 +156,11 @@ void RawImagesWindow::on_actionNext_frame_triggered()
 
 void RawImagesWindow::on_actionShow_IR_toggled(bool v)
 {
-    m_controller.grabber().setIRMode(v);
+#ifdef NESTK_USE_FREENECT
+  FreenectGrabber* freenect_grabber = dynamic_cast<FreenectGrabber*>(&m_controller.grabber());
+  if (freenect_grabber)
+    freenect_grabber->setIRMode(v);
+#endif
 }
 
 void RawImagesWindow::on_actionDual_RGB_IR_mode_toggled(bool v)
@@ -167,10 +180,9 @@ void RawImagesWindow::on_actionSave_calibration_parameters_triggered()
     return;
   }
 
-  std::string default_name = std::string("calibration-") + m_controller.lastImage().cameraSerial() + ".yml";
   QString filename = QFileDialog::getSaveFileName(this,
                                                   "Save calibration as...",
-                                                  QString(default_name.c_str()));
+                                                  QString("calibration.yml"));
   if (filename.isEmpty())
      return;
   m_controller.lastImage().calibration()->saveToFile(filename.toAscii());

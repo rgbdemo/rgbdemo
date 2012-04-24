@@ -30,6 +30,7 @@ View3DWindow::View3DWindow(GuiController& controller, QWidget *parent) :
     m_controller(controller)
 {  
   ui->setupUi(this);
+  ui->mesh_view->enableLighting();
 }
 
 View3DWindow::~View3DWindow()

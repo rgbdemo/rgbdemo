@@ -108,7 +108,7 @@ void PeopleTrackerWindow::update(const ntk::RGBDImage& image)
     float person_height = m_tracker.detections()[i].person_height;
     ntk_dbg_print(person_height, 1);
     Mesh mesh;
-    mesh.addCube(p + (Point3f)(m_tracker.groundPlane().normal()*0.1f), Point3f(0.1, 0.1, 0.1));
+    mesh.addCube(p + (Point3f)(m_tracker.groundPlane().normal()*0.1f), Point3f(0.1f, 0.1f, 0.1f));
     mesh.colors.resize(mesh.vertices.size(), Vec3b(255,0,0));
     ui->mesh_view->addMesh(mesh, Pose3D(), MeshViewer::FLAT);
   }
@@ -125,7 +125,7 @@ void PeopleTrackerWindow::update(const ntk::RGBDImage& image)
 
     for (int i = 0; i < 4; ++i)
       plane_mesh.addCube(m_tracker.workingZone()[i],
-                         Point3f(0.2,0.2,0.2));
+                         Point3f(0.2f, 0.2f ,0.2f));
 
     plane_mesh.colors.resize(plane_mesh.vertices.size(), Vec3b(255,255,0));
 

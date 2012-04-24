@@ -121,7 +121,7 @@ void FrameSynchronizerBlock::run()
 
 MeshGeneratorBlock::MeshGeneratorBlock()
 {
-    m_mesh_generator.setMaxDeltaDepthBetweenEdges(0.01);
+    m_mesh_generator.setMaxDeltaDepthBetweenEdges(0.01f);
 }
 
 void MeshGeneratorBlock::setMeshType(ntk::MeshGenerator::MeshType type)
@@ -267,10 +267,11 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames)
         ref_images.push_back(*frames->frames[i]->images[0]);
     }
 
-    std::vector< std::vector<cv::Point2f> > ref_corners;
+    std::vector< std::vector<cv::Point2f> > ref_corners, ref_good_corners;
     getCalibratedCheckerboardCorners(ref_images,
                                      m_pattern_width, m_pattern_height, PatternChessboard,
                                      ref_corners,
+                                     ref_good_corners,
                                      false /* show corners */);
 
     int num_cameras = frames->frames[0]->images.size();
@@ -284,18 +285,21 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames)
 
         ntk_dbg_print(images.size(), 1);
 
-        std::vector< std::vector<cv::Point2f> > corners;
+        std::vector< std::vector<cv::Point2f> > corners, good_corners;
         getCalibratedCheckerboardCorners(images,
                                          m_pattern_width, m_pattern_height, PatternChessboard,
                                          corners,
+                                         good_corners,
                                          false /* show corners */);
 
         if (corners.size() == 0)
             continue;
 
         ntk_ensure(images[0].calibration(), "Images are not calibrated, cannot compute extrinsics!");
-        RGBDCalibration calibration;
-        images[0].calibration()->copyTo(calibration);
+        RGBDCalibration& calibration = *const_cast<RGBDCalibration*>(images[0].calibration());
+        // images[0].calibration()->copyTo(calibration);
+
+        ntk_dbg_print(m_pattern_size, 1);
 
         calibrateStereoFromCheckerboard(ref_corners, corners,
                                         m_pattern_width, m_pattern_height, m_pattern_size,
@@ -303,6 +307,22 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames)
 
         calibration.updatePoses();
 
+        cv::Mat3b debug_img;
+        images[0].rgb().copyTo(debug_img);
+
+        for (int i = 0; i < ref_corners[0].size(); ++i)
+        {
+            cv::Point2f p = ref_corners[0][i];
+            float d = ref_images[0].mappedDepth()(p.y, p.x);
+            if (d < 1e-5) continue;
+            cv::Point3f p3d = ref_images[0].calibration()->rgb_pose->unprojectFromImage(cv::Point3f(p.x, p.y, d));
+
+            cv::Point3f pp = images[0].calibration()->rgb_pose->projectToImage(p3d);
+            cv::circle(debug_img, cv::Point2i(pp.x, pp.y), 5, cv::Scalar(255,255,0));
+        }
+        cv::imwrite("debug_reprojected.png", debug_img);
+
+#if 0
         CalibrationParametersPtr params (new CalibrationParameters);
         params->new_t = calibration.depth_pose->cvTranslation();
         params->new_r = calibration.depth_pose->cvEulerRotation();
@@ -311,6 +331,7 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames)
         params->camera_serial = images[0].cameraSerial();
         params->calibration = images[0].calibration();
         broadcastEvent(params);
+#endif
     }
 }
 
