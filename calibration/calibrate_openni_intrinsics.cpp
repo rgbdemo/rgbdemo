@@ -112,9 +112,9 @@ int main(int argc, char** argv)
         global::calibration.rgb_intrinsics.copyTo(global::calibration.depth_intrinsics);
         global::calibration.rgb_distortion.copyTo(global::calibration.depth_distortion);
         global::calibration.depth_intrinsics(0,0) /= width_ratio;
-        global::calibration.depth_intrinsics(1,1) /= width_ratio;
+        global::calibration.depth_intrinsics(1,1) /= height_ratio;
         global::calibration.depth_intrinsics(0,2) /= width_ratio;
-        global::calibration.depth_intrinsics(1,2) /= width_ratio;
+        global::calibration.depth_intrinsics(1,2) /= height_ratio;
         global::calibration.updatePoses();
     }
     else
@@ -131,9 +131,9 @@ int main(int argc, char** argv)
     global::calibration.rgb_intrinsics.copyTo(global::calibration.depth_intrinsics);
     global::calibration.rgb_distortion.copyTo(global::calibration.depth_distortion);
     global::calibration.depth_intrinsics(0,0) /= width_ratio;
-    global::calibration.depth_intrinsics(1,1) /= width_ratio;
+    global::calibration.depth_intrinsics(1,1) /= height_ratio;
     global::calibration.depth_intrinsics(0,2) /= width_ratio;
-    global::calibration.depth_intrinsics(1,2) /= width_ratio;
+    global::calibration.depth_intrinsics(1,2) /= height_ratio;
     global::calibration.updatePoses();
     // global::calibration.depth_multiplicative_correction_factor = global::calibration.rgb_pose->focalX() / global::initial_focal_length;
 
