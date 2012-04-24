@@ -89,7 +89,7 @@ int main(int argc, char** argv)
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
 
     // Images of the two cameras are saved in different view folders due to timestamps and unique IDs.
-    // You have to create two lists. These may contain the same number of images (not caught!!!) and they are not
+    // You have to create two lists. These may contain a different number of images (not caught!!!) and they are not
     // synchronous (not fixed!!!). This is just a workaround to get a somehow working implementation.
     global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
     global::images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
