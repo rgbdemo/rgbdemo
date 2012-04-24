@@ -5,6 +5,8 @@
 
 #include <ntk/thread/event.h>
 
+#include <ntk/camera/rgbd_frame_recorder.h>
+
 class RawImagesWindow;
 class View3DWindow;
 class FiltersWindow;
@@ -36,6 +38,7 @@ public:
     // Accessors for GUI
     const ntk::RGBDImage& lastImage() const { return m_last_image; }
     void setActiveDevice(int device);
+    void setRecorderDirectory(const std::string& dir) { m_frame_recorder.setDirectory(dir); }
 
 public:
     void resetCheckboardImages();
@@ -59,6 +62,7 @@ public slots:
     void refineCalibrationWithICP();
     void refineCalibrationWithChessboard();
     void setGrabbing(bool grab);
+    void grabOneFrame();
 
 protected:
     // In GUI thread.
@@ -83,6 +87,7 @@ private:
     EventBroadcaster m_synchronized_meshes_broadcaster;
     bool m_grabbing;
     FrameVectorVectorPtr m_checkerboard_frames;
+    ntk::RGBDFrameRecorder m_frame_recorder;
 };
 
 #endif // GUIMULTIKINECTCONTROLLER_H

@@ -43,78 +43,19 @@ ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboa
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
 ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
-ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", false);
+ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", true);
+ntk::arg<bool> opt_fix_center("--fix-center", "Do not estimate the central point", true);
+ntk::arg<bool> opt_optimize_scale_factor_only("--scale-factor-only", "Only estimate the scale factor", true);
 std::string output_filename;
 
 PatternType pattern_type;
 
 RGBDCalibration calibration;
 
+double initial_focal_length;
+
 QDir images_dir;
 QStringList images_list;
-}
-
-void calibrate_kinect_rgb(std::vector< std::vector<Point2f> >& stereo_corners)
-{
-    std::vector< std::vector<Point2f> > good_corners;
-    stereo_corners.resize(global::images_list.size());
-    for (int i_image = 0; i_image < global::images_list.size(); ++i_image)
-    {
-        QString filename = global::images_list[i_image];
-        QDir cur_image_dir (global::images_dir.absoluteFilePath(filename));
-
-        std::string full_filename;
-        if (cur_image_dir.exists("raw/color.png"))
-            full_filename = cur_image_dir.absoluteFilePath("raw/color.png").toStdString();
-        else if (cur_image_dir.exists("raw/color.bmp"))
-            full_filename = cur_image_dir.absoluteFilePath("raw/color.bmp").toStdString();
-        else
-        {
-            ntk::fatal_error(("Cannot load " + full_filename).c_str());
-        }
-
-        ntk_dbg_print(full_filename, 1);
-        cv::Mat3b image = imread(full_filename);
-        ntk_ensure(image.data, "Could not load color image");
-
-        std::vector<Point2f> current_view_corners;
-        calibrationCorners(full_filename, "corners",
-                           global::opt_pattern_width(), global::opt_pattern_height(),
-                           current_view_corners, image, 1,
-                           global::pattern_type);
-
-        if (current_view_corners.size() == global::opt_pattern_height()*global::opt_pattern_width())
-        {
-            good_corners.push_back(current_view_corners);
-            stereo_corners[i_image] = current_view_corners;
-            showCheckerboardCorners(image, current_view_corners, 1);
-        }
-        else
-        {
-            ntk_dbg(0) << "Warning: corners not detected";
-            stereo_corners[i_image].resize(0);
-        }
-    }
-
-    ntk_dbg_print(global::opt_square_size(), 0);
-    std::vector< std::vector<Point3f> > pattern_points;
-    calibrationPattern(pattern_points,
-                       global::opt_pattern_width(),  global::opt_pattern_height(), global::opt_square_size(),
-                       good_corners.size());
-
-    ntk_assert(pattern_points.size() == good_corners.size(), "Invalid points size");
-
-    int flags = CV_CALIB_USE_INTRINSIC_GUESS;
-    if (global::opt_ignore_distortions())
-        flags = CV_CALIB_ZERO_TANGENT_DIST;
-
-    std::vector<Mat> rvecs, tvecs;
-    double error = calibrateCamera(pattern_points, good_corners, global::calibration.rawRgbSize(),
-                                   global::calibration.rgb_intrinsics, global::calibration.rgb_distortion,
-                                   rvecs, tvecs, flags);
-
-    if (global::opt_ignore_distortions())
-        global::calibration.rgb_distortion = 0.f;
 }
 
 void writeNestkMatrix()
@@ -126,7 +67,7 @@ int main(int argc, char** argv)
 {
     arg_base::set_help_option("--help");
     arg_parse(argc, argv);
-    ntk::ntk_debug_level = 1;   
+    ntk::ntk_debug_level = 1;
 
     namedWindow("corners");
 
@@ -137,16 +78,55 @@ int main(int argc, char** argv)
 
     global::calibration.loadFromFile(global::opt_input_file());
 
+    global::initial_focal_length = global::calibration.rgb_pose->focalX();
+
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
 
     global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 
-    std::vector< std::vector<Point2f> > rgb_stereo_corners;
-    calibrate_kinect_rgb(rgb_stereo_corners);
+    OpenniRGBDProcessor processor;
+    processor.setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
+
+    std::vector<ntk::RGBDImage> images;
+    loadImageList(global::images_dir, global::images_list,
+                  processor, global::calibration, images);
+
+    std::vector< std::vector<Point2f> > good_corners;
+    std::vector< std::vector<Point2f> > all_corners;
+    getCalibratedCheckerboardCorners(images,
+                                     global::opt_pattern_width(), global::opt_pattern_height(),
+                                     global::pattern_type,
+                                     all_corners, good_corners, true);
 
     double width_ratio = double(global::calibration.rgbSize().width)/global::calibration.depthSize().width;
     double height_ratio = double(global::calibration.rgbSize().height)/global::calibration.depthSize().height;
+
+    if (!global::opt_optimize_scale_factor_only())
+    {
+        calibrate_kinect_rgb(images, good_corners, global::calibration,
+                             global::opt_pattern_width(), global::opt_pattern_height(),
+                             global::opt_square_size(), global::pattern_type,
+                             global::opt_ignore_distortions(), global::opt_fix_center());
+
+        global::calibration.rgb_intrinsics.copyTo(global::calibration.depth_intrinsics);
+        global::calibration.rgb_distortion.copyTo(global::calibration.depth_distortion);
+        global::calibration.depth_intrinsics(0,0) /= width_ratio;
+        global::calibration.depth_intrinsics(1,1) /= width_ratio;
+        global::calibration.depth_intrinsics(0,2) /= width_ratio;
+        global::calibration.depth_intrinsics(1,2) /= width_ratio;
+        global::calibration.updatePoses();
+    }
+    else
+    {
+        float scale_factor_mean = calibrate_kinect_scale_factor(images, all_corners,
+                                                                global::opt_pattern_width(),
+                                                                global::opt_pattern_height(),
+                                                                global::opt_square_size());
+        global::calibration.rgb_intrinsics(0,0) /= scale_factor_mean;
+        global::calibration.rgb_intrinsics(1,1) /= scale_factor_mean;
+        ntk_dbg_print(scale_factor_mean, 1);
+    }
 
     global::calibration.rgb_intrinsics.copyTo(global::calibration.depth_intrinsics);
     global::calibration.rgb_distortion.copyTo(global::calibration.depth_distortion);
@@ -154,6 +134,8 @@ int main(int argc, char** argv)
     global::calibration.depth_intrinsics(1,1) /= width_ratio;
     global::calibration.depth_intrinsics(0,2) /= width_ratio;
     global::calibration.depth_intrinsics(1,2) /= width_ratio;
+    global::calibration.updatePoses();
+    // global::calibration.depth_multiplicative_correction_factor = global::calibration.rgb_pose->focalX() / global::initial_focal_length;
 
     writeNestkMatrix();
     return 0;

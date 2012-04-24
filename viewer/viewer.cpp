@@ -63,8 +63,10 @@ ntk::arg<int> camera_id("--camera-id", "Camera id to connect to", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
-ntk::arg<bool> software_registration("--swregis", "Use software registration. (OpenNI only; breaks OpenNI calibration)", 0);
 ntk::arg<bool> save_processed("--save_processed", "Save processed images", 0);
+ntk::arg<bool> software_registration("--swregis", "Use software registration. (OpenNI only; breaks OpenNI calibration)", 0);
+ntk::arg<int> subsampling_factor("--subsampling", "Depth subsampling factor", 1);
+ntk::arg<bool> savePCD("--savepcd", "Include PCL point clouds in recorded images", 0);
 }
 
 int main (int argc, char** argv)
@@ -74,7 +76,7 @@ int main (int argc, char** argv)
     ntk_debug_level = opt::debug_level();
     cv::setBreakOnError(true);
 
-    QApplication::setGraphicsSystem("native");
+    QApplication::setGraphicsSystem("raster");
     QApplication app (argc, argv);
 
     const char* fake_dir = opt::image();
@@ -112,6 +114,7 @@ int main (int argc, char** argv)
         k_grabber->setTrackUsers(false);
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
+        k_grabber->setSubsamplingFactor(opt::subsampling_factor());
         if (opt::software_registration())
             k_grabber->UseHardwareRegistration(false);
         k_grabber->connectToDevice();
@@ -148,6 +151,7 @@ int main (int argc, char** argv)
     if(opt::save_processed())
         frame_recorder.setSaveOnlyRaw(false);
     frame_recorder.setUseBinaryRaw(true);
+    frame_recorder.setSavePCLPointCloud(opt::savePCD());
 
     ObjectDetector detector;
 

@@ -54,6 +54,7 @@ RGBDCalibration calibration;
 
 QDir ref_images_dir;
 QStringList ref_images_list;
+QStringList images_list;
 
 QDir images_dir;
 QStringList images_list;
@@ -92,7 +93,7 @@ int main(int argc, char** argv)
     // You have to create two lists. These may contain the same number of images (not caught!!!) and they are not
     // synchronous (not fixed!!!). This is just a workaround to get a somehow working implementation.
     global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
-    global::images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
+    global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 
     std::vector<RGBDImage> ref_images;
     loadImageList(global::ref_images_dir,
@@ -108,15 +109,15 @@ int main(int argc, char** argv)
                    global::calibration,
                    images);
 
-    std::vector< std::vector<Point2f> > ref_corners;
+    std::vector< std::vector<Point2f> > ref_corners, ref_good_corners;
     getCalibratedCheckerboardCorners(ref_images,
                                   global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
-                                  ref_corners);
+                                  ref_corners, ref_good_corners);
 
-    std::vector< std::vector<Point2f> > corners;
+    std::vector< std::vector<Point2f> > corners, good_corners;
     getCalibratedCheckerboardCorners(images,
                                   global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
-                                  corners);
+                                  corners, good_corners);
 
     calibrateStereoFromCheckerboard(ref_corners, corners,
                             global::opt_pattern_width(), global::opt_pattern_height(), global::opt_square_size(),
