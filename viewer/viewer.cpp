@@ -59,7 +59,7 @@ ntk::arg<int> first_index("--istart", "First image index", 0);
 ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)", 0);
 ntk::arg<const char*> image("--image", "Fake mode, use given still image", 0);
 ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? images in dir.", 0);
-ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
+ntk::arg<int> camera_id("--camera-id", "Camera id to connect to", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
