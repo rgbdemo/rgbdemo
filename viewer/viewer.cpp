@@ -59,10 +59,12 @@ ntk::arg<int> first_index("--istart", "First image index", 0);
 ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)", 0);
 ntk::arg<const char*> image("--image", "Fake mode, use given still image", 0);
 ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? images in dir.", 0);
-ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
+ntk::arg<int> camera_id("--camera-id", "Camera id to connect to", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
+ntk::arg<bool> save_processed("--save_processed", "Save processed images", 0);
+ntk::arg<bool> software_registration("--swregis", "Use software registration. (OpenNI only; breaks OpenNI calibration)", 0);
 ntk::arg<int> subsampling_factor("--subsampling", "Depth subsampling factor", 1);
 ntk::arg<bool> savePCD("--savepcd", "Include PCL point clouds in recorded images", 0);
 }
@@ -113,6 +115,8 @@ int main (int argc, char** argv)
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
         k_grabber->setSubsamplingFactor(opt::subsampling_factor());
+        if (opt::software_registration())
+            k_grabber->UseHardwareRegistration(false);
         k_grabber->connectToDevice();
         QDir::setCurrent(prev.absolutePath());
         grabber = k_grabber;
@@ -121,7 +125,7 @@ int main (int argc, char** argv)
 #ifdef NESTK_USE_FREENECT
     else
     {
-        FreenectGrabber* k_grabber = new FreenectGrabber();
+        FreenectGrabber* k_grabber = new FreenectGrabber(opt::camera_id());
         k_grabber->initialize();
         k_grabber->setIRMode(false);
         grabber = k_grabber;
@@ -144,7 +148,8 @@ int main (int argc, char** argv)
 
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());
     frame_recorder.setFrameIndex(opt::first_index());
-    frame_recorder.setSaveOnlyRaw(true);
+    if(opt::save_processed())
+        frame_recorder.setSaveOnlyRaw(false);
     frame_recorder.setUseBinaryRaw(true);
     frame_recorder.setSavePCLPointCloud(opt::savePCD());
 

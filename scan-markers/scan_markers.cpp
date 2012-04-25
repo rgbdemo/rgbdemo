@@ -63,9 +63,9 @@ ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 ntk::arg<bool> use_icp("--icp", "Use ICP to refine pose estimation", 0);
-ntk::arg<float> marker_size("--marker-size", "Marker size in meters", 0.095);
-ntk::arg<float> marker_spacing_x("--marker-spacing-x", "Horizontal space between markers in meters", 0.149);
-ntk::arg<float> marker_spacing_y("--marker-spacing-y", "Vertical space between markers in meters", 0.278);
+ntk::arg<float> marker_size("--marker-size", "Marker size in meters", 0.095f);
+ntk::arg<float> marker_spacing_x("--marker-spacing-x", "Horizontal space between markers in meters", 0.149f);
+ntk::arg<float> marker_spacing_y("--marker-spacing-y", "Vertical space between markers in meters", 0.278f);
 }
 
 int main (int argc, char** argv)
@@ -176,7 +176,7 @@ int main (int argc, char** argv)
 
     SurfelsRGBDModeler modeler;
     modeler.setMinViewsPerSurfel(1);
-    modeler.setResolution(0.0005);
+    modeler.setResolution(0.0005f);
     processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
 
     RGBDModeler debug_modeler;
@@ -197,7 +197,7 @@ int main (int argc, char** argv)
     ntk::Rect3f bbox;
     bbox.x = 0 - opt::marker_size();
     bbox.y = 0 - opt::marker_size();
-    bbox.z = -0.01;
+    bbox.z = -0.01f;
     bbox.width = opt::marker_spacing_x() + 2*opt::marker_size();
     bbox.height = opt::marker_spacing_y() + 2*opt::marker_size();
     bbox.depth = 0.5; // 50 cm

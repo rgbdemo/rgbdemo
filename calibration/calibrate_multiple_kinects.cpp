@@ -45,7 +45,7 @@ ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "calib
 ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboard, circles, asymcircles)", "chessboard");
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
-ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
+ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025f);
 
 PatternType pattern_type;
 
@@ -54,9 +54,9 @@ RGBDCalibration calibration;
 
 QDir ref_images_dir;
 QStringList ref_images_list;
-QStringList images_list;
 
 QDir images_dir;
+QStringList images_list;
 
 OpenniRGBDProcessor rgbd_processor;
 }
@@ -88,6 +88,9 @@ int main(int argc, char** argv)
     global::images_dir = QDir(global::opt_image_directory());
     ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
 
+    // Images of the two cameras are saved in different view folders due to timestamps and unique IDs.
+    // You have to create two lists. These may contain a different number of images (not caught!!!) and they are not
+    // synchronous (not fixed!!!). This is just a workaround to get a somehow working implementation.
     global::ref_images_list = global::ref_images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
     global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
 

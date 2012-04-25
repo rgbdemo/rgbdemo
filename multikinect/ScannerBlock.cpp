@@ -121,7 +121,7 @@ void FrameSynchronizerBlock::run()
 
 MeshGeneratorBlock::MeshGeneratorBlock()
 {
-    m_mesh_generator.setMaxDeltaDepthBetweenEdges(0.01);
+    m_mesh_generator.setMaxDeltaDepthBetweenEdges(0.01f);
 }
 
 void MeshGeneratorBlock::setMeshType(ntk::MeshGenerator::MeshType type)

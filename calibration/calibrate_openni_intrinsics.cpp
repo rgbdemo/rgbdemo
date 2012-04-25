@@ -42,10 +42,10 @@ ntk::arg<const char*> opt_input_file(0, "Calibration file YAML", "calibration.ym
 ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboard, circles, asymcircles)", "chessboard");
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
-ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
-ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", true);
-ntk::arg<bool> opt_fix_center("--fix-center", "Do not estimate the central point", true);
-ntk::arg<bool> opt_optimize_scale_factor_only("--scale-factor-only", "Only estimate the scale factor", true);
+ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025f);
+ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", false);
+ntk::arg<bool> opt_fix_center("--fix-center", "Do not estimate the central point", false);
+ntk::arg<bool> opt_optimize_scale_factor_only("--scale-factor-only", "Only estimate the scale factor", false);
 std::string output_filename;
 
 PatternType pattern_type;
@@ -112,9 +112,9 @@ int main(int argc, char** argv)
         global::calibration.rgb_intrinsics.copyTo(global::calibration.depth_intrinsics);
         global::calibration.rgb_distortion.copyTo(global::calibration.depth_distortion);
         global::calibration.depth_intrinsics(0,0) /= width_ratio;
-        global::calibration.depth_intrinsics(1,1) /= width_ratio;
+        global::calibration.depth_intrinsics(1,1) /= height_ratio;
         global::calibration.depth_intrinsics(0,2) /= width_ratio;
-        global::calibration.depth_intrinsics(1,2) /= width_ratio;
+        global::calibration.depth_intrinsics(1,2) /= height_ratio;
         global::calibration.updatePoses();
     }
     else
@@ -131,9 +131,9 @@ int main(int argc, char** argv)
     global::calibration.rgb_intrinsics.copyTo(global::calibration.depth_intrinsics);
     global::calibration.rgb_distortion.copyTo(global::calibration.depth_distortion);
     global::calibration.depth_intrinsics(0,0) /= width_ratio;
-    global::calibration.depth_intrinsics(1,1) /= width_ratio;
+    global::calibration.depth_intrinsics(1,1) /= height_ratio;
     global::calibration.depth_intrinsics(0,2) /= width_ratio;
-    global::calibration.depth_intrinsics(1,2) /= width_ratio;
+    global::calibration.depth_intrinsics(1,2) /= height_ratio;
     global::calibration.updatePoses();
     // global::calibration.depth_multiplicative_correction_factor = global::calibration.rgb_pose->focalX() / global::initial_focal_length;
 

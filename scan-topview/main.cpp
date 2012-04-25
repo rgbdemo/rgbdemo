@@ -127,8 +127,8 @@ int main (int argc, char** argv)
     rgbd_processor->setMaxNormalAngle(40);
     rgbd_processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
     rgbd_processor->setFilterFlag(RGBDProcessorFlags::FilterThresholdDepth, true);
-    rgbd_processor->setMinDepth(0.3);
-    rgbd_processor->setMaxDepth(1.5);
+    rgbd_processor->setMinDepth(0.3f);
+    rgbd_processor->setMaxDepth(1.5f);
 
     if (opt::image() || opt::directory())
     {

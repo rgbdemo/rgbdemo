@@ -310,10 +310,10 @@ void GuiController::toggleModeler(bool active)
 void GuiController::acquireNewModels()
 {
     TableObjectDetector<PointXYZ> detector;
-    detector.setDepthLimits(-2, -0.5);
-    detector.setObjectVoxelSize(0.003); // 3 mm voxels.
-    detector.setObjectHeightLimits(0.02, 0.5);
-    detector.setMaxDistToPlane(0.1);
+    detector.setDepthLimits(-2, -0.5f);
+    detector.setObjectVoxelSize(0.003f); // 3 mm voxels.
+    detector.setObjectHeightLimits(0.02f, 0.5f);
+    detector.setMaxDistToPlane(0.1f);
 
     m_last_image.copyTo(m_model_image);
 
