@@ -43,9 +43,9 @@ ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboa
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
 ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025f);
-ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", true);
-ntk::arg<bool> opt_fix_center("--fix-center", "Do not estimate the central point", true);
-ntk::arg<bool> opt_optimize_scale_factor_only("--scale-factor-only", "Only estimate the scale factor", true);
+ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", false);
+ntk::arg<bool> opt_fix_center("--fix-center", "Do not estimate the central point", false);
+ntk::arg<bool> opt_optimize_scale_factor_only("--scale-factor-only", "Only estimate the scale factor", false);
 std::string output_filename;
 
 PatternType pattern_type;
