@@ -23,7 +23,7 @@ ntk_ptr_typedefs(FrameVector)
 
 struct FrameVectorVector : public ntk::EventData
 {
-    std::vector<FrameVectorConstPtr> frames;
+    std::vector<FrameVectorPtr> frames;
 };
 ntk_ptr_typedefs(FrameVectorVector)
 
@@ -150,8 +150,8 @@ public:
     enum Algorithm { ICP, Chessboard };
 
 public:
-    static const double a4SquareSize () { return 0.025; }
-    static const double a3SquareSize () { return 0.034; }
+    static double a4SquareSize () { return 0.025; }
+    static double a3SquareSize () { return 0.034; }
 
 public:
     CalibratorBlock() : m_controller(0), m_algo(ICP),

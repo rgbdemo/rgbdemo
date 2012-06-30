@@ -104,8 +104,10 @@ void FrameSynchronizerBlock::run()
 
         // Everything received. Can generate a new event.
         FrameVectorPtr new_data (new FrameVector);
+        new_data->images.resize(m_updated_images.size());
+        int i = 0;
         foreach_const_it(it, m_updated_images, image_map_type)
-            new_data->images.push_back(it->second);
+            new_data->images[i++] = it->second;
         broadcastEvent(new_data);
 
         ntk_dbg(2) << "[FrameSync] All images updated, sending new event!";
@@ -121,7 +123,7 @@ void FrameSynchronizerBlock::run()
 
 MeshGeneratorBlock::MeshGeneratorBlock()
 {
-    m_mesh_generator.setMaxDeltaDepthBetweenEdges(0.01f);
+    m_mesh_generator.setMaxDeltaDepthBetweenEdges(0.01);
 }
 
 void MeshGeneratorBlock::setMeshType(ntk::MeshGenerator::MeshType type)
@@ -274,6 +276,12 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames)
                                      ref_good_corners,
                                      false /* show corners */);
 
+    if (ref_good_corners.size() != ref_images.size())
+    {
+        ntk_dbg(0) << "Could not extract corners from the first image.";
+        return;
+    }
+
     int num_cameras = frames->frames[0]->images.size();
     for (int i_camera = 1; i_camera < num_cameras; ++i_camera)
     {
@@ -303,8 +311,12 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames)
 
         calibrateStereoFromCheckerboard(ref_corners, corners,
                                         m_pattern_width, m_pattern_height, m_pattern_size,
-                                        calibration);
+                                        calibration);        
 
+        calibration.updatePoses();
+
+        calibration.depth_pose->applyTransformBefore(*ref_images[0].calibration()->depth_pose);
+        calibration.depth_pose->cvRotationMatrixTranslation(calibration.T_extrinsics, calibration.R_extrinsics);
         calibration.updatePoses();
 
         cv::Mat3b debug_img;

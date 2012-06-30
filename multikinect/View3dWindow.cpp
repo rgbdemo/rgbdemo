@@ -23,6 +23,9 @@
 #include "GuiMultiKinectController.h"
 
 #include <ntk/mesh/mesh_generator.h>
+#include <ntk/utils/opencv_utils.h>
+
+#include <QFileDialog>
 
 using namespace cv;
 using namespace ntk;
@@ -34,6 +37,7 @@ View3DWindow::View3DWindow(GuiMultiKinectController& controller, QWidget *parent
 {  
     ui->setupUi(this);
     ui->mesh_view->window = this;
+    updateBoundingBox();
 }
 
 View3DWindow::~View3DWindow()
@@ -104,6 +108,28 @@ void View3DWindow :: getCalibration(cv::Vec3f& t, cv::Vec3f& r) const
     r[2] = deg_to_rad(ui->rzValue->value());
 }
 
+void View3DWindow::updateBoundingBox()
+{
+    ntk::Rect3f bbox;
+    bbox.x = ui->bboxXSpinBox->value();
+    bbox.y = ui->bboxYSpinBox->value();
+    bbox.z = ui->bboxZSpinBox->value();
+    bbox.width = ui->bboxWidthSpinBox->value();
+    bbox.height = ui->bboxHeightSpinBox->value();
+    bbox.depth = ui->bboxDepthSpinBox->value();
+    m_controller.setBoundingBox(bbox);
+}
+
+void View3DWindow::setBoundingBox(const ntk::Rect3f& bbox)
+{
+    ui->bboxXSpinBox->setValue(bbox.x);
+    ui->bboxYSpinBox->setValue(bbox.y);
+    ui->bboxZSpinBox->setValue(bbox.z);
+    ui->bboxWidthSpinBox->setValue(bbox.width);
+    ui->bboxHeightSpinBox->setValue(bbox.height);
+    ui->bboxDepthSpinBox->setValue(bbox.depth);
+}
+
 void View3DWindow :: updateFromCalibration(const cv::Vec3f& t, const cv::Vec3f& r)
 {
     ui->txValue->setValue(t[0]);
@@ -143,8 +169,8 @@ void CalibrationMeshViewer::onCameraPositionUpdate(const cv::Vec3f &translation,
     GLdouble m[16];
     GLdouble deltam[16];
 
-    const float rotation_scale = 0.2f;
-    const float translation_scale = 0.2f;
+    const float rotation_scale = 0.2;
+    const float translation_scale = 0.2;
 
     // Get the delta transformation is visualization frame.
     makeCurrent();
@@ -195,4 +221,22 @@ void View3DWindow::on_calibrateWithCheckerboardButton_clicked()
 void View3DWindow::on_resetCheckerboardImages_clicked()
 {
     m_controller.resetCheckboardImages();
+}
+
+void View3DWindow::on_bboxXSpinBox_valueChanged(double) { updateBoundingBox(); }
+void View3DWindow::on_bboxYSpinBox_valueChanged(double) { updateBoundingBox(); }
+void View3DWindow::on_bboxZSpinBox_valueChanged(double) { updateBoundingBox(); }
+void View3DWindow::on_bboxWidthSpinBox_valueChanged(double) { updateBoundingBox(); }
+void View3DWindow::on_bboxHeightSpinBox_valueChanged(double) { updateBoundingBox(); }
+void View3DWindow::on_bboxDepthSpinBox_valueChanged(double) { updateBoundingBox(); }
+
+void View3DWindow::on_saveBboxButton_clicked()
+{
+    QString filename = QFileDialog::getSaveFileName(this,
+                                                    "Save bounding box as...",
+                                                    QString("bbox.yml"));
+    if (filename.isEmpty())
+        return;
+
+    writeBoundingBoxToYamlFile(filename.toStdString(), m_controller.boundingBox());
 }

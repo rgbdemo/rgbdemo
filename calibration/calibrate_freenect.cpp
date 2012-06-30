@@ -39,8 +39,8 @@ namespace global
 {
 ntk::arg<const char*> opt_image_directory("--input", "RGBD images directory", "grab1");
 ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "kinect_calibration.yml");
-ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
-ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
+ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner corners)", 10);
+ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner corners)", 7);
 ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
 ntk::arg<bool> opt_ignore_distortions("--no-depth-undistort", "Ignore distortions for depth images(faster processing)", false);
 

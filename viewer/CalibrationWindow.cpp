@@ -63,8 +63,34 @@ void CalibrationWindow::on_addFrameButton_clicked()
                        &checkerboard_image);
     ui->lastImageWidget->setImage(controller.lastImage().depth());
     ui->lastCheckerboardWidget->setImage(checkerboard_image);
-    images.push_back(controller.lastImage());
-    ui->checkerboardLabel->setText(QString("%1 images").arg(images.size()));
+
+    bool image_ok = true;
+
+    if (corners.size() < pattern_width*pattern_height)
+        image_ok = false;
+
+    if (image_ok)
+    {
+        int n_points_with_depth = 0;
+        for (int i = 0; i < corners.size(); ++i)
+        {
+            if (controller.lastImage().depth()(corners[i].y, corners[i].x) > 1e-5)
+                ++n_points_with_depth;
+        }
+
+        if (n_points_with_depth < pattern_width)
+            image_ok = false;
+    }
+
+    if (image_ok)
+    {
+        images.push_back(controller.lastImage());
+        ui->checkerboardLabel->setText(QString("Image added - %1 images").arg(images.size()));
+    }
+    else
+    {
+        ui->checkerboardLabel->setText(QString("Error: checkerboard too close or not detected - %1 images").arg(images.size()));
+    }
 }
 
 void CalibrationWindow::on_calibrateButton_clicked()
@@ -82,6 +108,12 @@ void CalibrationWindow::on_calibrateButton_clicked()
 
     float scale_factor_mean = calibrate_kinect_scale_factor(images, all_corners,
                                                             pattern_width, pattern_height, pattern_size);
+
+    if (scale_factor_mean < 1e-5)
+    {
+        ui->checkerboardLabel->setText(QString("Could NOT calibrate (checkerboard too close?) - %1 images").arg(images.size()));
+        return;
+    }
 
     images[0].calibration()->copyTo(last_calibration);
     last_calibration.rgb_intrinsics(0,0) /= scale_factor_mean;

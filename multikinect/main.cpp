@@ -68,6 +68,7 @@ ntk::arg<const char*> directory("--directory", "Fake mode, specify a directory w
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> use_highres("--highres", "High resolution mode (Nite only)", 0);
 ntk::arg<int> num_devices("--numdevices", "Number of connected Kinects (-1 is all)", -1);
+ntk::arg<const char*> bbox("--bbox", "Specifies the initial bounding box (.yml)", 0);
 }
 
 int main (int argc, char** argv)
@@ -176,8 +177,14 @@ int main (int argc, char** argv)
     QDir::setCurrent(prev_dir.absolutePath());
 
     GuiMultiKinectController* controller = new GuiMultiKinectController(&scanner);
+    if (opt::bbox())
+    {
+        ntk::Rect3f bbox = readBoundingBoxFromYamlFile(opt::bbox());
+        controller->setBoundingBox(bbox, true);
+    }
+
     scanner.plugController(controller);
-    controller->scanner().calibratorBlock().setCalibrationPattern(0.034f, 10, 7);
+    controller->scanner().calibratorBlock().setCalibrationPattern(0.034, 10, 7);
 
     if (opt::sync())
         controller->scanner().setPaused(true);

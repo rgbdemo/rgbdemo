@@ -40,6 +40,10 @@
 # include <ntk/camera/freenect_grabber.h>
 #endif
 
+#ifdef NESTK_USE_KIN4WIN
+# include <ntk/camera/kin4win_grabber.h>
+#endif
+
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include "GuiController.h"
@@ -47,6 +51,7 @@
 
 #include <QApplication>
 #include <QMetaType>
+#include <QMessageBox>
 
 using namespace ntk;
 using namespace cv;
@@ -59,12 +64,11 @@ ntk::arg<int> first_index("--istart", "First image index", 0);
 ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)", 0);
 ntk::arg<const char*> image("--image", "Fake mode, use given still image", 0);
 ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? images in dir.", 0);
-ntk::arg<int> camera_id("--camera-id", "Camera id to connect to", 0);
+ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
+ntk::arg<bool> kin4win("--kin4win", "Force kin4win driver", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
-ntk::arg<bool> save_processed("--save_processed", "Save processed images", 0);
-ntk::arg<bool> software_registration("--swregis", "Use software registration. (OpenNI only; breaks OpenNI calibration)", 0);
 ntk::arg<int> subsampling_factor("--subsampling", "Depth subsampling factor", 1);
 ntk::arg<bool> savePCD("--savepcd", "Include PCL point clouds in recorded images", 0);
 }
@@ -92,9 +96,18 @@ int main (int argc, char** argv)
     OpenniDriver* ni_driver = 0;
 #endif
 
-    bool use_openni = !opt::freenect();
+    bool use_openni   = !opt::freenect() && !opt::kin4win();
+    bool use_freenect = opt::freenect() || !opt::kin4win();
+    bool use_kin4win  = opt::kin4win();
+
 #ifndef NESTK_USE_OPENNI
     use_openni = false;
+#endif
+#ifndef NESTK_USE_OPENNI
+    use_freenect = false;
+#endif
+#ifndef NESTK_USE_KIN4WIN
+    use_kin4win = false;
 #endif
 
     if (opt::image() || opt::directory())
@@ -110,27 +123,44 @@ int main (int argc, char** argv)
         QDir prev = QDir::current();
         QDir::setCurrent(QApplication::applicationDirPath());
         if (!ni_driver) ni_driver = new OpenniDriver();
-        OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver, opt::camera_id());
-        k_grabber->setTrackUsers(false);
-        if (opt::high_resolution())
-            k_grabber->setHighRgbResolution(true);
-        k_grabber->setSubsamplingFactor(opt::subsampling_factor());
-        if (opt::software_registration())
-            k_grabber->UseHardwareRegistration(false);
-        k_grabber->connectToDevice();
-        QDir::setCurrent(prev.absolutePath());
-        grabber = k_grabber;
+        if (ni_driver->numDevices() > 0)
+        {
+            OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver, opt::camera_id());
+            k_grabber->setTrackUsers(false);
+            if (opt::high_resolution())
+                k_grabber->setHighRgbResolution(true);
+            k_grabber->setSubsamplingFactor(opt::subsampling_factor());
+            k_grabber->connectToDevice();
+            QDir::setCurrent(prev.absolutePath());
+            grabber = k_grabber;
+        }
     }
 #endif
 #ifdef NESTK_USE_FREENECT
-    else
+    else if (use_freenect)
     {
-        FreenectGrabber* k_grabber = new FreenectGrabber(opt::camera_id());
+        FreenectGrabber* k_grabber = new FreenectGrabber();
         k_grabber->initialize();
         k_grabber->setIRMode(false);
         grabber = k_grabber;
     }
 #endif
+#ifdef NESTK_USE_KIN4WIN
+    else if (use_kin4win)
+    {
+        Kin4WinDriver kin4WinDriver; // FIXME
+        Kin4WinGrabber* k_grabber = new Kin4WinGrabber(kin4WinDriver);
+        k_grabber->initialize();
+        grabber = k_grabber;
+    }
+#endif
+
+    if (!grabber)
+    {
+        QMessageBox::critical(0, "Fatal error",
+                                  "Cannot connect to the Kinect device.\n\nPlease check that it is correctly plugged to the computer.");
+        return 1;
+    }
 
     ntk_ensure(grabber, "Could not create any grabber. Kinect support built?");
 
@@ -138,9 +168,13 @@ int main (int argc, char** argv)
     {
         processor = new ntk::OpenniRGBDProcessor();
     }
-    else
+    else if (use_freenect)
     {
         processor = new ntk::FreenectRGBDProcessor();
+    }
+    else if (use_kin4win)
+    {
+        processor = new ntk::OpenniRGBDProcessor();
     }
 
     if (opt::sync())
@@ -148,8 +182,7 @@ int main (int argc, char** argv)
 
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());
     frame_recorder.setFrameIndex(opt::first_index());
-    if(opt::save_processed())
-        frame_recorder.setSaveOnlyRaw(false);
+    frame_recorder.setSaveOnlyRaw(true);
     frame_recorder.setUseBinaryRaw(true);
     frame_recorder.setSavePCLPointCloud(opt::savePCD());
 
@@ -163,7 +196,7 @@ int main (int argc, char** argv)
         calib_data = new RGBDCalibration();
         calib_data->loadFromFile(opt::calibration_file());
     }
-    else if (use_openni)
+    else if (use_openni || use_kin4win)
     {
         calib_data = grabber->calibrationData();
     }

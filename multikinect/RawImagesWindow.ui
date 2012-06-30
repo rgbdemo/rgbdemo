@@ -294,9 +294,6 @@
    <property name="text">
     <string>Grab one frame</string>
    </property>
-    <property name="shortcut">
-      <string>Ctrl+S</string>
-    </property>
   </action>
   <action name="action_Quit">
    <property name="text">
@@ -483,9 +480,6 @@
   <action name="actionGrab_one_frame">
    <property name="text">
     <string>Grab one frame</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

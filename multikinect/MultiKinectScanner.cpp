@@ -110,6 +110,35 @@ void MultiKinectScanner::processLastImageFromGrabber(RGBDGrabber& grabber)
 
 void MultiKinectScanner::calibrateCameras(FrameVectorVectorPtr frames)
 {
+    if (frames->frames.size() < 1)
+    {
+        // Nothing to calibrate
+        return;
+    }
+
+    if (frames->frames[0]->images.size() < 2)
+    {
+        // Nothing to calibrate
+        return;
+    }
+
+    std::string ref_camera_serial = getDeviceInfo(0).serial;
+    int actual_id = -1;
+    for (actual_id = 0; actual_id < frames->frames[0]->images.size(); ++actual_id)
+    {
+        if (frames->frames[0]->images[actual_id]->cameraSerial() == ref_camera_serial)
+            break;
+    }
+    ntk_assert(actual_id < frames->frames[0]->images.size(), "Should have found the ref camera.");
+
+    if (actual_id != 0)
+    {
+        for (int i = 0; i < frames->frames.size(); ++i)
+        {
+            std::swap(frames->frames[i]->images[0], frames->frames[i]->images[actual_id]);
+        }
+    }
+
     if (m_last_processed_frame_vector)
         m_calibrator_block.newEvent(this, frames);
 }
@@ -166,7 +195,7 @@ void MultiKinectScanner::run()
 
     while (!threadShouldExit())
     {
-        EventListener::Event event = waitForNewEvent(1000);
+        EventListener::Event event = waitForNewEvent();
         if (event.isNull())
             continue;
 

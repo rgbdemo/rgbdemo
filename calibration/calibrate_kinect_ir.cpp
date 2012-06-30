@@ -41,7 +41,7 @@ ntk::arg<const char*> opt_image_directory("--input", "RGBD images directory", "g
 ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "calibration-#SERIAL.yml");
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
-ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025f);
+ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
 ntk::arg<bool> opt_ignore_distortions("--no-depth-undistort", "Ignore distortions for depth images(faster processing)", false);
 
 std::string output_filename;
@@ -230,9 +230,9 @@ void calibrate_kinect_depth(std::vector< std::vector<Point2f> >& stereo_corners,
                     if (!(kinect_raw < 2047)) continue;
                     ntk_dbg_print(kinect_raw, 1);
                     double linear_depth = 1.0 / (kinect_raw * -0.0030711016 + 3.3309495161);
-                    const float k1 = 1.1863f;
-                    const float k2 = 2842.5f;
-                    const float k3 = 0.1236f;
+                    const float k1 = 1.1863;
+                    const float k2 = 2842.5;
+                    const float k3 = 0.1236;
                     double tan_depth = k3 * tanf(kinect_raw/k2 + k1);
                     ntk_dbg_print(linear_depth, 1);
                     ntk_dbg_print(tan_depth, 1);

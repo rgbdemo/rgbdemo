@@ -63,6 +63,8 @@ public slots:
     void refineCalibrationWithChessboard();
     void setGrabbing(bool grab);
     void grabOneFrame();
+    void setBoundingBox(const ntk::Rect3f& bbox, bool update_gui = false);
+    const ntk::Rect3f& boundingBox() const { return m_bounding_box; }
 
 protected:
     // In GUI thread.
@@ -88,6 +90,7 @@ private:
     bool m_grabbing;
     FrameVectorVectorPtr m_checkerboard_frames;
     ntk::RGBDFrameRecorder m_frame_recorder;
+    ntk::Rect3f m_bounding_box;
 };
 
 #endif // GUIMULTIKINECTCONTROLLER_H

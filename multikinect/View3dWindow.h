@@ -62,6 +62,8 @@ public:
     void updateFromCalibration(const cv::Vec3f& t, const cv::Vec3f& r);
     void updateToCalibration();
     void getCalibration(cv::Vec3f& t, cv::Vec3f& r) const;
+    void updateBoundingBox();
+    void setBoundingBox(const ntk::Rect3f& bbox);
 
 private:
     Ui::View3DWindow *ui;
@@ -88,10 +90,19 @@ private slots:
     void on_rzValue_editingFinished();
     void on_calibrationModeCheckBox_toggled(bool checked);
 
+    void on_bboxXSpinBox_valueChanged(double arg1);
+    void on_bboxYSpinBox_valueChanged(double arg1);
+    void on_bboxZSpinBox_valueChanged(double arg1);
+    void on_bboxWidthSpinBox_valueChanged(double arg1);
+    void on_bboxHeightSpinBox_valueChanged(double arg1);
+    void on_bboxDepthSpinBox_valueChanged(double arg1);
+
     void on_refineWithICPButton_clicked();
     void on_addCheckerboardImageButton_clicked();
     void on_calibrateWithCheckerboardButton_clicked();
     void on_resetCheckerboardImages_clicked();
+
+    void on_saveBboxButton_clicked();
 
     friend class GuiMultiKinectController;
     friend class CalibrationMeshViewer;

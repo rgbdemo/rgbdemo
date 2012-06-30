@@ -141,9 +141,14 @@ void GuiMultiKinectController::processNewSynchronizedMeshes(MeshVectorPtr mesh_v
     {
         if (m_merge_views || mesh_vector->camera_serials[i] == m_active_device_serial)
         {
+            ntk::Mesh* mesh = mesh_vector->meshes[i];
             m_view3d_window->ui->mesh_view->addMesh(*mesh_vector->meshes[i], Pose3D(), MeshViewer::FLAT);
         }
     }
+
+    ntk::Mesh cube;
+    cube.addCube(m_bounding_box.centroid(), cv::Point3f(m_bounding_box.width, m_bounding_box.height, m_bounding_box.depth));
+    m_view3d_window->ui->mesh_view->addMesh(cube, Pose3D(), MeshViewer::WIREFRAME);
 
     m_view3d_window->ui->mesh_view->swapScene();
 }
@@ -304,9 +309,16 @@ void GuiMultiKinectController::grabOneFrame()
     m_frame_recorder.saveCurrentFrames(images);
 }
 
+void GuiMultiKinectController::setBoundingBox(const Rect3f &bbox, bool update_gui)
+{
+    m_bounding_box = bbox;
+    if (update_gui)
+        m_view3d_window->setBoundingBox(bbox);
+}
+
 void GuiMultiKinectController::addCheckboardImage()
 {
-    FrameVectorConstPtr frame = scanner().lastProcessedFrameVector();
+    FrameVectorPtr frame = scanner().lastProcessedFrameVector();
     if (!frame)
         return;
 

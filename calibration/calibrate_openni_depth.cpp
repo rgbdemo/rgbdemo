@@ -42,9 +42,9 @@ ntk::arg<const char*> opt_image_directory(0, "RGBD images directory", 0);
 ntk::arg<const char*> opt_input_file(0, "Input calibration file YAML", "calibration.yml");
 ntk::arg<const char*> opt_output_file("--output", "Output YAML filename", "openni_calibration.yml");
 ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboard, circles, asymcircles)", "chessboard");
-ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner squares)", 10);
-ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner squares)", 7);
-ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025f);
+ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner corners)", 10);
+ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner corners)", 7);
+ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
 ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", false);
 
 PatternType pattern_type;
