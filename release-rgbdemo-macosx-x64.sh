@@ -208,6 +208,8 @@ copy_rgbdemo_libraries()
             run install_name_tool -id @executable_path/$lib $bin
             run install_name_tool -change "$BUILD_DIR"/lib/$lib @executable_path/$lib $bin
             run install_name_tool -change                  $lib @executable_path/$lib $bin
+            run install_name_tool -change /usr/local/Cellar/jpeg/8c/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
+            run install_name_tool -change /usr/local/Cellar/jpeg/8b/lib/libjpeg.8.dylib @executable_path/../Frameworks/libjpeg.8.dylib $bin
         done
     done
 
@@ -333,14 +335,16 @@ copy_rgbdemo_libraries()
     done
 
     # For some reasons QtOpenGL does not get copied by macdeployqt
-    for lib in QtOpenGL QtSvg; do
+    for lib in QtOpenGL QtSvg QtTest; do
 	run mkdir -p ${lib}.framework/Versions/4
 	run cp -r /Library/Frameworks/${lib}.framework/Versions/4/${lib} ${lib}.framework/Versions/4/${lib}
 	run install_name_tool -id @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} ${lib}.framework/Versions/4/${lib}
     done
 
-    for lib in QtCore QtGui QtOpenGL QtSvg; do
-	run install_name_tool -change ${lib}.framework/Versions/4/$lib @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} QtOpenGL.framework/Versions/4/QtOpenGL
+    for dest in QtOpenGL QtSvg QtTest; do
+	for lib in QtCore QtGui; do
+	    run install_name_tool -change ${lib}.framework/Versions/4/$lib @executable_path/../Frameworks/${lib}.framework/Versions/4/${lib} ${dest}.framework/Versions/4/${dest}
+	done
     done
 
     run cd -
@@ -361,6 +365,7 @@ link_rgbdemo_libraries()
             run install_name_tool -change "$BUILD_DIR"/lib/$lib @executable_path/$lib $bin
             run install_name_tool -change                  $lib @executable_path/$lib $bin
         done
+	run install_name_tool -change ../../Bin/x86-Release/libOpenNI.dylib @executable_path/libOpenNI.dylib $bin
     done
 
     run cd -
