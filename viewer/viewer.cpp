@@ -44,6 +44,10 @@
 # include <ntk/camera/kin4win_grabber.h>
 #endif
 
+#ifdef NESTK_USE_PMDSDK
+# include <ntk/camera/pmd_grabber.h>
+#endif
+
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include "GuiController.h"
@@ -67,6 +71,7 @@ ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? imag
 ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> kin4win("--kin4win", "Force kin4win driver", 0);
+ntk::arg<bool> pmd("--pmd", "Force pmd nano driver", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 ntk::arg<int> subsampling_factor("--subsampling", "Depth subsampling factor", 1);
@@ -96,9 +101,10 @@ int main (int argc, char** argv)
     OpenniDriver* ni_driver = 0;
 #endif
 
-    bool use_openni   = !opt::freenect() && !opt::kin4win();
-    bool use_freenect = opt::freenect() || !opt::kin4win();
-    bool use_kin4win  = opt::kin4win();
+    bool use_openni   = !opt::freenect() && !opt::kin4win() && !opt::pmd();
+    bool use_freenect = opt::freenect() && !use_openni;
+    bool use_kin4win  = opt::kin4win() && !use_freenect;
+    bool use_pmd = opt::pmd() || !use_kin4win;
 
 #ifndef NESTK_USE_OPENNI
     use_openni = false;
@@ -108,6 +114,12 @@ int main (int argc, char** argv)
 #endif
 #ifndef NESTK_USE_KIN4WIN
     use_kin4win = false;
+#endif
+#ifndef NESTK_USE_KIN4WIN
+    use_kin4win = false;
+#endif
+#ifndef NESTK_USE_PMDSDK
+    use_pmd = false;
 #endif
 
     if (opt::image() || opt::directory())
@@ -154,6 +166,14 @@ int main (int argc, char** argv)
         grabber = k_grabber;
     }
 #endif
+#ifdef NESTK_USE_PMDSDK
+    else if (use_pmd)
+    {
+        PmdGrabber* k_grabber = new PmdGrabber();
+        k_grabber->initialize();
+        grabber = k_grabber;
+    }
+#endif
 
     if (!grabber)
     {
@@ -175,6 +195,10 @@ int main (int argc, char** argv)
     else if (use_kin4win)
     {
         processor = new ntk::OpenniRGBDProcessor();
+    }
+    else if (use_pmd)
+    {
+        processor = new ntk::PmdRgbProcessor();
     }
 
     if (opt::sync())
