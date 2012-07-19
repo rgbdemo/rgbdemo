@@ -191,39 +191,4 @@ int main (int argc, char** argv)
 
     scanner.start();
     return app.exec();
-
-#if 0
-
-    MeshGenerator* mesh_generator = new MeshGenerator();
-    mesh_generator->setUseColor(true);
-
-    if (opt::sync())
-    {
-        grabber->setSynchronous(true);
-    }
-
-    grabber->connectToDevice();
-
-    RGBDFrameRecorder frame_recorder (opt::dir_prefix());
-    frame_recorder.setSaveOnlyRaw(true);
-    frame_recorder.setUseBinaryRaw(true);
-    frame_recorder.setSaveIntensity(false);
-    frame_recorder.setUseCompressedFormat(false);
-
-    GuiController gui_controller (*grabber, *rgbd_processor);
-    gui_controller.setFrameRecorder(frame_recorder);
-    gui_controller.setMeshGenerator(*mesh_generator);
-    // Activate last device by default.
-    gui_controller.setActiveDevice(opt::num_devices()-1);
-
-    grabber->addEventListener(&gui_controller);
-
-    if (opt::sync())
-        gui_controller.setPaused(true);
-
-    grabber->start();
-
-    app.exec();
-
-#endif
 }

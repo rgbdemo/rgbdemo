@@ -220,7 +220,7 @@ int main (int argc, char** argv)
         calib_data = new RGBDCalibration();
         calib_data->loadFromFile(opt::calibration_file());
     }
-    else if (use_openni || use_kin4win)
+    else if (use_openni || use_kin4win || use_pmd)
     {
         calib_data = grabber->calibrationData();
     }

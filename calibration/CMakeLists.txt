@@ -22,3 +22,8 @@ TARGET_LINK_LIBRARIES(calibrate-openni-depth nestk)
 
 NESTK_ADD_EXECUTABLE(calibrate-kinect-ir calibrate_kinect_ir.cpp ${common_sources})
 TARGET_LINK_LIBRARIES(calibrate-kinect-ir nestk)
+
+IF (NESTK_USE_PMDSDK)
+    NESTK_ADD_EXECUTABLE(calibrate-pmdnano calibrate_pmdnano.cpp ${common_sources})
+    TARGET_LINK_LIBRARIES(calibrate-pmdnano nestk)
+ENDIF()
