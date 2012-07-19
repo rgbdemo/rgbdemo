@@ -31,12 +31,7 @@
 #include <ntk/camera/opencv_grabber.h>
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
-#ifdef NESTK_USE_FREENECT
-# include <ntk/camera/freenect_grabber.h>
-#endif
-#ifdef NESTK_USE_OPENNI
-# include <ntk/camera/openni_grabber.h>
-#endif
+#include <ntk/camera/rgbd_grabber_factory.h>
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include <ntk/mesh/table_object_rgbd_modeler.h>
@@ -47,6 +42,7 @@
 
 #include <QApplication>
 #include <QMetaType>
+#include <QMessageBox>
 
 using namespace ntk;
 
@@ -62,8 +58,10 @@ ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
 ntk::arg<bool> pa10("--pa10", "WARNING: hold the emergency button -- Enable PA10 Controller", 0);
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<const char*> pa10_controller("--pa10-controller", "Pa10 trajectory controller", "model");
-ntk::arg<bool> use_kinect("--kinect", "Input are kinect images", 1);
-ntk::arg<bool> use_freenect("--freenect", "Use libfreenect library", 0);
+ntk::arg<bool> openni("--openni", "Force OpenNI driver", 0);
+ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
+ntk::arg<bool> kin4win("--kin4win", "Force kin4win driver", 0);
+ntk::arg<bool> pmd("--pmd", "Force pmd nano driver", 0);
 ntk::arg<bool> use_icp("--icp", "use ICP refinement", 0);
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 ntk::arg<const char*> pose_estimator("--pose-estimator",
@@ -84,109 +82,48 @@ int main (int argc, char** argv)
     QApplication::setGraphicsSystem("raster");
     QApplication app (argc, argv);
 
-    // Opening cameras. Its important to remember that CvCapture has to be done
-    // before PMD otherwise will crash
-    // 1.- Logitech (openCV)
-    // 2.- PMD (pmdlibrary)
+    RGBDGrabberFactory grabber_factory;
+    RGBDGrabberFactory::Params params;
 
-    const char* fake_dir = opt::image();
-    bool is_directory = opt::directory() != 0;
     if (opt::directory())
-        fake_dir = opt::directory();
+        params.directory = opt::directory();
 
-    ntk::RGBDProcessor* rgbd_processor = 0;
+    if (opt::openni())
+        params.type = RGBDGrabberFactory::OPENNI;
 
-    RGBDGrabber* grabber = 0;
+    if (opt::freenect())
+        params.type = RGBDGrabberFactory::FREENECT;
 
-#ifdef NESTK_USE_OPENNI
-    OpenniDriver* ni_driver = 0;
-#endif
+    if (opt::kin4win())
+        params.type = RGBDGrabberFactory::KIN4WIN;
 
-    bool use_openni = false;
-    if (opt::use_kinect())
+    if (opt::pmd())
+        params.type = RGBDGrabberFactory::PMD;
+
+    if (opt::calibration_file())
+        params.calibration_file = opt::calibration_file();
+
+    std::vector<RGBDGrabberFactory::GrabberData> grabbers;
+    grabbers = grabber_factory.createGrabbers(params);
+
+    if (grabbers.size() < 1)
     {
-#ifdef NESTK_USE_OPENNI
-        if (opt::use_freenect())
-        {
-            rgbd_processor = new FreenectRGBDProcessor();
-        }
-        else
-        {
-            rgbd_processor = new OpenniRGBDProcessor();
-            use_openni = true;
-        }
-#else
-        rgbd_processor = new FreenectRGBDProcessor();
-#endif
+        QMessageBox::critical(0, "Fatal error",
+                                  "Cannot connect to any RGBD device.\n\nPlease check that it is correctly plugged to the computer.");
+        return 1;
     }
-    else
-    {
-        rgbd_processor = new RGBDProcessor();
-    }
+
+    RGBDGrabber* grabber = grabbers[0].grabber;
+    RGBDProcessor* rgbd_processor = grabbers[0].processor;
 
     rgbd_processor->setMaxNormalAngle(40);
     rgbd_processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
     rgbd_processor->setFilterFlag(RGBDProcessorFlags::FilterThresholdDepth, true);
-    rgbd_processor->setMinDepth(0.3f);
+    rgbd_processor->setMinDepth(0.05f);
     rgbd_processor->setMaxDepth(1.5f);
 
-    if (opt::image() || opt::directory())
-    {
-        std::string path = opt::image() ? opt::image() : opt::directory();
-        FileGrabber* file_grabber = new FileGrabber(path, is_directory);
-        grabber = file_grabber;
-        // Image are saved with flipping applied.
-        rgbd_processor->setFilterFlag(RGBDProcessorFlags::FlipColorImage, false);
-    }
-    else if (opt::use_kinect())
-    {
-        if (opt::use_freenect())
-        {
-#ifdef NESTK_USE_FREENECT
-            FreenectGrabber* k_grabber = new FreenectGrabber();
-            k_grabber->initialize();
-            k_grabber->setIRMode(false);
-            grabber = k_grabber;
-#else
-            fatal_error("Freenect support not built.");
-#endif
-        }
-        else
-        {
-#ifdef NESTK_USE_OPENNI
-            // Config dir is supposed to be next to the binaries.
-            QDir prev = QDir::current();
-            QDir::setCurrent(QApplication::applicationDirPath());
-            if (!ni_driver) ni_driver = new OpenniDriver();
-            OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver);
-            k_grabber->setTrackUsers(false);
-            if (opt::high_resolution())
-                k_grabber->setHighRgbResolution(true);
-            k_grabber->initialize();
-            QDir::setCurrent(prev.absolutePath());
-            grabber = k_grabber;
-#else
-            fatal_error("OpenNI support not built, try --freenect.");
-#endif
-        }
-    }
-    else
-    {
-        ntk_assert(0, "PMDSDK support not enabled.");
-    }
-
     MeshGenerator* mesh_generator = 0;
-    ntk::RGBDCalibration* calib_data = 0;
-
-    if (opt::calibration_file())
-    {
-        calib_data = new RGBDCalibration();
-        calib_data->loadFromFile(opt::calibration_file());
-    }
-    else if (use_openni)
-    {
-        calib_data = grabber->calibrationData();
-    }
+    ntk::RGBDCalibration* calib_data = grabber->calibrationData();
 
     if (calib_data)
     {

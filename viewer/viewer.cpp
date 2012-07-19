@@ -32,21 +32,7 @@
 #include <ntk/camera/rgbd_frame_recorder.h>
 #include <ntk/camera/rgbd_processor.h>
 
-#ifdef NESTK_USE_OPENNI
-# include <ntk/camera/openni_grabber.h>
-#endif
-
-#ifdef NESTK_USE_FREENECT
-# include <ntk/camera/freenect_grabber.h>
-#endif
-
-#ifdef NESTK_USE_KIN4WIN
-# include <ntk/camera/kin4win_grabber.h>
-#endif
-
-#ifdef NESTK_USE_PMDSDK
-# include <ntk/camera/pmd_grabber.h>
-#endif
+#include <ntk/camera/rgbd_grabber_factory.h>
 
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
@@ -69,6 +55,7 @@ ntk::arg<const char*> calibration_file("--calibration", "Calibration file (yml)"
 ntk::arg<const char*> image("--image", "Fake mode, use given still image", 0);
 ntk::arg<const char*> directory("--directory", "Fake mode, use all view???? images in dir.", 0);
 ntk::arg<int> camera_id("--camera-id", "Camera id for opencv", 0);
+ntk::arg<bool> openni("--openni", "Force OpenNI driver", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> kin4win("--kin4win", "Force kin4win driver", 0);
 ntk::arg<bool> pmd("--pmd", "Force pmd nano driver", 0);
@@ -88,121 +75,42 @@ int main (int argc, char** argv)
     QApplication::setGraphicsSystem("raster");
     QApplication app (argc, argv);
 
-    const char* fake_dir = opt::image();
-    bool is_directory = opt::directory() != 0;
+    RGBDGrabberFactory grabber_factory;
+    RGBDGrabberFactory::Params params;
+
     if (opt::directory())
-        fake_dir = opt::directory();
+        params.directory = opt::directory();
 
-    ntk::RGBDProcessor* processor = 0;
+    if (opt::openni())
+        params.type = RGBDGrabberFactory::OPENNI;
 
-    RGBDGrabber* grabber = 0;
+    if (opt::freenect())
+        params.type = RGBDGrabberFactory::FREENECT;
 
-#ifdef NESTK_USE_OPENNI
-    OpenniDriver* ni_driver = 0;
-#endif
+    if (opt::kin4win())
+        params.type = RGBDGrabberFactory::KIN4WIN;
 
-    bool use_openni   = !opt::freenect() && !opt::kin4win() && !opt::pmd();
-    bool use_freenect = opt::freenect() && !use_openni;
-    bool use_kin4win  = opt::kin4win() && !use_freenect;
-    bool use_pmd = opt::pmd() || !use_kin4win;
+    if (opt::pmd())
+        params.type = RGBDGrabberFactory::PMD;
 
-#ifndef NESTK_USE_OPENNI
-    use_openni = false;
-#endif
-#ifndef NESTK_USE_OPENNI
-    use_freenect = false;
-#endif
-#ifndef NESTK_USE_KIN4WIN
-    use_kin4win = false;
-#endif
-#ifndef NESTK_USE_KIN4WIN
-    use_kin4win = false;
-#endif
-#ifndef NESTK_USE_PMDSDK
-    use_pmd = false;
-#endif
+    if (opt::calibration_file())
+        params.calibration_file = opt::calibration_file();
 
-    if (opt::image() || opt::directory())
-    {
-        std::string path = opt::image() ? opt::image() : opt::directory();
-        FileGrabber* file_grabber = new FileGrabber(path, opt::directory() != 0);
-        grabber = file_grabber;
-    }
-#ifdef NESTK_USE_OPENNI
-    else if (use_openni)
-    {
-        // Config dir is supposed to be next to the binaries.
-        QDir prev = QDir::current();
-        QDir::setCurrent(QApplication::applicationDirPath());
-        if (!ni_driver) ni_driver = new OpenniDriver();
-        if (ni_driver->numDevices() > 0)
-        {
-            OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver, opt::camera_id());
-            k_grabber->setTrackUsers(false);
-            if (opt::high_resolution())
-                k_grabber->setHighRgbResolution(true);
-            k_grabber->setSubsamplingFactor(opt::subsampling_factor());
-            k_grabber->connectToDevice();
-            QDir::setCurrent(prev.absolutePath());
-            grabber = k_grabber;
-        }
-    }
-#endif
-#ifdef NESTK_USE_FREENECT
-    else if (use_freenect)
-    {
-        FreenectGrabber* k_grabber = new FreenectGrabber();
-        k_grabber->initialize();
-        k_grabber->setIRMode(false);
-        grabber = k_grabber;
-    }
-#endif
-#ifdef NESTK_USE_KIN4WIN
-    else if (use_kin4win)
-    {
-        Kin4WinDriver kin4WinDriver; // FIXME
-        Kin4WinGrabber* k_grabber = new Kin4WinGrabber(kin4WinDriver);
-        k_grabber->initialize();
-        grabber = k_grabber;
-    }
-#endif
-#ifdef NESTK_USE_PMDSDK
-    else if (use_pmd)
-    {
-        PmdGrabber* k_grabber = new PmdGrabber();
-        k_grabber->initialize();
-        grabber = k_grabber;
-    }
-#endif
+    if (opt::high_resolution())
+        params.high_resolution = true;
 
-    if (!grabber)
+    std::vector<RGBDGrabberFactory::GrabberData> grabbers;
+    grabbers = grabber_factory.createGrabbers(params);
+
+    if (grabbers.size() < 1)
     {
         QMessageBox::critical(0, "Fatal error",
-                                  "Cannot connect to the Kinect device.\n\nPlease check that it is correctly plugged to the computer.");
+                                  "Cannot connect to any RGBD device.\n\nPlease check that it is correctly plugged to the computer.");
         return 1;
     }
 
-    ntk_ensure(grabber, "Could not create any grabber. Kinect support built?");
-
-    if (use_openni)
-    {
-        processor = new ntk::OpenniRGBDProcessor();
-    }
-    else if (use_freenect)
-    {
-        processor = new ntk::FreenectRGBDProcessor();
-    }
-    else if (use_kin4win)
-    {
-        processor = new ntk::OpenniRGBDProcessor();
-    }
-    else if (use_pmd)
-    {
-        processor = new ntk::PmdRgbProcessor();
-    }
-
-    if (opt::sync())
-        grabber->setSynchronous(true);
+    RGBDGrabber* grabber = grabbers[0].grabber;
+    RGBDProcessor* processor = grabbers[0].processor;
 
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());
     frame_recorder.setFrameIndex(opt::first_index());
@@ -214,25 +122,7 @@ int main (int argc, char** argv)
 
     MeshGenerator* mesh_generator = 0;
 
-    ntk::RGBDCalibration* calib_data = 0;
-    if (opt::calibration_file())
-    {
-        calib_data = new RGBDCalibration();
-        calib_data->loadFromFile(opt::calibration_file());
-    }
-    else if (use_openni || use_kin4win || use_pmd)
-    {
-        calib_data = grabber->calibrationData();
-    }
-    else if (QDir::current().exists("kinect_calibration.yml"))
-    {
-        {
-            ntk_dbg(0) << "[WARNING] Using kinect_calibration.yml in current directory";
-            ntk_dbg(0) << "[WARNING] use --calibration to specify a different file.";
-        }
-        calib_data = new RGBDCalibration();
-        calib_data->loadFromFile("kinect_calibration.yml");
-    }
+    ntk::RGBDCalibration* calib_data = grabber->calibrationData();
 
     if (calib_data)
     {
