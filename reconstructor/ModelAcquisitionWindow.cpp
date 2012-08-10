@@ -53,16 +53,6 @@ void ModelAcquisitionWindow::on_saveMeshButton_clicked()
   m_controller.modelAcquisitionController()->modeler().computeSurfaceMesh();
   m_controller.modelAcquisitionController()->modeler()
       .currentMesh().saveToPlyFile("scene_mesh.ply");
-
-#if 1
-    const ntk::Mesh& mesh = m_controller.modelAcquisitionController()->modeler().currentMesh();
-    std::ofstream f("/tmp/mesh.ascii");
-    foreach_idx(i, mesh.vertices)
-    {
-        f << mesh.vertices[i].x << " " << mesh.vertices[i].y << " " << mesh.vertices[i].z << std::endl;
-    }
-    f.close();
-#endif
 }
 
 void ModelAcquisitionWindow::on_startButton_clicked()
