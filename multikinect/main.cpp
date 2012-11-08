@@ -33,6 +33,7 @@
 
 #include <ntk/camera/opencv_grabber.h>
 #include <ntk/camera/file_grabber.h>
+#include <ntk/camera/rgbd_grabber_factory.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
 #include <ntk/camera/openni_grabber.h>
 #include <ntk/camera/multiple_grabber.h>
@@ -66,9 +67,15 @@ ntk::arg<const char*> calibration_dir("--calibration", "Directory where the cali
 ntk::arg<const char*> directory("--directory", "Fake mode, specify a directory where the streams are", 0);
 
 ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
-ntk::arg<bool> use_highres("--highres", "High resolution mode (Nite only)", 0);
 ntk::arg<int> num_devices("--numdevices", "Number of connected Kinects (-1 is all)", -1);
 ntk::arg<const char*> bbox("--bbox", "Specifies the initial bounding box (.yml)", 0);
+
+ntk::arg<bool> openni("--openni", "Force OpenNI driver", 0);
+ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
+ntk::arg<bool> kin4win("--kin4win", "Force kin4win driver", 0);
+ntk::arg<bool> pmd("--pmd", "Force pmd nano driver", 0);
+
+ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
 }
 
 int main (int argc, char** argv)
@@ -77,6 +84,10 @@ int main (int argc, char** argv)
     arg_parse(argc, argv);
     ntk_debug_level = opt::debug_level();
     cv::setBreakOnError(true);
+
+    QApplication app (argc, argv);
+
+#if 0
 
     bool fake_mode = false;
     if (opt::directory())
@@ -103,8 +114,6 @@ int main (int argc, char** argv)
                 calibration_files.push_back(cv::format("%s/calibration-%s.yml", opt::calibration_dir(), (const char*)name.toAscii()));
         }
     }
-
-    QApplication app (argc, argv);
 
     ntk::RGBDProcessor* rgbd_processor = new OpenniRGBDProcessor();
     rgbd_processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
@@ -134,44 +143,51 @@ int main (int argc, char** argv)
     ntk_ensure(fake_mode || opt::num_devices() <= ni_driver->numDevices(),
                format("Only %d devices detected!", ni_driver->numDevices()).c_str());
 
+#endif
+
     // Config dir is supposed to be next to the binaries.
     QDir prev_dir = QDir::current();
     QDir::setCurrent(QApplication::applicationDirPath());
 
-    MultipleGrabber* grabber = new MultipleGrabber();
+    MultipleGrabber* multi_grabber = new MultipleGrabber();
     MultiKinectScanner scanner;
-    for (int i = 0; i < opt::num_devices(); ++i)
+
+    RGBDGrabberFactory grabber_factory;
+    RGBDGrabberFactory::Params params;
+
+    if (opt::directory())
+        params.directory = opt::directory();
+
+    if (opt::openni())
+        params.type = RGBDGrabberFactory::OPENNI;
+
+    if (opt::freenect())
+        params.type = RGBDGrabberFactory::FREENECT;
+
+    if (opt::kin4win())
+        params.type = RGBDGrabberFactory::KIN4WIN;
+
+    if (opt::pmd())
+        params.type = RGBDGrabberFactory::PMD;
+
+    if (opt::calibration_dir())
+        params.calibration_dir = opt::calibration_dir();
+
+    if (opt::high_resolution())
+        params.high_resolution = true;
+
+    std::vector<RGBDGrabberFactory::GrabberData> grabbers;
+    grabbers = grabber_factory.createGrabbers(params);
+
+    for (int i = 0; i < grabbers.size(); ++i)
     {
-        RGBDGrabber* dev_grabber = 0;
-        if (fake_mode)
-        {
-            dev_grabber = new FileGrabber(image_directories[i], true);
-        }
-        else
-        {
-            ntk_ensure(ni_driver->numDevices() >= 1, "No devices connected!");
-
-            OpenniGrabber* ni_grabber = new OpenniGrabber(*ni_driver, i);
-
-            if (opt::use_highres())
-            {
-                ni_grabber->setHighRgbResolution(true);
-            }
-            ni_grabber->setTrackUsers(false);
-            dev_grabber = ni_grabber;
-        }
-        if (opt::calibration_dir())
-        {
-            RGBDCalibration* calib_data = new RGBDCalibration();
-            calib_data->loadFromFile(calibration_files[i].c_str());
-            dev_grabber->setCalibrationData(*calib_data);
-        }
+        RGBDGrabber* grabber = grabbers[i].grabber;
 
         if (opt::sync())
-            dev_grabber->setSynchronous(true);
+            grabber->setSynchronous(true);
 
-        grabber->addGrabber(dev_grabber);
-        scanner.addGrabber(dev_grabber);
+        multi_grabber->addGrabber(grabber);
+        scanner.addGrabber(grabber);
     }
 
     QDir::setCurrent(prev_dir.absolutePath());
