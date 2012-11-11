@@ -159,16 +159,16 @@ int main (int argc, char** argv)
         params.directory = opt::directory();
 
     if (opt::openni())
-        params.type = RGBDGrabberFactory::OPENNI;
+        params.default_type = RGBDGrabberFactory::OPENNI;
 
     if (opt::freenect())
-        params.type = RGBDGrabberFactory::FREENECT;
+        params.default_type = RGBDGrabberFactory::FREENECT;
 
     if (opt::kin4win())
-        params.type = RGBDGrabberFactory::KIN4WIN;
+        params.default_type = RGBDGrabberFactory::KIN4WIN;
 
     if (opt::pmd())
-        params.type = RGBDGrabberFactory::PMD;
+        params.default_type = RGBDGrabberFactory::PMD;
 
     if (opt::calibration_dir())
         params.calibration_dir = opt::calibration_dir();
@@ -176,15 +176,21 @@ int main (int argc, char** argv)
     if (opt::high_resolution())
         params.high_resolution = true;
 
+    if (opt::sync())
+        params.synchronous = true;
+
     std::vector<RGBDGrabberFactory::GrabberData> grabbers;
     grabbers = grabber_factory.createGrabbers(params);
 
     for (int i = 0; i < grabbers.size(); ++i)
     {
-        RGBDGrabber* grabber = grabbers[i].grabber;
-
-        if (opt::sync())
-            grabber->setSynchronous(true);
+        RGBDGrabber* grabber = grabbers[i].grabber;       
+        bool ok = grabber->connectToDevice();
+        if (!ok)
+        {
+            ntk_dbg(0) << "WARNING: connectToDevice failed.";
+            continue;
+        }
 
         multi_grabber->addGrabber(grabber);
         scanner.addGrabber(grabber);

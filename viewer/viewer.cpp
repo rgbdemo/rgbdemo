@@ -82,22 +82,25 @@ int main (int argc, char** argv)
         params.directory = opt::directory();
 
     if (opt::openni())
-        params.type = RGBDGrabberFactory::OPENNI;
+        params.default_type = RGBDGrabberFactory::OPENNI;
 
     if (opt::freenect())
-        params.type = RGBDGrabberFactory::FREENECT;
+        params.default_type = RGBDGrabberFactory::FREENECT;
 
     if (opt::kin4win())
-        params.type = RGBDGrabberFactory::KIN4WIN;
+        params.default_type = RGBDGrabberFactory::KIN4WIN;
 
     if (opt::pmd())
-        params.type = RGBDGrabberFactory::PMD;
+        params.default_type = RGBDGrabberFactory::PMD;
 
     if (opt::calibration_file())
         params.calibration_file = opt::calibration_file();
 
     if (opt::high_resolution())
         params.high_resolution = true;
+
+    if (opt::sync())
+        params.synchronous = true;
 
     std::vector<RGBDGrabberFactory::GrabberData> grabbers;
     grabbers = grabber_factory.createGrabbers(params);
@@ -111,6 +114,13 @@ int main (int argc, char** argv)
 
     RGBDGrabber* grabber = grabbers[0].grabber;
     RGBDProcessor* processor = grabbers[0].processor;
+
+    bool ok = grabber->connectToDevice();
+    if (!ok)
+    {
+        ntk_dbg(0) << "WARNING: connectToDevice failed.";
+        return 1;
+    }
 
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());
     frame_recorder.setFrameIndex(opt::first_index());
