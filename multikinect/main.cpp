@@ -182,6 +182,8 @@ int main (int argc, char** argv)
     std::vector<RGBDGrabberFactory::GrabberData> grabbers;
     grabbers = grabber_factory.createGrabbers(params);
 
+    ntk_dbg_print(grabbers.size(), 1);
+
     for (int i = 0; i < grabbers.size(); ++i)
     {
         RGBDGrabber* grabber = grabbers[i].grabber;       
