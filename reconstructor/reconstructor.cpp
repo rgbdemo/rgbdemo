@@ -34,12 +34,12 @@
 #include <ntk/camera/opencv_grabber.h>
 #include <ntk/camera/file_grabber.h>
 #include <ntk/camera/rgbd_frame_recorder.h>
+#include <ntk/geometry/incremental_pose_estimator_from_rgb_features.h>
 
 #ifdef NESTK_USE_FREENECT
 # include <ntk/camera/freenect_grabber.h>
 #endif
 
-#include <ntk/geometry/incremental_pose_estimator_from_rgb_features.h>
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/surfels_rgbd_modeler.h>
 #include "GuiController.h"
@@ -106,8 +106,7 @@ int main (int argc, char** argv)
         QDir::setCurrent(QApplication::applicationDirPath());
         if (!ni_driver) ni_driver = new OpenniDriver();
         OpenniGrabber* k_grabber = new OpenniGrabber(*ni_driver);
-        k_grabber->setTrackUsers(false);	
-        // k_grabber->setCustomBayerDecoding(true);
+        k_grabber->setTrackUsers(false);
         if (opt::high_resolution())
             k_grabber->setHighRgbResolution(true);
         k_grabber->initialize();
