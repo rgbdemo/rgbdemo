@@ -10,6 +10,7 @@
 
 #include <ntk/utils/time.h>
 #include <ntk/camera/calibration.h>
+#include <ntk/gui/image_window.h>
 
 using namespace ntk;
 
@@ -98,6 +99,21 @@ void GuiMultiKinectController::handleAsyncEvent(ntk::EventListener::Event event)
 
 void GuiMultiKinectController::processNewImage(RGBDImageConstPtr image)
 {
+    const bool show_all_images = false;
+    if (show_all_images)
+    {
+        std::string window_name = image->cameraSerial();
+
+        double min_dist = scanner().processorBlock().minDepth();
+        double max_dist = scanner().processorBlock().maxDepth();
+
+        cv::Mat3b depth_as_color;
+        // compute_color_encoded_depth(image->depth(), depth_as_color, &min_dist, &max_dist);
+
+        // DirectImageWindowManager::getInstance()->showImage(window_name, depth_as_color);
+        // DirectImageWindowManager::getInstance()->showImage(window_name + "rgb", image->intensity());
+    }
+
     if (image->cameraSerial() != m_active_device_serial)
         return;
 
@@ -228,6 +244,8 @@ void GuiMultiKinectController::saveLastMeshes()
         global_mesh.addMesh(*m_last_mesh_vector->meshes[i]);
         m_last_mesh_vector->meshes[i]->saveToPlyFile(cv::format("current_mesh_%02d.ply", i).c_str());
     }
+    global_mesh.texcoords.clear();
+    global_mesh.face_texcoords.clear();
     global_mesh.saveToPlyFile("current_mesh_global.ply");
 }
 

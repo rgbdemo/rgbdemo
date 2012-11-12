@@ -258,6 +258,16 @@
          </widget>
         </item>
         <item>
+         <widget class="QCheckBox" name="noInterferenceCheckBox">
+          <property name="toolTip">
+           <string>Capture frames only when other cameras have no depth to avoid interferences</string>
+          </property>
+          <property name="text">
+           <string>No interference</string>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="Line" name="line">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
@@ -341,7 +351,7 @@
     <string>Grab all frames</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+G</string>
+    <string>Ctrl+Shift+G</string>
    </property>
   </action>
   <action name="action_Filters">
@@ -480,6 +490,9 @@
   <action name="actionGrab_one_frame">
    <property name="text">
     <string>Grab one frame</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
    </property>
   </action>
  </widget>

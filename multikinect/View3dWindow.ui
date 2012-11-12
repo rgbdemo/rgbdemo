@@ -507,7 +507,7 @@
              <item>
               <widget class="QDoubleSpinBox" name="patternSizeSpinBox">
                <property name="decimals">
-                <number>3</number>
+                <number>4</number>
                </property>
                <property name="maximum">
                 <double>1.000000000000000</double>
@@ -602,7 +602,7 @@
      <x>0</x>
      <y>0</y>
      <width>1092</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">

@@ -10,8 +10,15 @@
 using namespace ntk;
 
 MultiKinectScanner::MultiKinectScanner()
-    : m_controller(0),
-      m_paused(false)
+: ScannerBlock("MultiKinectScanner")
+, m_recorder_block("MultiKinectScanner::m_recorder_block")
+, m_processor_block("MultiKinectScanner::m_processor_block")
+, m_frame_synchronizer_block("MultiKinectScanner::m_frame_synchronizer_block")
+, m_mesh_generator_block("MultiKinectScanner::m_mesh_generator_block")
+, m_calibrator_block("MultiKinectScanner::m_calibrator_block")
+, m_controller(0)
+, m_paused(false)
+, m_process_one_frame(0)
 {
     m_processor_block.addEventListener(this);
 
@@ -30,7 +37,8 @@ bool MultiKinectScanner::initialize()
     bool ok = true;
     foreach_it(it, m_grabbers, std::set<RGBDGrabber*>)
     {
-        ok &= (*it)->connectToDevice();
+        if (!(*it)->isConnected())
+            ok &= (*it)->connectToDevice();
         DeviceInfo info;
         info.serial = (*it)->cameraSerial();
         info.calibration = (*it)->calibrationData();
@@ -50,6 +58,14 @@ void MultiKinectScanner::triggerGrabbers()
     foreach_const_it(it, m_grabbers, std::set<ntk::RGBDGrabber*>)
     {
         (*it)->newEvent();
+    }
+}
+
+void MultiKinectScanner::setIRMode(bool enable)
+{
+    foreach_const_it(it, m_grabbers, std::set<ntk::RGBDGrabber*>)
+    {
+        (*it)->setIRMode(enable);
     }
 }
 
@@ -80,7 +96,7 @@ void MultiKinectScanner::setPaused(bool paused)
 
 void MultiKinectScanner::processOneFrame()
 {
-    m_process_one_frame = true;
+    m_process_one_frame = m_grabbers.size();
     triggerGrabbers();
 }
 
@@ -161,8 +177,16 @@ void MultiKinectScanner::updateCameraCalibration(CalibrationParametersPtr params
         m_controller->onCameraExtrinsicsChanged(params);
 }
 
+void MultiKinectScanner::setWaitUntilOnlyOneFrameHasDepthMode(bool enable)
+{
+    m_frame_synchronizer_block.setWaitUntilOnlyOneFrameHasDepthMode(enable);
+}
+
 void MultiKinectScanner::run()
 {
+    setThreadShouldExit(false);
+
+    // FIXME: Really? This should be done every time the thread starts?
     initialize();
     if (m_controller)
         m_controller->onScannerInitialized();
@@ -210,10 +234,9 @@ void MultiKinectScanner::run()
             if (m_paused && !m_process_one_frame)
                 continue;
 
-            if (m_process_one_frame)
-            {
-                m_process_one_frame = false;
-            }
+            --m_process_one_frame;
+            if (m_process_one_frame < 0)
+                m_process_one_frame = 0;
 
             ntk_assert(m_grabbers.find(grabber) != m_grabbers.end(), "Receiving messages from unknown grabber");
             processLastImageFromGrabber(*grabber);
@@ -235,7 +258,8 @@ void MultiKinectScanner::run()
             m_mesh_generator_block.newEvent(this, data);
             m_controller->onNewSynchronizedImages(data->images);
             m_last_processed_frame_vector = data;
-            triggerGrabbers();
+            if (!m_paused)
+                triggerGrabbers();
         }
 
         // Mesh generator block output.

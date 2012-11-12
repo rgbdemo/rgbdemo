@@ -29,6 +29,9 @@
 #ifdef NESTK_USE_FREENECT
 # include <ntk/camera/freenect_grabber.h>
 #endif
+#ifdef NESTK_USE_OPENNI
+# include <ntk/camera/openni_grabber.h>
+#endif
 
 #include <QCloseEvent>
 #include <QFileDialog>
@@ -173,6 +176,11 @@ void RawImagesWindow::on_action_3D_View_toggled(bool active)
     m_controller.toggleView3d(active);
 }
 
+void RawImagesWindow::on_actionShow_IR_toggled(bool v)
+{
+  m_controller.scanner().setIRMode(v);
+}
+
 #if FIXME
 
 void RawImagesWindow::on_action_GrabOneFrame_triggered()
@@ -217,4 +225,9 @@ void RawImagesWindow :: on_actionAlternate_devices_triggered(bool checked)
 void RawImagesWindow::on_actionGrab_one_frame_triggered()
 {
     m_controller.grabOneFrame();
+}
+
+void RawImagesWindow::on_noInterferenceCheckBox_toggled(bool checked)
+{
+    m_controller.scanner().setWaitUntilOnlyOneFrameHasDepthMode(checked);
 }

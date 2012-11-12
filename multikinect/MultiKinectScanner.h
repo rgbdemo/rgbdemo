@@ -35,6 +35,7 @@ public:
 public: // control
     void plugController(MultiKinectController* controller) { m_controller = controller; }
 
+    void setIRMode(bool enable);
     void setGrabberSynchronous(bool sync);
     bool areGrabbersSynchronous() const;
 
@@ -69,6 +70,8 @@ public:
     void updateCameraCalibration(CalibrationParametersPtr params);
     FrameVectorPtr lastProcessedFrameVector() const { return m_last_processed_frame_vector; }
 
+    void setWaitUntilOnlyOneFrameHasDepthMode(bool enable);
+
 protected:
     void processLastImageFromGrabber(ntk::RGBDGrabber& grabber);
     void triggerGrabbers();
@@ -91,7 +94,7 @@ private:
 private: // control
     MultiKinectController* m_controller;
     bool m_paused;
-    bool m_process_one_frame;
+    int m_process_one_frame;
 };
 
 class MultiKinectController

@@ -70,6 +70,8 @@ ntk::arg<bool> sync("--sync", "Synchronization mode", 0);
 ntk::arg<int> num_devices("--numdevices", "Number of connected Kinects (-1 is all)", -1);
 ntk::arg<const char*> bbox("--bbox", "Specifies the initial bounding box (.yml)", 0);
 
+ntk::arg<bool> no_registration("--no-registration", "No color-depth hardware registration.", 0);
+
 ntk::arg<bool> openni("--openni", "Force OpenNI driver", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> kin4win("--kin4win", "Force kin4win driver", 0);
@@ -86,64 +88,6 @@ int main (int argc, char** argv)
     cv::setBreakOnError(true);
 
     QApplication app (argc, argv);
-
-#if 0
-
-    bool fake_mode = false;
-    if (opt::directory())
-        fake_mode = true;
-
-    std::vector<std::string> calibration_files;
-    std::vector<std::string> image_directories;
-
-    if (fake_mode)
-    {
-        QDir root_path (opt::directory());
-        QStringList devices = root_path.entryList(QStringList("*"), QDir::Dirs | QDir::NoDotAndDotDot, QDir::Name);
-        foreach (QString name, devices)
-        {
-            QString camera_path = root_path.absoluteFilePath(name);
-            if (QDir(camera_path).entryList(QStringList("view*"), QDir::Dirs, QDir::Name).size() == 0)
-            {
-                ntk_dbg(0) << "Warning, directory " << camera_path << " has no images, skipping.";
-                continue;
-            }
-            ntk_dbg_print(camera_path, 1);
-            image_directories.push_back(camera_path.toStdString());
-            if (opt::calibration_dir())
-                calibration_files.push_back(cv::format("%s/calibration-%s.yml", opt::calibration_dir(), (const char*)name.toAscii()));
-        }
-    }
-
-    ntk::RGBDProcessor* rgbd_processor = new OpenniRGBDProcessor();
-    rgbd_processor->setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
-
-    OpenniDriver* ni_driver = 0;
-    if (!fake_mode)
-    {
-        ni_driver = new OpenniDriver;
-        if (opt::num_devices() < 0)
-            opt::num_devices.value_ = ni_driver->numDevices();
-
-        if (opt::calibration_dir())
-        {
-            calibration_files.resize(ni_driver->numDevices());
-            for (size_t i = 0; i < ni_driver->numDevices(); ++i)
-            {
-                std::string name = ni_driver->deviceInfo(i).serial;
-                calibration_files[i] = cv::format("%s/calibration-%s.yml", opt::calibration_dir(), name.c_str());
-            }
-        }
-    }
-    else
-    {
-        opt::num_devices.value_ = image_directories.size();
-    }
-
-    ntk_ensure(fake_mode || opt::num_devices() <= ni_driver->numDevices(),
-               format("Only %d devices detected!", ni_driver->numDevices()).c_str());
-
-#endif
 
     // Config dir is supposed to be next to the binaries.
     QDir prev_dir = QDir::current();
@@ -175,6 +119,9 @@ int main (int argc, char** argv)
 
     if (opt::high_resolution())
         params.high_resolution = true;
+
+    if (opt::no_registration())
+        params.hardware_registration = false;
 
     if (opt::sync())
         params.synchronous = true;

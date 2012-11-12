@@ -17,18 +17,30 @@ namespace ntk
 
 struct FrameVector : public ntk::EventData
 {
+    TYPEDEF_THIS(FrameVector)
+
+    CLONABLE_EVENT_DATA
+
     std::vector<ntk::RGBDImagePtr> images;
 };
 ntk_ptr_typedefs(FrameVector)
 
 struct FrameVectorVector : public ntk::EventData
 {
+    TYPEDEF_THIS(FrameVectorVector)
+
+    CLONABLE_EVENT_DATA
+
     std::vector<FrameVectorPtr> frames;
 };
 ntk_ptr_typedefs(FrameVectorVector)
 
 struct MeshVector : public ntk::EventData
 {
+    TYPEDEF_THIS(MeshVector)
+
+    CLONABLE_EVENT_DATA
+
     std::vector<std::string> camera_serials;
     std::vector<ntk::MeshPtr> meshes;
 };
@@ -36,6 +48,10 @@ ntk_ptr_typedefs(MeshVector)
 
 struct CalibrationParameters : public ntk::EventData
 {
+    TYPEDEF_THIS(CalibrationParameters)
+
+    CLONABLE_EVENT_DATA
+
     std::string camera_serial;
     const ntk::RGBDCalibration* calibration;
     cv::Vec3f new_t;
@@ -46,7 +62,10 @@ ntk_ptr_typedefs(CalibrationParameters)
 class ScannerBlock : public ntk::EventProcessingBlockInOwnThread
 {
 public:
-    ScannerBlock() : m_connected(true) {}
+    ScannerBlock(Name name)
+    : ntk::EventProcessingBlockInOwnThread(name)
+    , m_connected(true)
+    {}
 
 public:
     void setConnected(bool connected) { m_connected = connected; }
@@ -66,7 +85,7 @@ private:
 class RecorderBlock : public ScannerBlock
 {
 public:
-    RecorderBlock();
+    RecorderBlock(Name name);
 
 public:
     void setOutputDirectoryPrefix(const std::string& dir);
@@ -82,7 +101,9 @@ private:
 class RGBDProcessorBlock : public ScannerBlock
 {
 public:
-    RGBDProcessorBlock() {}
+    RGBDProcessorBlock(Name name)
+    : ScannerBlock(name)
+    {}
 
 public:
     void setMinDepth(float depth) { m_processor.setMinDepth(depth); }
@@ -104,25 +125,38 @@ private:
 class FrameSynchronizerBlock : public ScannerBlock
 {
 public:
-    FrameSynchronizerBlock() {}
+    FrameSynchronizerBlock(Name name)
+    : ScannerBlock(name),
+      m_wait_until_only_one_has_depth(false)
+    {}
 
 public:
     /*! Add a device that must be waited for. */
     void addDevice(const std::string& serial) { m_devices_serial_to_wait.insert(serial); }
 
+    void setWaitUntilOnlyOneFrameHasDepthMode(bool enable);
+
 protected:
     virtual void run();
 
 private:
+    bool otherImagesHaveNoDepth(const std::string& serial) const;
+
+private:
+    bool m_wait_until_only_one_has_depth;
+    mutable QMutex mutex;
     std::set<std::string> m_devices_serial_to_wait;
     typedef std::map<std::string, ntk::RGBDImagePtr> image_map_type;
     image_map_type m_updated_images;
+    typedef std::map<std::string, uint64> images_without_depth_map_type;
+    images_without_depth_map_type m_images_without_depth;
+    std::string m_last_added_image;
 };
 
 class MeshGeneratorBlock : public ScannerBlock
 {
 public:
-    MeshGeneratorBlock();
+    MeshGeneratorBlock(Name name);
 
 public:
     void setMeshType(ntk::MeshGenerator::MeshType type);
@@ -154,8 +188,13 @@ public:
     static double a3SquareSize () { return 0.034; }
 
 public:
-    CalibratorBlock() : m_controller(0), m_algo(ICP),
-        m_pattern_size(a4SquareSize()), m_pattern_width(10), m_pattern_height(7)
+    CalibratorBlock(Name name)
+    : ScannerBlock(name)
+    , m_controller(0)
+    , m_algo(ICP)
+    , m_pattern_size(a4SquareSize())
+    , m_pattern_width(10)
+    , m_pattern_height(7)
     {}
 
 public:

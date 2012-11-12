@@ -18,6 +18,10 @@ class GuiMultiKinectController : public ntk::AsyncEventListener, public MultiKin
 public:
     struct LocalEventData : public ntk::EventData
     {
+        TYPEDEF_THIS(LocalEventData)
+
+        CLONABLE_EVENT_DATA
+
         enum EventType { None, ScannerInitialized };
 
         LocalEventData() : event_type (None) {}

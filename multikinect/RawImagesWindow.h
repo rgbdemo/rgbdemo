@@ -63,12 +63,12 @@ private:
 
     void on_action_Filters_toggled(bool );
     void on_action_3D_View_toggled(bool );
+    void on_actionShow_IR_toggled(bool v);
 
 #if 0
 private slots:
     void on_action_GrabOneFrame_triggered();
     void on_action_Screen_capture_mode_toggled(bool );
-    void on_actionShow_IR_toggled(bool v);
     void on_actionDual_RGB_IR_mode_toggled(bool v);
     void on_actionAlternate_devices_triggered(bool checked);
 #endif
@@ -76,6 +76,7 @@ private slots:
     friend class GuiMultiKinectController;
 private slots:
     void on_actionGrab_one_frame_triggered();
+    void on_noInterferenceCheckBox_toggled(bool checked);
 };
 
 #endif // RAWIMAGESWINDOW_H
