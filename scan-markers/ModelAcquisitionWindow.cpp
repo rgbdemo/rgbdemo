@@ -69,14 +69,12 @@ void ModelAcquisitionWindow::on_saveMeshButton_clicked()
     std::string model_path = filename.toStdString();
     ntk::RGBDFrameRecorder recorder (model_path);
     recorder.setSaveRgbPose(true);
-    recorder.setIncludeSerial(false);
-    recorder.setIncludeTimestamp(false);
     recorder.saveCurrentFrame(m_controller.modelAcquisitionController()->currentImage());
     m_controller.modelAcquisitionController()->currentMesh().saveToPlyFile((model_path + "/mesh.ply").c_str());
     m_controller.modelAcquisitionController()->currentImage().calibration()->saveToFile((model_path + "/calibration.yml").c_str());
 }
 
-void ModelAcquisitionWindow::on_startButton_clicked()
+void ModelAcquisitionWindow::on_addCurrentFrameButton_clicked()
 {
     m_controller.modelAcquisitionController()->setPaused(false);
 }
@@ -89,9 +87,4 @@ void ModelAcquisitionWindow::on_resetButton_clicked()
 void ModelAcquisitionWindow::on_removeFloorPlaneButton_clicked()
 {
     m_controller.modelAcquisitionController()->removeFloorPlane();
-}
-
-void ModelAcquisitionWindow::on_stopButton_clicked()
-{
-    m_controller.modelAcquisitionController()->setPaused(true);
 }

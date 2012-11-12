@@ -50,7 +50,7 @@ void ModelAcquisitionController :: modelAndMove()
 void ModelAcquisitionController :: reset()
 {
     m_modeler.reset();
-    // m_pose_estimator->reset();
+    m_pose_estimator->reset();
     m_controller.modelAcquisitionWindow()->ui->mesh_view->swapScene();
 }
 
@@ -110,14 +110,15 @@ void ModelAcquisitionController :: newFrame(const ntk::RGBDImage& image)
             {
                 cv::Mat3b im_with_markers;
                 m_current_image.rgb().copyTo(im_with_markers);
-                m_current_image.setDepthPose(m_pose_estimator->currentPose());
+                m_current_image.setEstimatedWorldDepthPose(m_pose_estimator->currentPose());
                 m_pose_estimator->drawDetectedMarkers(im_with_markers);
                 m_controller.modelAcquisitionWindow()->ui->marker_image->setImage(im_with_markers);
                 m_controller.modelAcquisitionWindow()->ui->mesh_view->addMesh(m_current_mesh, Pose3D(), MeshViewer::FLAT);
                 m_controller.modelAcquisitionWindow()->ui->mesh_view->swapScene();
-                // m_controller.modelAcquisitionController()->setPaused(true);
             }
         }
+        // m_controller.modelAcquisitionController()->setPaused(true);
+
     }
 }
 

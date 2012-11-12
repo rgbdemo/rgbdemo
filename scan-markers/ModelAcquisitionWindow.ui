@@ -31,7 +31,7 @@
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
-        <widget class="QPushButton" name="startButton">
+        <widget class="QPushButton" name="addCurrentFrameButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -39,14 +39,7 @@
           </sizepolicy>
          </property>
          <property name="text">
-          <string>Start</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="stopButton">
-         <property name="text">
-          <string>Stop</string>
+          <string>Add current frame</string>
          </property>
         </widget>
        </item>
@@ -159,7 +152,7 @@
      <x>0</x>
      <y>0</y>
      <width>821</width>
-     <height>26</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

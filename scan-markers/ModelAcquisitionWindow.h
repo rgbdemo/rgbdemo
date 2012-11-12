@@ -44,8 +44,7 @@ private slots:
     void on_saveMeshButton_clicked();
     void on_resetCamera_clicked();
 
-    void on_startButton_clicked();
-    void on_stopButton_clicked();
+    void on_addCurrentFrameButton_clicked();
     void on_resetButton_clicked();
 
     void on_removeFloorPlaneButton_clicked();
