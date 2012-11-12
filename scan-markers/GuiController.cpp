@@ -67,9 +67,7 @@ GuiController :: ~GuiController()
 
 void GuiController :: quit()
 {
-  m_grabber.setThreadShouldExit();
-  m_grabber.newEvent();
-  m_grabber.wait();
+  m_grabber.stop();
   QApplication::quit();
 }
 
