@@ -46,6 +46,7 @@ ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined s
 ntk::arg<bool> opt_ignore_distortions("--no-undistort", "Ignore distortions (faster processing)", true);
 ntk::arg<bool> opt_fix_center("--fix-center", "Do not estimate the central point", true);
 ntk::arg<bool> opt_optimize_scale_factor_only("--scale-factor-only", "Only estimate the scale factor", true);
+ntk::arg<bool> opt_infrared("--infrared", "Use infrared images to calibrate depth.", false);
 std::string output_filename;
 
 PatternType pattern_type;
@@ -63,42 +64,10 @@ void writeNestkMatrix()
     global::calibration.saveToFile(global::opt_input_file());
 }
 
-int main(int argc, char** argv)
+void calibrateFromColor(std::vector<ntk::RGBDImage>& images,
+                        std::vector< std::vector<Point2f> >& good_corners,
+                        std::vector< std::vector<Point2f> >& all_corners)
 {
-    arg_base::set_help_option("--help");
-    arg_parse(argc, argv);
-    ntk::ntk_debug_level = 1;
-
-    namedWindow("corners");
-
-    if      (std::string(global::opt_pattern_type()) == "chessboard") global::pattern_type = PatternChessboard;
-    else if (std::string(global::opt_pattern_type()) == "circles") global::pattern_type = PatternCircles;
-    else if (std::string(global::opt_pattern_type()) == "asymcircles") global::pattern_type = PatternAsymCircles;
-    else fatal_error(format("Invalid pattern type: %s\n", global::opt_pattern_type()).c_str());
-
-    global::calibration.loadFromFile(global::opt_input_file());
-
-    global::initial_focal_length = global::calibration.rgb_pose->focalX();
-
-    global::images_dir = QDir(global::opt_image_directory());
-    ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
-
-    global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
-
-    OpenniRGBDProcessor processor;
-    processor.setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
-
-    std::vector<ntk::RGBDImage> images;
-    loadImageList(global::images_dir, global::images_list,
-                  &processor, &global::calibration, images);
-
-    std::vector< std::vector<Point2f> > good_corners;
-    std::vector< std::vector<Point2f> > all_corners;
-    getCalibratedCheckerboardCorners(images,
-                                     global::opt_pattern_width(), global::opt_pattern_height(),
-                                     global::pattern_type,
-                                     all_corners, good_corners, true);
-
     double width_ratio = double(global::calibration.rgbSize().width)/global::calibration.depthSize().width;
     double height_ratio = double(global::calibration.rgbSize().height)/global::calibration.depthSize().height;
 
@@ -136,6 +105,67 @@ int main(int argc, char** argv)
     global::calibration.depth_intrinsics(1,2) /= width_ratio;
     global::calibration.updatePoses();
     // global::calibration.depth_multiplicative_correction_factor = global::calibration.rgb_pose->focalX() / global::initial_focal_length;
+}
+
+void calibrateFromInfrared(std::vector<ntk::RGBDImage>& images,
+                           std::vector< std::vector<Point2f> >& good_corners,
+                           std::vector< std::vector<Point2f> >& all_corners)
+{
+    global::calibration.infrared_intrinsics(0,2) = 640;
+    global::calibration.infrared_intrinsics(1,2) = 512;
+    global::calibration.infrared_intrinsics(0,0) = 570.34*2.0;
+    global::calibration.infrared_intrinsics(1,1) = 570.34*2.0;
+    calibrate_kinect_depth_infrared(images, good_corners, global::calibration,
+                                    global::opt_pattern_width(), global::opt_pattern_height(),
+                                    global::opt_square_size(), global::pattern_type,
+                                    global::opt_ignore_distortions(),
+                                    global::opt_fix_center(),
+                                    CV_CALIB_USE_INTRINSIC_GUESS|CV_CALIB_FIX_ASPECT_RATIO/*|CV_CALIB_FIX_FOCAL_LENGTH*/);
+    global::calibration.computeDepthIntrinsicsFromInfrared();
+    global::calibration.updatePoses();
+}
+
+int main(int argc, char** argv)
+{
+    arg_base::set_help_option("--help");
+    arg_parse(argc, argv);
+    ntk::ntk_debug_level = 1;
+
+    namedWindow("corners");
+
+    if      (std::string(global::opt_pattern_type()) == "chessboard") global::pattern_type = PatternChessboard;
+    else if (std::string(global::opt_pattern_type()) == "circles") global::pattern_type = PatternCircles;
+    else if (std::string(global::opt_pattern_type()) == "asymcircles") global::pattern_type = PatternAsymCircles;
+    else fatal_error(format("Invalid pattern type: %s\n", global::opt_pattern_type()).c_str());
+
+    global::calibration.loadFromFile(global::opt_input_file());
+
+    global::initial_focal_length = global::calibration.rgb_pose->focalX();
+
+    global::images_dir = QDir(global::opt_image_directory());
+    ntk_ensure(global::images_dir.exists(), (global::images_dir.absolutePath() + " is not a directory.").toAscii());
+
+    global::images_list = global::images_dir.entryList(QStringList("view????*"), QDir::Dirs, QDir::Name);
+
+    OpenniRGBDProcessor processor;
+    processor.setFilterFlag(RGBDProcessorFlags::ComputeMapping, true);
+
+    std::vector<ntk::RGBDImage> images;
+    loadImageList(global::images_dir, global::images_list,
+                  &processor, &global::calibration, images);
+
+    std::vector< std::vector<Point2f> > good_corners;
+    std::vector< std::vector<Point2f> > all_corners;
+    getCalibratedCheckerboardCorners(images,
+                                     global::opt_pattern_width(), global::opt_pattern_height(),
+                                     global::pattern_type,
+                                     all_corners, good_corners, true,
+                                     global::opt_infrared());
+
+    if (global::opt_infrared())
+        calibrateFromInfrared(images, good_corners, all_corners);
+    else
+        calibrateFromColor(images, good_corners, all_corners);
 
     writeNestkMatrix();
     return 0;

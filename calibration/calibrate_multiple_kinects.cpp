@@ -46,6 +46,7 @@ ntk::arg<const char*> opt_pattern_type("--pattern-type", "Pattern type (chessboa
 ntk::arg<int> opt_pattern_width("--pattern-width", "Pattern width (number of inner corners)", 10);
 ntk::arg<int> opt_pattern_height("--pattern-height", "Pattern height (number of inner corners)", 7);
 ntk::arg<float> opt_square_size("--pattern-size", "Square size in used defined scale", 0.025);
+ntk::arg<bool> use_infrared_images("--infrared", "Use infrared images.", false);
 
 PatternType pattern_type;
 
@@ -63,6 +64,13 @@ OpenniRGBDProcessor rgbd_processor;
 
 void writeNestkMatrix()
 {
+#if 0
+    // FIXME: temporary !!!
+    global::calibration.updatePoses();
+    global::calibration.depth_pose->applyTransformBefore(cv::Vec3f(0,0,0), cv::Vec3f(ntk::deg_to_rad(30.f), 0, 0));
+    global::calibration.depth_pose->cvRotationMatrixTranslation(global::calibration.T_extrinsics, global::calibration.R_extrinsics);
+    global::calibration.updatePoses();
+#endif
     global::calibration.saveToFile(global::opt_output_file());
 }
 
@@ -107,17 +115,24 @@ int main(int argc, char** argv)
 
     std::vector< std::vector<Point2f> > ref_corners, ref_good_corners;
     getCalibratedCheckerboardCorners(ref_images,
-                                  global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
-                                  ref_corners, ref_good_corners);
+                                     global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
+                                     ref_corners,
+                                     ref_good_corners,
+                                     true,
+                                     global::use_infrared_images());
 
     std::vector< std::vector<Point2f> > corners, good_corners;
     getCalibratedCheckerboardCorners(images,
-                                  global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
-                                  corners, good_corners);
+                                     global::opt_pattern_width(), global::opt_pattern_height(), global::pattern_type,
+                                     corners,
+                                     good_corners,
+                                     true,
+                                     global::use_infrared_images());
 
     calibrateStereoFromCheckerboard(ref_corners, corners,
-                            global::opt_pattern_width(), global::opt_pattern_height(), global::opt_square_size(),
-                            global::calibration);
+                                    global::opt_pattern_width(), global::opt_pattern_height(), global::opt_square_size(),
+                                    global::calibration,
+                                    global::use_infrared_images());
 
     writeNestkMatrix();
     return 0;
