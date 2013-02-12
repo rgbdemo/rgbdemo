@@ -75,6 +75,7 @@ ntk::arg<bool> no_registration("--no-registration", "No color-depth hardware reg
 ntk::arg<bool> openni("--openni", "Force OpenNI driver", 0);
 ntk::arg<bool> freenect("--freenect", "Force freenect driver", 0);
 ntk::arg<bool> kin4win("--kin4win", "Force kin4win driver", 0);
+ntk::arg<bool> softkinetic("--softkinetic", "Force softkinetic driver", 0);
 ntk::arg<bool> pmd("--pmd", "Force pmd nano driver", 0);
 
 ntk::arg<bool> high_resolution("--highres", "High resolution color image.", 0);
@@ -110,6 +111,9 @@ int main (int argc, char** argv)
 
     if (opt::kin4win())
         params.default_type = RGBDGrabberFactory::KIN4WIN;
+
+    if (opt::softkinetic())
+        params.default_type = RGBDGrabberFactory::SOFTKINETIC;
 
     if (opt::pmd())
         params.default_type = RGBDGrabberFactory::PMD;
