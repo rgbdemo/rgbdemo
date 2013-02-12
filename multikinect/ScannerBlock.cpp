@@ -4,6 +4,7 @@
 #include <ntk/utils/time.h>
 #include <ntk/geometry/relative_pose_estimator_icp.h>
 #include <ntk/numeric/levenberg_marquart_minimizer.h>
+#include <ntk/camera/calibration.h>
 
 using namespace ntk;
 
@@ -464,7 +465,8 @@ void CalibratorBlock::calibrateWithChessboard(FrameVectorVectorConstPtr frames)
         }
 
         ntk_ensure(images[0].calibration(), "Images are not calibrated, cannot compute extrinsics!");
-        RGBDCalibration& calibration = *const_cast<RGBDCalibration*>(images[0].calibration());
+        const RGBDCalibration* const_calib = images[0].calibration();
+        RGBDCalibration& calibration = *const_cast<RGBDCalibration*>(const_calib);
         // images[0].calibration()->copyTo(calibration);
 
         ntk_dbg_print(m_pattern_size, 1);

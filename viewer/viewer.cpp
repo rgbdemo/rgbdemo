@@ -132,12 +132,11 @@ int main (int argc, char** argv)
 
     MeshGenerator* mesh_generator = 0;
 
-    ntk::RGBDCalibration* calib_data = grabber->calibrationData();
+    ntk::RGBDCalibrationPtr calib_data = grabber->calibrationData();
 
     if (calib_data)
     {
         mesh_generator = new MeshGenerator();
-        grabber->setCalibrationData(*calib_data);
     }
 
     GuiController gui_controller (*grabber, *processor);

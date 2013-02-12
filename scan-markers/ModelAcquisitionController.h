@@ -22,13 +22,17 @@
 
 #include <ntk/core.h>
 #include <ntk/geometry/pose_3d.h>
-#include <ntk/geometry/incremental_pose_estimator_from_markers.h>
 #include <ntk/camera/calibration.h>
 #include <ntk/mesh/rgbd_modeler.h>
 
 #include <QFuture>
 
 class GuiController;
+
+namespace ntk
+{
+class IncrementalPoseEstimatorFromMarkers;
+}
 
 class ModelAcquisitionController
 {

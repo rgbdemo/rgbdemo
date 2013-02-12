@@ -133,12 +133,11 @@ int main (int argc, char** argv)
     rgbd_processor->setMaxDepth(1.5f);
 
     MeshGenerator* mesh_generator = 0;
-    ntk::RGBDCalibration* calib_data = grabber->calibrationData();
+    ntk::RGBDCalibrationPtr calib_data = grabber->calibrationData();
 
     if (calib_data)
     {
         mesh_generator = new MeshGenerator();
-        grabber->setCalibrationData(*calib_data);
     }
 
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());

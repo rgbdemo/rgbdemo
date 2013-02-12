@@ -144,10 +144,10 @@ int main (int argc, char** argv)
     RGBDFrameRecorder frame_recorder (opt::dir_prefix());
     frame_recorder.setSaveOnlyRaw(false);
 
-    ntk::RGBDCalibration* calib_data = 0;
+    ntk::RGBDCalibrationPtr calib_data;
     if (opt::calibration_file())
     {
-        calib_data = new RGBDCalibration();
+        calib_data = toPtr(new RGBDCalibration());
         calib_data->loadFromFile(opt::calibration_file());
     }
     else if (use_openni)
@@ -160,12 +160,12 @@ int main (int argc, char** argv)
             ntk_dbg(0) << "[WARNING] Using kinect_calibration.yml in current directory";
             ntk_dbg(0) << "[WARNING] use --calibration to specify a different file.";
         }
-        calib_data = new RGBDCalibration();
+        calib_data = toPtr(new RGBDCalibration());
         calib_data->loadFromFile("kinect_calibration.yml");
     }
 
     ntk_ensure(calib_data, "You must specify a calibration file (--calibration)");
-    grabber->setCalibrationData(*calib_data);
+    grabber->setCalibrationData(calib_data);
 
     GuiController gui_controller (*grabber, *processor);
     grabber->addEventListener(&gui_controller);

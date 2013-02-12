@@ -30,6 +30,8 @@
 #include <ntk/mesh/mesh_generator.h>
 #include <ntk/mesh/plane_remover.h>
 
+#include <ntk/geometry/incremental_pose_estimator_from_markers.h>
+
 #include <QtConcurrentRun>
 
 using namespace ntk;
