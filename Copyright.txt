@@ -1,3 +1,9 @@
+ The RGBDemo software is Copyright (C) 2013 ManCTL SARL.
+ Contact: ManCTL (contact@manctl.com)
+
+ You may use, distribute and copy the RGBDemo software under the terms of
+ GNU Lesser General Public License version 2.1, which is displayed below.
+
                    GNU LESSER GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
