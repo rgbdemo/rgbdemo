@@ -1,5 +1,5 @@
 /**
- * This file is part of the rgbdemo project.
+ * Copyright (C) 2013 ManCTL SARL <contact@manctl.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * Author: Nicolas Burrus <nicolas@burrus.name>, (C) 2010, 2011
+ * Author: Nicolas Burrus <nicolas.burrus@manctl.com>
  */
 
 #ifndef FILTERSWINDOW_H
