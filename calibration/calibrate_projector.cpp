@@ -107,31 +107,37 @@ public:
 bool compX(const cv::Point2f& a, const cv::Point2f& b) { return a.x < b.x; }
 bool compY(const cv::Point2f& a, const cv::Point2f& b) { return a.y < b.y; }
 
+// copy of the above method, but uses a rotated rectangle to mask the chessboard after detection...
 void detectSinglePrintedChessboard(const Context& context, const std::string& imageName, int width, int height, cv::Mat& frame, std::vector<cv::Point2f>& corners){
 
-	float minX, minY, maxX, maxY;
-	float offset = 12;
+	cv::Point2f minMaxPoints[4];
+	cv::Point2i polygonCorners[4];
+
+	cv::Point2f center;
+
+	float offset = 16.0;
 	
 	calibrationCorners(imageName, "corners", width, height, corners, frame, 1);
 
 	if (corners.size() == 0)
 		return;
-	
-	minX = std::min_element(corners.begin(), corners.end(), compX)->x;
-	maxX = std::max_element(corners.begin(), corners.end(), compX)->x;
-	minY = std::min_element(corners.begin(), corners.end(), compY)->y;
-	maxY = std::max_element(corners.begin(), corners.end(), compY)->y;
-	
-	minX = std::max(minX-offset, 0.f);
-	maxX = std::min(maxX+offset, (float)context.image_size.width);
-	minY = std::max(minY-offset, 0.f);
-	maxY = std::min(maxY+offset, (float)context.image_size.height);
-	//Make a rectangle
-	cv::Rect roi(minX, minY, maxX-minX, maxY-minY);
-	//Point a cv::Mat header at it (no allocation is done)
-	cv::Mat image_roi = frame(roi);
-	image_roi = cv::Scalar(255, 255, 255);
+	// calculate masking rectangle for the chessboard:
+	// choose the rectangle corners as the {min|max} {x|y} values of the detected chessboard-points:
+	minMaxPoints[0] = *std::min_element(corners.begin(), corners.end(), compX);
+	minMaxPoints[1] = *std::min_element(corners.begin(), corners.end(), compY);
+	minMaxPoints[2] = *std::max_element(corners.begin(), corners.end(), compX);
+	minMaxPoints[3] = *std::max_element(corners.begin(), corners.end(), compY);
 
+	// extend these points outwars by a certain pixel offset to cover the complete chessboard:
+	center = (minMaxPoints[0]+ minMaxPoints[1]+minMaxPoints[2]+minMaxPoints[3]) * 0.25;
+	polygonCorners[0] = center + (minMaxPoints[0]-center)*(1+offset/norm(minMaxPoints[0]-center));
+	polygonCorners[1] = center + (minMaxPoints[1]-center)*(1+offset/norm(minMaxPoints[1]-center));
+	polygonCorners[2] = center + (minMaxPoints[2]-center)*(1+offset/norm(minMaxPoints[2]-center));
+	polygonCorners[3] = center + (minMaxPoints[3]-center)*(1+offset/norm(minMaxPoints[3]-center));
+
+	// set all pixels within the rectangle to white
+	cv::Scalar white = cv::Scalar(255, 255, 255);
+	cv::fillConvexPoly(frame, polygonCorners, 4, white);
 }
 
 // Detect chessboard corners (with subpixel refinement).
