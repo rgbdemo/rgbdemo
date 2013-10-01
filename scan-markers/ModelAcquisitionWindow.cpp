@@ -54,7 +54,7 @@ void ModelAcquisitionWindow::on_resetCamera_clicked()
 
 void ModelAcquisitionWindow::on_saveMeshButton_clicked()
 {
-    if (!m_controller.modelAcquisitionController()->currentImage().withDepthDataAndCalibrated())
+    if (!m_controller.modelAcquisitionController()->currentImage().withRawDepthDataAndCalibrated())
     {
         ntk_dbg(1) << "No image already processed.";
         return;
